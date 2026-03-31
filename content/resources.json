@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "title": "LLMの基礎 - Transformerアーキテクチャ解説",
+    "url": "https://example.com/slides/transformer",
+    "type": "スライド",
+    "tags": ["LLM", "基礎"],
+    "date": "2026-03-06",
+    "presenter": "田中"
+  },
+  {
+    "id": 2,
+    "title": "プロンプトエンジニアリング ベストプラクティス",
+    "url": "https://example.com/slides/prompt-engineering",
+    "type": "スライド",
+    "tags": ["プロンプト", "実践"],
+    "date": "2026-03-13",
+    "presenter": "鈴木"
+  },
+  {
+    "id": 3,
+    "title": "OpenAI API公式ドキュメント",
+    "url": "https://platform.openai.com/docs",
+    "type": "参考リンク",
+    "tags": ["API", "OpenAI"],
+    "date": "2026-03-13",
+    "presenter": null
+  },
+  {
+    "id": 4,
+    "title": "RAGの基礎と実装ハンズオン",
+    "url": "https://example.com/slides/rag-basics",
+    "type": "スライド",
+    "tags": ["RAG", "ハンズオン"],
+    "date": "2026-03-20",
+    "presenter": "佐藤"
+  }
+]

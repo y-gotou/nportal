@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "nportal",
+  "pages_build_output_dir": "dist",
+  "compatibility_date": "2026-03-31",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "nportal-db",
+      "database_id": "94ed6116-8e30-453c-8356-f87f065040d0"
+    }
+  ],
+  "env": {
+    "preview": {
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "nportal-preview-db",
+          "database_id": "1e220f4f-15d5-489e-ad17-6258d9b279b7"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "date": "2026-04-03",
+    "time": "15:00-16:00",
+    "title": "第11回 AI勉強会",
+    "meetingUrl": "https://meet.google.com/xxx-yyyy-zzz",
+    "topics": ["LLMのファインチューニング入門"],
+    "presenter": "田中"
+  },
+  {
+    "id": 2,
+    "date": "2026-04-10",
+    "time": "15:00-16:00",
+    "title": "第12回 AI勉強会",
+    "meetingUrl": "https://meet.google.com/xxx-yyyy-zzz",
+    "topics": ["プロンプトエンジニアリング実践"],
+    "presenter": "鈴木"
+  },
+  {
+    "id": 3,
+    "date": "2026-04-17",
+    "time": "15:00-16:00",
+    "title": "第13回 AI勉強会",
+    "meetingUrl": "https://meet.google.com/xxx-yyyy-zzz",
+    "topics": ["RAGアーキテクチャの設計パターン"],
+    "presenter": "佐藤"
+  }
+]

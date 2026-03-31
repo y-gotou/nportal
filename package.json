@@ -1,0 +1,35 @@
+{
+  "name": "nportal",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "content:build": "node scripts/build-minutes.mjs",
+    "predev": "npm run content:build",
+    "dev": "nuxt dev",
+    "prebuild": "npm run content:build",
+    "build": "nuxt build",
+    "pretypecheck": "npm run content:build",
+    "typecheck": "nuxt typecheck",
+    "check": "npm run typecheck && npm run build",
+    "preview": "npm run build && wrangler pages dev dist",
+    "db:seed:local": "wrangler d1 execute nportal-db --local --file db/schema.sql && wrangler d1 execute nportal-db --local --file db/seed.sql",
+    "db:seed:prod": "wrangler d1 execute nportal-db --remote --file db/schema.sql && wrangler d1 execute nportal-db --remote --file db/seed.sql",
+    "db:seed:preview": "wrangler d1 execute nportal-preview-db --remote --file db/schema.sql && wrangler d1 execute nportal-preview-db --remote --file db/seed.sql",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "gray-matter": "^4.0.3",
+    "nuxt": "^4.4.2",
+    "remark": "^15.0.1",
+    "remark-gfm": "^4.0.1",
+    "remark-html": "^16.0.1",
+    "vue": "^3.5.30",
+    "vue-router": "^5.0.4"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "nitro-cloudflare-dev": "^0.2.2",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.78.0"
+  }
+}
