@@ -32,44 +32,39 @@ useSeoMeta({
 
 <template>
   <PageContainer size="narrow">
-    <PageHero
-      eyebrow="Survey Form"
-      :title="survey.title"
-      :description="survey.description"
-    >
-      <template #meta>
-        <div class="grid gap-4 text-sm md:grid-cols-2 md:text-base">
-          <div class="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-            <p class="mb-1 text-xs font-semibold uppercase tracking-[0.24em] text-white/60">
-              設問数
-            </p>
-            <p>{{ survey.questions.length }}問</p>
-          </div>
-          <div class="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-            <p class="mb-1 text-xs font-semibold uppercase tracking-[0.24em] text-white/60">
-              状態
-            </p>
-            <p>回答受付中</p>
-          </div>
-        </div>
-      </template>
-      <template #actions>
-        <NuxtLink
-          to="/survey"
-          class="inline-flex items-center gap-2 rounded-lg border border-white/20 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
-        >
-          一覧へ戻る
-        </NuxtLink>
-        <NuxtLink
-          :to="`/survey/${survey.id}/results`"
-          class="inline-flex items-center gap-2 rounded-lg border border-white/20 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
-        >
-          結果を見る
-        </NuxtLink>
-      </template>
-    </PageHero>
+    <div class="mb-4 flex flex-wrap gap-3">
+      <NuxtLink
+        to="/survey"
+        class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
+      >
+        一覧へ戻る
+      </NuxtLink>
+      <NuxtLink
+        :to="`/survey/${survey.id}/results`"
+        class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
+      >
+        結果を見る
+      </NuxtLink>
+    </div>
 
     <div class="space-y-4">
+      <SectionHeader
+        eyebrow="Survey Form"
+        :title="survey.title"
+        :description="survey.description"
+      />
+
+      <div class="flex flex-wrap gap-2">
+        <span class="rounded-full bg-slate-100 px-3 py-1.5 text-sm text-slate-600">
+          設問数: {{ survey.questions.length }}問
+        </span>
+        <span class="rounded-full bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-600">
+          回答受付中
+        </span>
+      </div>
+    </div>
+
+    <div class="mt-8 space-y-4">
       <SectionHeader
         eyebrow="Answer"
         title="アンケートに回答する"

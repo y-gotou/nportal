@@ -33,51 +33,46 @@ useSeoMeta({
 
 <template>
   <PageContainer size="medium">
-    <PageHero
-      eyebrow="Survey Results"
-      :title="`${survey.title} の集計結果`"
-      :description="survey.description"
-    >
-      <template #meta>
-        <div class="grid gap-4 text-sm md:grid-cols-3 md:text-base">
-          <div class="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-            <p class="mb-1 text-xs font-semibold uppercase tracking-[0.24em] text-white/60">
-              回答数
-            </p>
-            <p>{{ responses.length }}件</p>
-          </div>
-          <div class="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-            <p class="mb-1 text-xs font-semibold uppercase tracking-[0.24em] text-white/60">
-              設問数
-            </p>
-            <p>{{ survey.questions.length }}問</p>
-          </div>
-          <div class="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-            <p class="mb-1 text-xs font-semibold uppercase tracking-[0.24em] text-white/60">
-              状態
-            </p>
-            <p>{{ survey.isActive ? "受付中" : "受付終了" }}</p>
-          </div>
-        </div>
-      </template>
-      <template #actions>
-        <NuxtLink
-          to="/survey"
-          class="inline-flex items-center gap-2 rounded-lg border border-white/20 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
-        >
-          一覧へ戻る
-        </NuxtLink>
-        <NuxtLink
-          v-if="survey.isActive"
-          :to="`/survey/${survey.id}`"
-          class="inline-flex items-center gap-2 rounded-lg border border-white/20 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
-        >
-          回答する
-        </NuxtLink>
-      </template>
-    </PageHero>
+    <div class="mb-4 flex flex-wrap gap-3">
+      <NuxtLink
+        to="/survey"
+        class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
+      >
+        一覧へ戻る
+      </NuxtLink>
+      <NuxtLink
+        v-if="survey.isActive"
+        :to="`/survey/${survey.id}`"
+        class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
+      >
+        回答する
+      </NuxtLink>
+    </div>
 
-    <div v-if="responses.length" class="space-y-4">
+    <div class="space-y-4">
+      <SectionHeader
+        eyebrow="Survey Results"
+        :title="`${survey.title} の集計結果`"
+        :description="survey.description"
+      />
+
+      <div class="flex flex-wrap gap-2">
+        <span class="rounded-full bg-slate-100 px-3 py-1.5 text-sm text-slate-600">
+          回答数: {{ responses.length }}件
+        </span>
+        <span class="rounded-full bg-slate-100 px-3 py-1.5 text-sm text-slate-600">
+          設問数: {{ survey.questions.length }}問
+        </span>
+        <span
+          class="rounded-full px-3 py-1.5 text-sm font-medium"
+          :class="survey.isActive ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-600'"
+        >
+          {{ survey.isActive ? "受付中" : "受付終了" }}
+        </span>
+      </div>
+    </div>
+
+    <div v-if="responses.length" class="mt-8 space-y-4">
       <SectionHeader
         eyebrow="Overview"
         title="設問ごとの回答内訳"
@@ -88,7 +83,7 @@ useSeoMeta({
 
     <div
       v-else
-      class="space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-6 shadow-sm"
+      class="mt-8 space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-6 shadow-sm"
     >
       <h2 class="text-xl font-semibold tracking-tight text-slate-900">まだ回答がありません</h2>
       <p class="text-sm leading-6 text-slate-500">
