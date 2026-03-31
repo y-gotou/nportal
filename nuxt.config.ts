@@ -1,4 +1,5 @@
 import { existsSync, readdirSync } from "node:fs";
+import tailwindcss from "@tailwindcss/vite";
 
 const minutesDir = new URL("./content/minutes/", import.meta.url);
 const minutesRoutes = existsSync(minutesDir)
@@ -12,6 +13,9 @@ export default defineNuxtConfig({
   devtools: { enabled: false },
   modules: ["nitro-cloudflare-dev"],
   css: ["~/assets/css/main.css"],
+  vite: {
+    plugins: [tailwindcss()],
+  },
   nitro: {
     preset: "cloudflare_pages",
     prerender: {

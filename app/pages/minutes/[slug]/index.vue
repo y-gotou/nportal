@@ -22,28 +22,40 @@ useSeoMeta({
   <PageContainer size="medium">
     <PageHero eyebrow="Minutes Detail" :title="minutes.title">
       <template #meta>
-        <div class="hero-meta-grid">
-          <div>
-            <p class="hero-meta-grid__label">開催日</p>
+        <div class="grid gap-4 text-sm md:grid-cols-3 md:text-base">
+          <div class="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+            <p class="mb-1 text-xs font-semibold uppercase tracking-[0.24em] text-white/60">
+              開催日
+            </p>
             <p>{{ minutes.date }}</p>
           </div>
-          <div>
-            <p class="hero-meta-grid__label">参加者</p>
+          <div class="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+            <p class="mb-1 text-xs font-semibold uppercase tracking-[0.24em] text-white/60">
+              参加者
+            </p>
             <p>{{ minutes.attendees.join("、") }}</p>
           </div>
-          <div>
-            <p class="hero-meta-grid__label">トピック</p>
+          <div class="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+            <p class="mb-1 text-xs font-semibold uppercase tracking-[0.24em] text-white/60">
+              トピック
+            </p>
             <p>{{ minutes.topics.join("、") }}</p>
           </div>
         </div>
       </template>
       <template #actions>
-        <NuxtLink to="/minutes" class="button button--hero-secondary">
+        <NuxtLink
+          to="/minutes"
+          class="inline-flex items-center gap-2 rounded-lg border border-white/20 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+        >
           一覧へ戻る
         </NuxtLink>
       </template>
     </PageHero>
 
-    <article class="panel minutes-content" v-html="minutes.contentHtml" />
+    <article
+      class="prose max-w-none rounded-xl border border-slate-200 bg-white p-6 shadow-sm md:p-8"
+      v-html="minutes.contentHtml"
+    />
   </PageContainer>
 </template>

@@ -23,39 +23,51 @@ const filteredMinutes = computed(() => {
 </script>
 
 <template>
-  <div class="stack-lg">
-    <div class="panel panel--soft">
-      <label for="minutes-search" class="form-label">キーワード検索</label>
+  <div class="space-y-6">
+    <div class="rounded-xl border border-slate-200 bg-slate-100 p-5 shadow-sm">
+      <label
+        for="minutes-search"
+        class="mb-2 block text-sm font-medium text-slate-700"
+      >
+        キーワード検索
+      </label>
       <input
         id="minutes-search"
         v-model="search"
         type="search"
-        class="form-input"
+        class="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
         placeholder="タイトルやトピックで検索"
       >
     </div>
 
-    <div v-if="filteredMinutes.length" class="stack-md">
+    <div v-if="filteredMinutes.length" class="space-y-4">
       <NuxtLink
         v-for="minutes in filteredMinutes"
         :key="minutes.slug"
         :to="`/minutes/${minutes.slug}`"
-        class="panel panel--interactive"
+        class="block rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-blue-500/30 hover:shadow-md"
       >
-        <div class="panel__row">
-          <h3 class="panel__title">{{ minutes.title }}</h3>
-          <span class="meta-text">{{ minutes.date }}</span>
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <h3 class="text-lg font-semibold tracking-tight text-slate-900">{{ minutes.title }}</h3>
+          <span class="text-sm text-slate-500">{{ minutes.date }}</span>
         </div>
-        <div class="tag-list">
-          <span v-for="topic in minutes.topics" :key="topic" class="tag tag--accent">
+        <div class="mt-4 flex flex-wrap gap-2">
+          <span
+            v-for="topic in minutes.topics"
+            :key="topic"
+            class="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-600"
+          >
             {{ topic }}
           </span>
         </div>
-        <p class="meta-text">参加者: {{ minutes.attendees.join("、") }}</p>
+        <p class="mt-4 text-sm text-slate-500">参加者: {{ minutes.attendees.join("、") }}</p>
       </NuxtLink>
     </div>
 
-    <p v-else class="empty-state">
+    <p
+      v-else
+      class="rounded-xl border border-dashed border-slate-300 bg-white px-5 py-8 text-center text-sm text-slate-500"
+    >
       該当する議事録が見つかりません。
     </p>
   </div>

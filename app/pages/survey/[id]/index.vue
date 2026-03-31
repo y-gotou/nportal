@@ -38,33 +38,45 @@ useSeoMeta({
       :description="survey.description"
     >
       <template #meta>
-        <div class="hero-meta-grid">
-          <div>
-            <p class="hero-meta-grid__label">設問数</p>
+        <div class="grid gap-4 text-sm md:grid-cols-2 md:text-base">
+          <div class="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+            <p class="mb-1 text-xs font-semibold uppercase tracking-[0.24em] text-white/60">
+              設問数
+            </p>
             <p>{{ survey.questions.length }}問</p>
           </div>
-          <div>
-            <p class="hero-meta-grid__label">状態</p>
+          <div class="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+            <p class="mb-1 text-xs font-semibold uppercase tracking-[0.24em] text-white/60">
+              状態
+            </p>
             <p>回答受付中</p>
           </div>
         </div>
       </template>
       <template #actions>
-        <NuxtLink to="/survey" class="button button--hero-secondary">
+        <NuxtLink
+          to="/survey"
+          class="inline-flex items-center gap-2 rounded-lg border border-white/20 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+        >
           一覧へ戻る
         </NuxtLink>
-        <NuxtLink :to="`/survey/${survey.id}/results`" class="button button--hero-secondary">
+        <NuxtLink
+          :to="`/survey/${survey.id}/results`"
+          class="inline-flex items-center gap-2 rounded-lg border border-white/20 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+        >
           結果を見る
         </NuxtLink>
       </template>
     </PageHero>
 
-    <SectionHeader
-      eyebrow="Answer"
-      title="アンケートに回答する"
-      description="選択式と自由記述の両方に対応しています。"
-    />
+    <div class="space-y-4">
+      <SectionHeader
+        eyebrow="Answer"
+        title="アンケートに回答する"
+        description="選択式と自由記述の両方に対応しています。"
+      />
 
-    <SurveyForm :survey="survey" />
+      <SurveyForm :survey="survey" />
+    </div>
   </PageContainer>
 </template>
