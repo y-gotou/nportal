@@ -3,7 +3,7 @@ export interface ScheduleItem {
   date: string;
   time: string;
   title: string;
-  meetingUrl: string;
+  meetingUrl?: string | null;
   topics: string[];
   presenter: string;
 }

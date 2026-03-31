@@ -48,7 +48,7 @@ useSeoMeta({
       </template>
       <template #actions>
         <a
-          v-if="nextEvent"
+          v-if="nextEvent?.meetingUrl"
           :href="nextEvent.meetingUrl"
           target="_blank"
           rel="noreferrer"

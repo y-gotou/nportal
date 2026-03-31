@@ -20,7 +20,7 @@ useSeoMeta({
       <SectionHeader
         eyebrow="Upcoming"
         title="今後の予定"
-        description="直近の開催情報と参加リンクです。"
+        description="直近の開催情報を確認できます。"
       />
 
       <article
@@ -36,6 +36,7 @@ useSeoMeta({
             </p>
           </div>
           <a
+            v-if="item.meetingUrl"
             :href="item.meetingUrl"
             target="_blank"
             rel="noreferrer"
