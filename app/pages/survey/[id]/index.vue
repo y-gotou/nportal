@@ -15,9 +15,9 @@ if (error.value) {
   });
 }
 
-const survey = computed(() => data.value?.survey);
+const survey = data.value?.survey;
 
-if (!survey.value || !survey.value.isActive) {
+if (!survey || !survey.isActive) {
   throw createError({
     statusCode: 404,
     statusMessage: "Survey not found",
@@ -25,8 +25,8 @@ if (!survey.value || !survey.value.isActive) {
 }
 
 useSeoMeta({
-  title: survey.value.title,
-  description: survey.value.description,
+  title: survey.title,
+  description: survey.description,
 });
 </script>
 

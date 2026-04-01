@@ -32,6 +32,7 @@
     "nitro-cloudflare-dev": "^0.2.2",
     "tailwindcss": "^4.2.2",
     "typescript": "^5.9.3",
+    "vue-tsc": "^3.1.1",
     "wrangler": "^4.78.0"
   }
 }

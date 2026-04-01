@@ -37,11 +37,11 @@ const blocks = computed(() =>
 
         for (const value of values) {
           if (value in counts) {
-            counts[value] += 1;
+            counts[value] = (counts[value] ?? 0) + 1;
           }
         }
       } else if (response.answer in counts) {
-        counts[response.answer] += 1;
+        counts[response.answer] = (counts[response.answer] ?? 0) + 1;
       }
     }
 

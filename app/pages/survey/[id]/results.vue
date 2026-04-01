@@ -15,10 +15,10 @@ if (error.value) {
   });
 }
 
-const survey = computed(() => data.value?.survey);
-const responses = computed(() => data.value?.responses ?? []);
+const survey = data.value?.survey;
+const responses = data.value?.responses ?? [];
 
-if (!survey.value) {
+if (!survey) {
   throw createError({
     statusCode: 404,
     statusMessage: "Survey not found",
@@ -26,8 +26,8 @@ if (!survey.value) {
 }
 
 useSeoMeta({
-  title: `${survey.value.title} の結果`,
-  description: survey.value.description,
+  title: `${survey.title} の結果`,
+  description: survey.description,
 });
 </script>
 
