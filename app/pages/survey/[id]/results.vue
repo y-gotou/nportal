@@ -1,29 +1,11 @@
 <script setup lang="ts">
-import type { SurveyGetResponse } from "~~/types/portal";
+import { primaryButtonClass, secondaryButtonClass } from "~/utils/ui";
 
 const route = useRoute();
 const surveyId = Number(route.params.id);
-
-const { data, error } = await useFetch<SurveyGetResponse>("/api/survey", {
-  query: { surveyId },
+const { survey, responses } = await useSurveyDetail(surveyId, {
+  failureMessage: "Failed to load survey results",
 });
-
-if (error.value) {
-  throw createError({
-    statusCode: error.value.statusCode || 500,
-    statusMessage: error.value.statusMessage || "Failed to load survey results",
-  });
-}
-
-const survey = data.value?.survey;
-const responses = data.value?.responses ?? [];
-
-if (!survey) {
-  throw createError({
-    statusCode: 404,
-    statusMessage: "Survey not found",
-  });
-}
 
 useSeoMeta({
   title: `${survey.title} の結果`,
@@ -36,14 +18,14 @@ useSeoMeta({
     <div class="mb-4 flex flex-wrap gap-3">
       <NuxtLink
         to="/survey"
-        class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
+        :class="secondaryButtonClass"
       >
         一覧へ戻る
       </NuxtLink>
       <NuxtLink
         v-if="survey.isActive"
         :to="`/survey/${survey.id}`"
-        class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
+        :class="secondaryButtonClass"
       >
         回答する
       </NuxtLink>
@@ -92,7 +74,7 @@ useSeoMeta({
       <div v-if="survey.isActive" class="flex flex-wrap gap-3">
         <NuxtLink
           :to="`/survey/${survey.id}`"
-          class="inline-flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-600"
+          :class="primaryButtonClass"
         >
           回答する
         </NuxtLink>

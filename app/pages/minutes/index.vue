@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { getMinutesList } from "~/utils/content";
+import { getMinutesList } from "~~/utils/content";
 
 const minutes = getMinutesList();
 

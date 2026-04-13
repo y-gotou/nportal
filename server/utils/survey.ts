@@ -6,6 +6,7 @@ import type {
   SurveyQuestion,
   SurveyResponse,
 } from "~~/types/portal";
+import { parseSurveyOptions } from "~~/utils/survey";
 
 interface SurveyRow {
   id: number;
@@ -30,6 +31,43 @@ interface ResponseRow {
   submitted_at: string;
 }
 
+export function parseSurveyId(
+  value: unknown,
+  message = "surveyId is required.",
+): number {
+  const surveyId = Number(value);
+
+  if (!Number.isInteger(surveyId) || surveyId < 1) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: message,
+    });
+  }
+
+  return surveyId;
+}
+
+function groupQuestionsBySurveyId(questionRows: QuestionRow[]) {
+  const grouped = new Map<number, QuestionRow[]>();
+
+  for (const question of questionRows) {
+    const questions = grouped.get(question.survey_id) ?? [];
+    questions.push(question);
+    grouped.set(question.survey_id, questions);
+  }
+
+  return grouped;
+}
+
+function toSurveyQuestion(question: QuestionRow): SurveyQuestion {
+  return {
+    id: question.id,
+    questionText: question.question_text,
+    questionType: question.question_type,
+    options: parseSurveyOptions(question.options),
+  };
+}
+
 export function getDb(event: H3Event): D1DatabaseLike {
   const db = (
     event.context.cloudflare as { env?: { DB?: D1DatabaseLike } } | undefined
@@ -52,15 +90,9 @@ function toSurvey(row: SurveyRow, questions: QuestionRow[]): Survey {
     description: row.description ?? "",
     createdAt: row.created_at,
     isActive: row.is_active === 1,
-    questions: questions
-      .filter((question) => question.survey_id === row.id)
+    questions: [...questions]
       .sort((left, right) => left.sort_order - right.sort_order)
-      .map((question) => ({
-        id: question.id,
-        questionText: question.question_text,
-        questionType: question.question_type,
-        options: JSON.parse(question.options || "[]") as string[],
-      })),
+      .map(toSurveyQuestion),
   };
 }
 
@@ -73,7 +105,9 @@ export async function listSurveys(db: D1DatabaseLike): Promise<Survey[]> {
     .prepare("SELECT * FROM questions ORDER BY sort_order ASC")
     .all<QuestionRow>();
 
-  return surveyRows.map((row) => toSurvey(row, questionRows));
+  const questionsBySurveyId = groupQuestionsBySurveyId(questionRows);
+
+  return surveyRows.map((row) => toSurvey(row, questionsBySurveyId.get(row.id) ?? []));
 }
 
 export async function getSurvey(
@@ -95,6 +129,22 @@ export async function getSurvey(
     .all<QuestionRow>();
 
   return toSurvey(surveyRow, questionRows);
+}
+
+export async function getRequiredSurvey(
+  db: D1DatabaseLike,
+  id: number,
+): Promise<Survey> {
+  const survey = await getSurvey(db, id);
+
+  if (!survey) {
+    throw createError({
+      statusCode: 404,
+      statusMessage: "Survey not found.",
+    });
+  }
+
+  return survey;
 }
 
 export async function getResponses(

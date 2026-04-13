@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { portalDescription, portalTitle } from "~/utils/content";
+import { portalDescription, portalTitle } from "~~/utils/content";
 
 useSeoMeta({
   titleTemplate: (title) => (title ? `${title} | ${portalTitle}` : portalTitle),

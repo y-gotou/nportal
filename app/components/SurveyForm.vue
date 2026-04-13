@@ -1,21 +1,24 @@
 <script setup lang="ts">
-import type { Survey } from "~~/types/portal";
+import type { Survey, SurveyAnswerValue } from "~~/types/portal";
+import {
+  primaryButtonClass,
+  secondaryButtonClass,
+  surfaceCardClass,
+} from "~/utils/ui";
+import { serializeSurveyAnswer } from "~~/utils/survey";
 
 const props = defineProps<{
   survey: Survey;
 }>();
 
-const answers = ref<Record<number, string>>({});
+const answers = ref<Record<number, SurveyAnswerValue>>({});
 const isSubmitting = ref(false);
 const isSubmitted = ref(false);
 const errorMessage = ref("");
 
 function getMultipleAnswers(questionId: number) {
-  try {
-    return JSON.parse(answers.value[questionId] ?? "[]") as string[];
-  } catch {
-    return [];
-  }
+  const answer = answers.value[questionId];
+  return Array.isArray(answer) ? answer : [];
 }
 
 function toggleMultipleAnswer(questionId: number, option: string) {
@@ -26,8 +29,20 @@ function toggleMultipleAnswer(questionId: number, option: string) {
 
   answers.value = {
     ...answers.value,
-    [questionId]: JSON.stringify(next),
+    [questionId]: next,
   };
+}
+
+function setSingleAnswer(questionId: number, answer: string) {
+  answers.value = {
+    ...answers.value,
+    [questionId]: answer,
+  };
+}
+
+function getTextAnswer(questionId: number) {
+  const answer = answers.value[questionId];
+  return typeof answer === "string" ? answer : "";
 }
 
 async function submitSurvey() {
@@ -41,7 +56,7 @@ async function submitSurvey() {
         surveyId: props.survey.id,
         responses: props.survey.questions.map((question) => ({
           questionId: question.id,
-          answer: answers.value[question.id] ?? "",
+          answer: serializeSurveyAnswer(answers.value[question.id]),
         })),
       },
     });
@@ -67,13 +82,13 @@ async function submitSurvey() {
     <div class="flex flex-wrap gap-3">
       <NuxtLink
         :to="`/survey/${survey.id}/results`"
-        class="inline-flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-600"
+        :class="primaryButtonClass"
       >
         結果を見る
       </NuxtLink>
       <NuxtLink
         to="/survey"
-        class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
+        :class="secondaryButtonClass"
       >
         一覧へ戻る
       </NuxtLink>
@@ -84,7 +99,7 @@ async function submitSurvey() {
     <section
       v-for="(question, index) in survey.questions"
       :key="question.id"
-      class="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
+      :class="`${surfaceCardClass} space-y-4`"
     >
       <div class="space-y-1">
         <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
@@ -105,9 +120,9 @@ async function submitSurvey() {
             :name="`question-${question.id}`"
             type="radio"
             :value="option"
-            :checked="answers[question.id] === option"
+            :checked="getTextAnswer(question.id) === option"
             class="mt-0.5 h-4 w-4 border-slate-300 text-blue-500 focus:ring-blue-500"
-            @change="answers = { ...answers, [question.id]: option }"
+            @change="setSingleAnswer(question.id, option)"
           >
           <span>{{ option }}</span>
         </label>
@@ -131,16 +146,11 @@ async function submitSurvey() {
 
       <textarea
         v-else
-        :value="answers[question.id] ?? ''"
+        :value="getTextAnswer(question.id)"
         class="min-h-32 w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
         rows="5"
         placeholder="自由にご記入ください"
-        @input="
-          answers = {
-            ...answers,
-            [question.id]: ($event.target as HTMLTextAreaElement).value,
-          }
-        "
+        @input="setSingleAnswer(question.id, ($event.target as HTMLTextAreaElement).value)"
       />
     </section>
 
@@ -152,7 +162,7 @@ async function submitSurvey() {
     </p>
 
     <button
-      class="inline-flex w-full items-center justify-center rounded-lg bg-blue-500 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:bg-blue-300"
+      :class="`${primaryButtonClass} w-full justify-center py-3 disabled:cursor-not-allowed disabled:bg-blue-300`"
       type="submit"
       :disabled="isSubmitting"
     >

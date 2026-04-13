@@ -1,5 +1,10 @@
 <script setup lang="ts">
 import type { SurveysResponse } from "~~/types/portal";
+import {
+  primaryButtonClass,
+  secondaryButtonClass,
+  surfaceCardClass,
+} from "~/utils/ui";
 
 const { data, error } = await useFetch<SurveysResponse>("/api/surveys");
 
@@ -30,7 +35,7 @@ useSeoMeta({
       <article
         v-for="survey in surveys"
         :key="survey.id"
-        class="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
+        :class="`${surfaceCardClass} space-y-4`"
       >
         <div class="flex items-start justify-between gap-3">
           <h2 class="text-xl font-semibold tracking-tight text-slate-900">{{ survey.title }}</h2>
@@ -53,13 +58,13 @@ useSeoMeta({
           <NuxtLink
             v-if="survey.isActive"
             :to="`/survey/${survey.id}`"
-            class="inline-flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-600"
+            :class="primaryButtonClass"
           >
             回答する
           </NuxtLink>
           <NuxtLink
             :to="`/survey/${survey.id}/results`"
-            class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
+            :class="secondaryButtonClass"
           >
             結果を見る
           </NuxtLink>

@@ -1,66 +1,14 @@
 <script setup lang="ts">
 import type { Survey, SurveyResponse } from "~~/types/portal";
+import { buildSurveyResultBlocks } from "~~/utils/survey";
+import { surfaceCardClass } from "~/utils/ui";
 
 const props = defineProps<{
   survey: Survey;
   responses: SurveyResponse[];
 }>();
 
-const blocks = computed(() =>
-  props.survey.questions.map((question) => {
-    const questionResponses = props.responses.filter(
-      (response) => response.questionId === question.id,
-    );
-
-    if (question.questionType === "free_text") {
-      return {
-        ...question,
-        responseCount: questionResponses.length,
-        freeTextAnswers: questionResponses
-          .map((response) => response.answer.trim())
-          .filter(Boolean),
-        distribution: [],
-      };
-    }
-
-    const counts = Object.fromEntries(question.options.map((option) => [option, 0]));
-
-    for (const response of questionResponses) {
-      if (question.questionType === "multiple_choice") {
-        let values: string[] = [];
-
-        try {
-          values = JSON.parse(response.answer) as string[];
-        } catch {
-          values = response.answer.split(",").map((value) => value.trim()).filter(Boolean);
-        }
-
-        for (const value of values) {
-          if (value in counts) {
-            counts[value] = (counts[value] ?? 0) + 1;
-          }
-        }
-      } else if (response.answer in counts) {
-        counts[response.answer] = (counts[response.answer] ?? 0) + 1;
-      }
-    }
-
-    const distribution = Object.entries(counts).map(([label, value]) => ({
-      label,
-      value,
-      width: questionResponses.length
-        ? `${Math.max((value / questionResponses.length) * 100, value ? 8 : 0)}%`
-        : "0%",
-    }));
-
-    return {
-      ...question,
-      responseCount: questionResponses.length,
-      freeTextAnswers: [],
-      distribution,
-    };
-  }),
-);
+const blocks = computed(() => buildSurveyResultBlocks(props.survey, props.responses));
 </script>
 
 <template>
@@ -68,7 +16,7 @@ const blocks = computed(() =>
     <section
       v-for="(block, index) in blocks"
       :key="block.id"
-      class="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
+      :class="`${surfaceCardClass} space-y-4`"
     >
       <div class="space-y-1">
         <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">

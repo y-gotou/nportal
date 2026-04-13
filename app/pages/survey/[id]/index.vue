@@ -1,28 +1,12 @@
 <script setup lang="ts">
-import type { SurveyGetResponse } from "~~/types/portal";
+import { secondaryButtonClass } from "~/utils/ui";
 
 const route = useRoute();
 const surveyId = Number(route.params.id);
-
-const { data, error } = await useFetch<SurveyGetResponse>("/api/survey", {
-  query: { surveyId },
+const { survey } = await useSurveyDetail(surveyId, {
+  requireActive: true,
+  failureMessage: "Failed to load survey",
 });
-
-if (error.value) {
-  throw createError({
-    statusCode: error.value.statusCode || 500,
-    statusMessage: error.value.statusMessage || "Failed to load survey",
-  });
-}
-
-const survey = data.value?.survey;
-
-if (!survey || !survey.isActive) {
-  throw createError({
-    statusCode: 404,
-    statusMessage: "Survey not found",
-  });
-}
 
 useSeoMeta({
   title: survey.title,
@@ -35,13 +19,13 @@ useSeoMeta({
     <div class="mb-4 flex flex-wrap gap-3">
       <NuxtLink
         to="/survey"
-        class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
+        :class="secondaryButtonClass"
       >
         一覧へ戻る
       </NuxtLink>
       <NuxtLink
         :to="`/survey/${survey.id}/results`"
-        class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
+        :class="secondaryButtonClass"
       >
         結果を見る
       </NuxtLink>

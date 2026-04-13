@@ -62,6 +62,8 @@ export interface SurveyAnswerInput {
   answer: string;
 }
 
+export type SurveyAnswerValue = string | string[];
+
 export interface SurveyGetResponse {
   survey: Survey;
   responses: SurveyResponse[];
@@ -69,6 +71,18 @@ export interface SurveyGetResponse {
 
 export interface SurveysResponse {
   surveys: Survey[];
+}
+
+export interface SurveyDistributionItem {
+  label: string;
+  value: number;
+  width: string;
+}
+
+export interface SurveyResultBlock extends SurveyQuestion {
+  responseCount: number;
+  freeTextAnswers: string[];
+  distribution: SurveyDistributionItem[];
 }
 
 export interface D1PreparedStatement {

@@ -1,12 +1,9 @@
 <script setup lang="ts">
-import { getSchedule } from "~/utils/content";
+import { getSchedule, getTodayDate, splitScheduleByDate } from "~~/utils/content";
+import { interactiveCardClass, primaryButtonClass, topicTagClass } from "~/utils/ui";
 
-const today = new Date().toISOString().slice(0, 10);
 const schedule = getSchedule();
-const upcoming = computed(() => schedule.filter((item) => item.date >= today));
-const past = computed(() =>
-  schedule.filter((item) => item.date < today).sort((a, b) => b.date.localeCompare(a.date)),
-);
+const { upcoming, past } = splitScheduleByDate(getTodayDate());
 
 useSeoMeta({
   title: "スケジュール",
@@ -26,7 +23,7 @@ useSeoMeta({
       <article
         v-for="item in upcoming"
         :key="item.id"
-        class="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:border-blue-500/30 hover:shadow-md"
+        :class="`${interactiveCardClass} space-y-4 p-6`"
       >
         <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div class="space-y-1">
@@ -40,7 +37,7 @@ useSeoMeta({
             :href="item.meetingUrl"
             target="_blank"
             rel="noreferrer"
-            class="inline-flex shrink-0 items-center gap-2 rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-600"
+            :class="`${primaryButtonClass} shrink-0`"
           >
             参加リンク
           </a>
@@ -49,7 +46,7 @@ useSeoMeta({
           <span
             v-for="topic in item.topics"
             :key="topic"
-            class="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-600"
+            :class="topicTagClass"
           >
             {{ topic }}
           </span>

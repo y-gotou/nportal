@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { getResources } from "~/utils/content";
+import { getResources } from "~~/utils/content";
+import { interactiveCardClass, topicTagClass } from "~/utils/ui";
+import type { ResourceItem } from "~~/types/portal";
 
 const resources = getResources();
 const selectedTag = ref<string | null>(null);
@@ -8,19 +10,19 @@ const selectedType = ref<string | null>(null);
 const allTags = [...new Set(resources.flatMap((resource) => resource.tags))];
 const allTypes = [...new Set(resources.map((resource) => resource.type))];
 
-const filteredResources = computed(() =>
-  resources.filter((resource) => {
-    if (selectedTag.value && !resource.tags.includes(selectedTag.value)) {
-      return false;
-    }
+function matchesSelectedFilters(resource: ResourceItem) {
+  if (selectedTag.value && !resource.tags.includes(selectedTag.value)) {
+    return false;
+  }
 
-    if (selectedType.value && resource.type !== selectedType.value) {
-      return false;
-    }
+  if (selectedType.value && resource.type !== selectedType.value) {
+    return false;
+  }
 
-    return true;
-  }),
-);
+  return true;
+}
+
+const filteredResources = computed(() => resources.filter(matchesSelectedFilters));
 
 useSeoMeta({
   title: "資料共有",
@@ -99,7 +101,7 @@ useSeoMeta({
           :href="resource.url"
           target="_blank"
           rel="noreferrer"
-          class="space-y-3 rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-blue-500/30 hover:shadow-md"
+          :class="`${interactiveCardClass} space-y-3 p-5`"
         >
           <div class="flex items-start justify-between gap-3">
             <h3 class="text-lg font-semibold tracking-tight text-slate-900">{{ resource.title }}</h3>
@@ -115,7 +117,7 @@ useSeoMeta({
             <span
               v-for="tag in resource.tags"
               :key="tag"
-              class="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-600"
+              :class="topicTagClass"
             >
               {{ tag }}
             </span>

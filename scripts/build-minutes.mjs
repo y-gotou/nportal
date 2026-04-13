@@ -9,6 +9,31 @@ const minutesDir = path.join(process.cwd(), "content/minutes");
 const outDir = path.join(process.cwd(), "generated");
 const outFile = path.join(outDir, "minutes.json");
 
+function compareDateDescending(left, right) {
+  return right.date.localeCompare(left.date);
+}
+
+async function renderMarkdown(markdown) {
+  return remark().use(gfm).use(html).process(markdown);
+}
+
+async function loadMinutesEntry(filename) {
+  const slug = filename.replace(/\.md$/, "");
+  const filePath = path.join(minutesDir, filename);
+  const fileContents = fs.readFileSync(filePath, "utf8");
+  const { data, content } = matter(fileContents);
+  const contentHtml = (await renderMarkdown(content)).toString();
+
+  return {
+    slug,
+    title: data.title ?? slug,
+    date: data.date ?? "",
+    attendees: data.attendees ?? [],
+    topics: data.topics ?? [],
+    contentHtml,
+  };
+}
+
 async function buildMinutes() {
   fs.mkdirSync(outDir, { recursive: true });
 
@@ -18,31 +43,9 @@ async function buildMinutes() {
   }
 
   const files = fs.readdirSync(minutesDir).filter((f) => f.endsWith(".md"));
+  const minutes = await Promise.all(files.map(loadMinutesEntry));
 
-  const minutes = await Promise.all(
-    files.map(async (filename) => {
-      const slug = filename.replace(/\.md$/, "");
-      const filePath = path.join(minutesDir, filename);
-      const fileContents = fs.readFileSync(filePath, "utf8");
-      const { data, content } = matter(fileContents);
-
-      const processedContent = await remark().use(gfm).use(html).process(content);
-      const contentHtml = processedContent.toString();
-
-      return {
-        slug,
-        title: data.title ?? slug,
-        date: data.date ?? "",
-        attendees: data.attendees ?? [],
-        topics: data.topics ?? [],
-        contentHtml,
-      };
-    })
-  );
-
-  minutes.sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
+  minutes.sort(compareDateDescending);
 
   fs.writeFileSync(outFile, JSON.stringify(minutes, null, 2));
   console.log(`Built ${minutes.length} minutes entries → ${outFile}`);

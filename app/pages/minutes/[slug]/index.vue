@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { getMinutes } from "~/utils/content";
+import { getMinutes } from "~~/utils/content";
+import { secondaryButtonClass } from "~/utils/ui";
 
 const route = useRoute();
 const slug = String(route.params.slug);
@@ -46,7 +47,7 @@ useSeoMeta({
       <template #actions>
         <NuxtLink
           to="/minutes"
-          class="inline-flex items-center gap-2 rounded-lg border border-white/20 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+          :class="`${secondaryButtonClass} border-white/20 px-5 font-semibold text-white hover:bg-white/10 hover:text-white`"
         >
           一覧へ戻る
         </NuxtLink>

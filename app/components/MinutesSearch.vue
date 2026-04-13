@@ -1,11 +1,19 @@
 <script setup lang="ts">
 import type { MinutesMeta } from "~~/types/portal";
+import { interactiveCardClass, topicTagClass } from "~/utils/ui";
 
 const props = defineProps<{
   minutes: MinutesMeta[];
 }>();
 
 const search = ref("");
+
+function matchesKeyword(minutes: MinutesMeta, keyword: string) {
+  return (
+    minutes.title.toLowerCase().includes(keyword) ||
+    minutes.topics.some((topic) => topic.toLowerCase().includes(keyword))
+  );
+}
 
 const filteredMinutes = computed(() => {
   const keyword = search.value.trim().toLowerCase();
@@ -14,11 +22,7 @@ const filteredMinutes = computed(() => {
     return props.minutes;
   }
 
-  return props.minutes.filter(
-    (minutes) =>
-      minutes.title.toLowerCase().includes(keyword) ||
-      minutes.topics.some((topic) => topic.toLowerCase().includes(keyword)),
-  );
+  return props.minutes.filter((minutes) => matchesKeyword(minutes, keyword));
 });
 </script>
 
@@ -45,7 +49,7 @@ const filteredMinutes = computed(() => {
         v-for="minutes in filteredMinutes"
         :key="minutes.slug"
         :to="`/minutes/${minutes.slug}`"
-        class="block rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-blue-500/30 hover:shadow-md"
+        :class="`${interactiveCardClass} block p-5`"
       >
         <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <h3 class="text-lg font-semibold tracking-tight text-slate-900">{{ minutes.title }}</h3>
@@ -55,7 +59,7 @@ const filteredMinutes = computed(() => {
           <span
             v-for="topic in minutes.topics"
             :key="topic"
-            class="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-600"
+            :class="topicTagClass"
           >
             {{ topic }}
           </span>
