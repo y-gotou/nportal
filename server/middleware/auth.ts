@@ -37,6 +37,14 @@ function validateJwtPayload(payload: JwtPayload, expectedAud?: string): boolean 
 }
 
 export default defineEventHandler((event) => {
+  const path = event.path ?? "";
+
+  // 静的プリレンダーページはCloudflare Accessがエッジで保護するためスキップ
+  // 認証が必要なのはAPIルートと動的ページのみ
+  if (!path.startsWith("/api/") && !path.startsWith("/survey") && path !== "/login") {
+    return;
+  }
+
   const env = (
     event.context.cloudflare as
       | { env?: Record<string, string | undefined> }
