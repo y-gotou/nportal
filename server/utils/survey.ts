@@ -6,7 +6,7 @@ import type {
   SurveyQuestion,
   SurveyResponse,
 } from "../../types/portal.ts";
-import { parseSurveyOptions } from "../../utils/survey.ts";
+import { parseSurveyOptions } from "../../utils/survey";
 
 interface SurveyRow {
   id: number;
@@ -34,6 +34,11 @@ interface ResponseRow {
   question_id: number;
   answer: string;
   submitted_at: string;
+}
+
+interface SubmissionRow {
+  survey_id: number;
+  user_email: string;
 }
 
 export function parseSurveyId(
@@ -106,7 +111,10 @@ function toSurvey(
   };
 }
 
-export async function listSurveys(db: D1DatabaseLike): Promise<Survey[]> {
+export async function listSurveys(
+  db: D1DatabaseLike,
+  userEmail?: string,
+): Promise<Survey[]> {
   const { results: surveyRows } = await db
     .prepare("SELECT * FROM surveys ORDER BY created_at DESC")
     .all<SurveyRow>();
@@ -129,13 +137,26 @@ export async function listSurveys(db: D1DatabaseLike): Promise<Survey[]> {
     countRows.map((row) => [row.survey_id, row.response_count]),
   );
 
-  return surveyRows.map((row) =>
-    toSurvey(
+  // ユーザーの回答済みアンケートを取得
+  const respondedSurveyIds = new Set<number>();
+  if (userEmail) {
+    const { results: submissionRows } = await db
+      .prepare("SELECT survey_id FROM submissions WHERE user_email = ?")
+      .bind(userEmail)
+      .all<SubmissionRow>();
+    for (const row of submissionRows) {
+      respondedSurveyIds.add(row.survey_id);
+    }
+  }
+
+  return surveyRows.map((row) => ({
+    ...toSurvey(
       row,
       questionsBySurveyId.get(row.id) ?? [],
       responseCountBySurveyId.get(row.id) ?? 0,
     ),
-  );
+    hasResponded: respondedSurveyIds.has(row.id),
+  }));
 }
 
 export async function getSurvey(
@@ -200,14 +221,60 @@ export async function getResponses(
 export async function addResponses(
   db: D1DatabaseLike,
   responses: SurveyAnswerInput[],
+  userEmail?: string,
 ): Promise<void> {
   const statement = db.prepare(
-    "INSERT INTO responses (question_id, answer) VALUES (?, ?)",
+    "INSERT INTO responses (question_id, answer, user_email) VALUES (?, ?, ?)",
   );
 
   await db.batch(
     responses.map((response) =>
-      statement.bind(response.questionId, response.answer),
+      statement.bind(response.questionId, response.answer, userEmail ?? null),
     ),
   );
+}
+
+export async function checkSubmission(
+  db: D1DatabaseLike,
+  surveyId: number,
+  userEmail: string,
+): Promise<boolean> {
+  const row = await db
+    .prepare(
+      "SELECT id FROM submissions WHERE survey_id = ? AND user_email = ?",
+    )
+    .bind(surveyId, userEmail)
+    .first<{ id: number }>();
+  return row !== null;
+}
+
+export async function addSubmission(
+  db: D1DatabaseLike,
+  surveyId: number,
+  userEmail: string,
+): Promise<void> {
+  await db
+    .prepare(
+      "INSERT INTO submissions (survey_id, user_email) VALUES (?, ?)",
+    )
+    .bind(surveyId, userEmail)
+    .first();
+}
+
+export async function getUserAnswers(
+  db: D1DatabaseLike,
+  surveyId: number,
+  userEmail: string,
+): Promise<Record<number, string>> {
+  const { results } = await db
+    .prepare(
+      `SELECT r.question_id, r.answer
+       FROM responses r
+       JOIN questions q ON q.id = r.question_id
+       WHERE q.survey_id = ? AND r.user_email = ?`,
+    )
+    .bind(surveyId, userEmail)
+    .all<{ question_id: number; answer: string }>();
+
+  return Object.fromEntries(results.map((row) => [row.question_id, row.answer]));
 }

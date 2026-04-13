@@ -52,6 +52,7 @@ export interface Survey {
   createdAt: string;
   isActive: boolean;
   responseCount?: number;
+  hasResponded?: boolean;
   questions: SurveyQuestion[];
 }
 
@@ -71,10 +72,19 @@ export type SurveyAnswerValue = string | string[];
 export interface SurveyGetResponse {
   survey: Survey;
   responses: SurveyResponse[];
+  myAnswers?: Record<number, string>;
 }
 
 export interface SurveysResponse {
   surveys: Survey[];
+}
+
+export interface CurrentUser {
+  email: string;
+}
+
+export interface MeResponse {
+  user: CurrentUser;
 }
 
 export interface SurveyDistributionItem {

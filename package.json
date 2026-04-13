@@ -17,6 +17,9 @@
     "db:seed:local": "wrangler d1 execute nportal-db --local --file db/schema.sql && wrangler d1 execute nportal-db --local --file db/seed.sql",
     "db:seed:prod": "wrangler d1 execute nportal-db --remote --file db/schema.sql && wrangler d1 execute nportal-db --remote --file db/seed.sql",
     "db:seed:preview": "wrangler d1 execute nportal-preview-db --remote --file db/schema.sql && wrangler d1 execute nportal-preview-db --remote --file db/seed.sql",
+    "db:migrate:local": "wrangler d1 execute nportal-db --local --file db/migrate.sql",
+    "db:migrate:prod": "wrangler d1 execute nportal-db --remote --file db/migrate.sql",
+    "db:migrate:preview": "wrangler d1 execute nportal-preview-db --remote --file db/migrate.sql",
     "postinstall": "nuxt prepare"
   },
   "dependencies": {

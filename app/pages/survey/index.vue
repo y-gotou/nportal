@@ -38,7 +38,7 @@ useSeoMeta({
       >
         <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div class="min-w-0 space-y-2">
-            <div class="flex min-w-0 items-start gap-3">
+            <div class="flex min-w-0 flex-wrap items-start gap-2">
               <h2 class="min-w-0 text-pretty text-xl font-semibold tracking-tight text-slate-900">
                 {{ survey.title }}
               </h2>
@@ -52,6 +52,12 @@ useSeoMeta({
               >
                 {{ survey.isActive ? "受付中" : "終了" }}
               </span>
+              <span
+                v-if="survey.hasResponded"
+                class="shrink-0 rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700"
+              >
+                回答済み
+              </span>
             </div>
             <p class="text-sm leading-6 text-slate-500">{{ survey.description }}</p>
             <div class="flex flex-wrap gap-2 text-sm text-slate-500">
@@ -63,7 +69,7 @@ useSeoMeta({
           </div>
           <div class="flex shrink-0 flex-wrap gap-3">
             <NuxtLink
-              v-if="survey.isActive"
+              v-if="survey.isActive && !survey.hasResponded"
               :to="`/survey/${survey.id}`"
               :class="primaryButtonClass"
             >

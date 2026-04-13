@@ -3,6 +3,7 @@ import {
   getDb,
   getRequiredSurvey,
   getResponses,
+  getUserAnswers,
   parseSurveyId,
 } from "~~/server/utils/survey";
 
@@ -13,8 +14,12 @@ export default defineEventHandler(async (event) => {
   );
 
   const db = getDb(event);
+  const user = event.context.user as { email: string } | undefined;
   const survey = await getRequiredSurvey(db, surveyId);
   const responses = await getResponses(db, surveyId);
+  const myAnswers = user
+    ? await getUserAnswers(db, surveyId, user.email)
+    : undefined;
 
-  return { survey, responses };
+  return { survey, responses, myAnswers };
 });

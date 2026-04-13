@@ -1,14 +1,29 @@
 <script setup lang="ts">
 import type { Survey, SurveyResponse } from "~~/types/portal";
-import { buildSurveyResultBlocks } from "~~/utils/survey";
+import { buildSurveyResultBlocks, parseMultipleChoiceAnswer } from "~~/utils/survey";
 import { surfaceCardClass } from "~/utils/ui";
 
 const props = defineProps<{
   survey: Survey;
   responses: SurveyResponse[];
+  myAnswers?: Record<number, string>;
 }>();
 
 const blocks = computed(() => buildSurveyResultBlocks(props.survey, props.responses));
+
+function isMyChoice(questionId: number, optionLabel: string, questionType: string): boolean {
+  const myAnswer = props.myAnswers?.[questionId];
+  if (!myAnswer) return false;
+  if (questionType === "multiple_choice") {
+    return parseMultipleChoiceAnswer(myAnswer).includes(optionLabel);
+  }
+  return myAnswer === optionLabel;
+}
+
+function isMyFreeText(questionId: number, answer: string): boolean {
+  const myAnswer = props.myAnswers?.[questionId];
+  return myAnswer !== undefined && myAnswer.trim() === answer.trim();
+}
 </script>
 
 <template>
@@ -38,8 +53,17 @@ const blocks = computed(() => buildSurveyResultBlocks(props.survey, props.respon
         <div
           v-for="(answer, answerIndex) in block.freeTextAnswers"
           :key="`${block.id}-${answerIndex}`"
-          class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-700"
+          class="rounded-lg border px-4 py-3 text-sm leading-6"
+          :class="
+            isMyFreeText(block.id, answer)
+              ? 'border-blue-300 bg-blue-50 text-blue-800'
+              : 'border-slate-200 bg-slate-50 text-slate-700'
+          "
         >
+          <span
+            v-if="isMyFreeText(block.id, answer)"
+            class="mb-1 block text-xs font-semibold text-blue-600"
+          >あなたの回答</span>
           {{ answer }}
         </div>
       </div>
@@ -48,15 +72,43 @@ const blocks = computed(() => buildSurveyResultBlocks(props.survey, props.respon
         <div
           v-for="item in block.distribution"
           :key="item.label"
-          class="space-y-2 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3"
+          class="space-y-2 rounded-lg border px-4 py-3"
+          :class="
+            isMyChoice(block.id, item.label, block.questionType)
+              ? 'border-blue-300 bg-blue-50'
+              : 'border-slate-200 bg-slate-50'
+          "
         >
-          <div class="flex items-center justify-between gap-3 text-sm text-slate-700">
-            <span>{{ item.label }}</span>
-            <strong class="font-semibold text-slate-900">{{ item.value }}</strong>
+          <div class="flex items-center justify-between gap-3 text-sm"
+            :class="
+              isMyChoice(block.id, item.label, block.questionType)
+                ? 'text-blue-700'
+                : 'text-slate-700'
+            "
+          >
+            <span class="flex items-center gap-1.5">
+              <span
+                v-if="isMyChoice(block.id, item.label, block.questionType)"
+                class="text-xs font-semibold text-blue-600"
+              >✓</span>
+              {{ item.label }}
+            </span>
+            <strong class="font-semibold"
+              :class="
+                isMyChoice(block.id, item.label, block.questionType)
+                  ? 'text-blue-800'
+                  : 'text-slate-900'
+              "
+            >{{ item.value }}</strong>
           </div>
           <div class="h-2.5 overflow-hidden rounded-full bg-slate-200">
             <div
-              class="h-full rounded-full bg-blue-500 transition-[width]"
+              class="h-full rounded-full transition-[width]"
+              :class="
+                isMyChoice(block.id, item.label, block.questionType)
+                  ? 'bg-blue-500'
+                  : 'bg-slate-400'
+              "
               :style="{ width: item.width }"
             />
           </div>

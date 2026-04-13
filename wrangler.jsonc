@@ -4,6 +4,10 @@
   "pages_build_output_dir": "dist",
   "compatibility_date": "2026-03-31",
   "compatibility_flags": ["nodejs_compat"],
+  "vars": {
+    "CF_ACCESS_TEAM_DOMAIN": "d2sol-nsp.cloudflareaccess.com",
+    "CF_ACCESS_AUD": "13e0a1448713f09f0f61639765930aff48dbba382e7775d2f3d104851064a7e4"
+  },
   "d1_databases": [
     {
       "binding": "DB",
@@ -13,6 +17,10 @@
   ],
   "env": {
     "preview": {
+      "vars": {
+        "CF_ACCESS_TEAM_DOMAIN": "d2sol-nsp.cloudflareaccess.com",
+        "CF_ACCESS_AUD": "13e0a1448713f09f0f61639765930aff48dbba382e7775d2f3d104851064a7e4"
+      },
       "d1_databases": [
         {
           "binding": "DB",

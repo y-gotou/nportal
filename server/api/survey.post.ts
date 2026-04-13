@@ -1,6 +1,8 @@
 import { createError, readBody } from "h3";
 import {
   addResponses,
+  addSubmission,
+  checkSubmission,
   getDb,
   getRequiredSurvey,
   parseSurveyId,
@@ -13,6 +15,14 @@ interface SubmitSurveyBody {
 }
 
 export default defineEventHandler(async (event) => {
+  const user = event.context.user as { email: string } | undefined;
+  if (!user) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: "Unauthorized",
+    });
+  }
+
   const body = await readBody<SubmitSurveyBody>(event);
 
   if (!Array.isArray(body.responses)) {
@@ -32,7 +42,18 @@ export default defineEventHandler(async (event) => {
 
   const db = getDb(event);
   await getRequiredSurvey(db, surveyId);
-  await addResponses(db, responses);
+
+  // 重複回答チェック
+  const alreadySubmitted = await checkSubmission(db, surveyId, user.email);
+  if (alreadySubmitted) {
+    throw createError({
+      statusCode: 409,
+      statusMessage: "You have already submitted this survey.",
+    });
+  }
+
+  await addResponses(db, responses, user.email);
+  await addSubmission(db, surveyId, user.email);
 
   return { success: true };
 });

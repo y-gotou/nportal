@@ -29,6 +29,7 @@ export async function useSurveyDetail(
 
   const survey = data.value?.survey;
   const responses: SurveyResponse[] = data.value?.responses ?? [];
+  const myAnswers: Record<number, string> = data.value?.myAnswers ?? {};
 
   if (!survey || (options.requireActive && !survey.isActive)) {
     throw createError({
@@ -37,5 +38,5 @@ export async function useSurveyDetail(
     });
   }
 
-  return { survey, responses };
+  return { survey, responses, myAnswers };
 }

@@ -42,5 +42,6 @@ export default defineNuxtConfig({
     "/api/**": { prerender: false },
     "/survey": { prerender: false },
     "/survey/**": { prerender: false },
+    "/login": { prerender: false },
   },
 });

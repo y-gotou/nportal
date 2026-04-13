@@ -3,7 +3,7 @@ import { secondaryButtonClass } from "~/utils/ui";
 
 const route = useRoute();
 const surveyId = Number(route.params.id);
-const { survey, responses } = await useSurveyDetail(surveyId, {
+const { survey, responses, myAnswers } = await useSurveyDetail(surveyId, {
   failureMessage: "Failed to load survey results",
 });
 
@@ -58,7 +58,7 @@ useSeoMeta({
         title="設問ごとの回答内訳"
         description="選択式は分布、自由記述は一覧で確認できます。"
       />
-      <SurveyResults :survey="survey" :responses="responses" />
+      <SurveyResults :survey="survey" :responses="responses" :my-answers="myAnswers" />
     </div>
 
     <div
