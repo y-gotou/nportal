@@ -1,6 +1,6 @@
 <script setup lang="ts">
 defineProps<{
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
   description?: string;
 }>();
@@ -9,10 +9,13 @@ defineProps<{
 <template>
   <header class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
     <div>
-      <p class="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
+      <p
+        v-if="eyebrow"
+        class="text-xs font-semibold tracking-[0.16em] text-slate-500"
+      >
         {{ eyebrow }}
       </p>
-      <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-900">{{ title }}</h2>
+      <h2 class="mt-2 text-pretty text-2xl font-bold tracking-tight text-slate-900">{{ title }}</h2>
       <p v-if="description" class="mt-2 text-sm leading-6 text-slate-500">
         {{ description }}
       </p>

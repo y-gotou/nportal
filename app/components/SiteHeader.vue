@@ -19,7 +19,7 @@ function isActive(path: string) {
     <div
       class="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-4 md:flex-row md:items-center md:justify-between md:px-6"
     >
-      <NuxtLink to="/" class="flex items-center gap-3">
+      <NuxtLink to="/" class="flex items-center gap-3" translate="no">
         <span
           class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500 text-base font-bold text-white"
         >
@@ -27,16 +27,18 @@ function isActive(path: string) {
         </span>
         <span class="flex flex-col">
           <strong class="text-base font-semibold tracking-tight text-slate-900">N Portal</strong>
-          <small class="text-xs uppercase tracking-[0.24em] text-slate-500">AI Learning Hub</small>
         </span>
       </NuxtLink>
 
-      <nav class="flex flex-wrap items-center gap-2 md:justify-end">
+      <nav
+        class="flex items-center gap-2 overflow-x-auto pb-1 md:justify-end md:overflow-visible md:pb-0"
+        aria-label="グローバルナビゲーション"
+      >
         <NuxtLink
           v-for="item in navItems"
           :key="item.to"
           :to="item.to"
-          class="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+          class="shrink-0 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
           :class="
             isActive(item.to)
               ? 'bg-blue-50 text-blue-600'

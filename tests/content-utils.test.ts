@@ -1,10 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  formatDisplayDate,
   getMinutes,
   getMinutesList,
   getNextEvent,
   getRecentMinutes,
+  getRecentResources,
+  getResourcesForMinutes,
   getResources,
   getSchedule,
   getTodayDate,
@@ -15,6 +18,10 @@ test("getTodayDate formats local dates as YYYY-MM-DD", () => {
   const date = new Date(2026, 3, 13, 9, 30, 0);
 
   assert.equal(getTodayDate(date), "2026-04-13");
+});
+
+test("formatDisplayDate renders Japanese locale dates", () => {
+  assert.equal(formatDisplayDate("2026-04-17"), "2026年4月17日");
 });
 
 test("content utilities return pre-sorted data", () => {
@@ -45,6 +52,16 @@ test("minutes lookup and recent minutes reuse normalized data", () => {
   assert.deepEqual(
     getRecentMinutes(2).map((minutes) => minutes.slug),
     ["2026-03-27-meeting-10", "2026-03-20-meeting-09"],
+  );
+
+  assert.deepEqual(
+    getRecentResources(2).map((resource) => resource.id),
+    [4, 2],
+  );
+
+  assert.deepEqual(
+    getResourcesForMinutes("2026-03-13-meeting-08").map((resource) => resource.id),
+    [2, 3],
   );
 });
 

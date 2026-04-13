@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { primaryButtonClass, secondaryButtonClass } from "~/utils/ui";
+import { secondaryButtonClass } from "~/utils/ui";
 
 const route = useRoute();
 const surveyId = Number(route.params.id);
@@ -33,7 +33,6 @@ useSeoMeta({
 
     <div class="space-y-4">
       <SectionHeader
-        eyebrow="Survey Results"
         :title="`${survey.title} の集計結果`"
         :description="survey.description"
       />
@@ -56,7 +55,6 @@ useSeoMeta({
 
     <div v-if="responses.length" class="mt-8 space-y-4">
       <SectionHeader
-        eyebrow="Overview"
         title="設問ごとの回答内訳"
         description="選択式は分布、自由記述は一覧で確認できます。"
       />
@@ -71,14 +69,6 @@ useSeoMeta({
       <p class="text-sm leading-6 text-slate-500">
         最初の回答を受け付けるまで、ここには集計結果が表示されません。
       </p>
-      <div v-if="survey.isActive" class="flex flex-wrap gap-3">
-        <NuxtLink
-          :to="`/survey/${survey.id}`"
-          :class="primaryButtonClass"
-        >
-          回答する
-        </NuxtLink>
-      </div>
     </div>
   </PageContainer>
 </template>

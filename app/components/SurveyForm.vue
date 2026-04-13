@@ -73,6 +73,7 @@ async function submitSurvey() {
 <template>
   <div
     v-if="isSubmitted"
+    aria-live="polite"
     class="space-y-4 rounded-xl border border-emerald-200 bg-emerald-50 p-6 shadow-sm"
   >
     <h2 class="text-xl font-semibold tracking-tight text-slate-900">回答ありがとうございました</h2>
@@ -102,7 +103,7 @@ async function submitSurvey() {
       :class="`${surfaceCardClass} space-y-4`"
     >
       <div class="space-y-1">
-        <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+        <p class="text-xs font-semibold tracking-[0.16em] text-slate-500">
           Q{{ index + 1 }}
         </p>
         <h3 class="text-lg font-semibold tracking-tight text-slate-900">
@@ -135,6 +136,7 @@ async function submitSurvey() {
           class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 transition hover:border-blue-200 hover:bg-blue-50"
         >
           <input
+            :name="`question-${question.id}`"
             type="checkbox"
             :checked="getMultipleAnswers(question.id).includes(option)"
             class="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-500 focus:ring-blue-500"
@@ -147,15 +149,18 @@ async function submitSurvey() {
       <textarea
         v-else
         :value="getTextAnswer(question.id)"
-        class="min-h-32 w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+        :name="`question-${question.id}`"
+        autocomplete="off"
+        class="min-h-32 w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 transition-[border-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
         rows="5"
-        placeholder="自由にご記入ください"
+        placeholder="自由にご記入ください…"
         @input="setSingleAnswer(question.id, ($event.target as HTMLTextAreaElement).value)"
       />
     </section>
 
     <p
       v-if="errorMessage"
+      aria-live="polite"
       class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600"
     >
       {{ errorMessage }}
@@ -166,7 +171,7 @@ async function submitSurvey() {
       type="submit"
       :disabled="isSubmitting"
     >
-      {{ isSubmitting ? "送信中..." : "回答を送信" }}
+      {{ isSubmitting ? "送信中…" : "回答を送信" }}
     </button>
   </form>
 </template>

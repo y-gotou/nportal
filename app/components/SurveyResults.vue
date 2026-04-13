@@ -19,7 +19,7 @@ const blocks = computed(() => buildSurveyResultBlocks(props.survey, props.respon
       :class="`${surfaceCardClass} space-y-4`"
     >
       <div class="space-y-1">
-        <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+        <p class="text-xs font-semibold tracking-[0.16em] text-slate-500">
           Q{{ index + 1 }}
         </p>
         <h3 class="text-lg font-semibold tracking-tight text-slate-900">

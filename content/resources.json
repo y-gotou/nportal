@@ -6,7 +6,8 @@
     "type": "スライド",
     "tags": ["LLM", "基礎"],
     "date": "2026-03-06",
-    "presenter": "田中"
+    "presenter": "田中",
+    "relatedMinutesSlug": null
   },
   {
     "id": 2,
@@ -15,7 +16,8 @@
     "type": "スライド",
     "tags": ["プロンプト", "実践"],
     "date": "2026-03-13",
-    "presenter": "鈴木"
+    "presenter": "鈴木",
+    "relatedMinutesSlug": "2026-03-13-meeting-08"
   },
   {
     "id": 3,
@@ -24,7 +26,8 @@
     "type": "参考リンク",
     "tags": ["API", "OpenAI"],
     "date": "2026-03-13",
-    "presenter": null
+    "presenter": null,
+    "relatedMinutesSlug": "2026-03-13-meeting-08"
   },
   {
     "id": 4,
@@ -33,6 +36,7 @@
     "type": "スライド",
     "tags": ["RAG", "ハンズオン"],
     "date": "2026-03-20",
-    "presenter": "佐藤"
+    "presenter": "佐藤",
+    "relatedMinutesSlug": "2026-03-20-meeting-09"
   }
 ]

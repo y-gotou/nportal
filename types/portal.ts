@@ -4,6 +4,7 @@ export interface ScheduleItem {
   time: string;
   title: string;
   meetingUrl?: string | null;
+  minutesSlug?: string | null;
   topics: string[];
   presenter: string;
 }
@@ -16,6 +17,7 @@ export interface ResourceItem {
   tags: string[];
   date: string;
   presenter: string | null;
+  relatedMinutesSlug?: string | null;
 }
 
 export interface MinutesMeta {
@@ -48,6 +50,7 @@ export interface Survey {
   description: string;
   createdAt: string;
   isActive: boolean;
+  responseCount?: number;
   questions: SurveyQuestion[];
 }
 

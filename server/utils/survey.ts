@@ -5,8 +5,8 @@ import type {
   SurveyAnswerInput,
   SurveyQuestion,
   SurveyResponse,
-} from "~~/types/portal";
-import { parseSurveyOptions } from "~~/utils/survey";
+} from "../../types/portal.ts";
+import { parseSurveyOptions } from "../../utils/survey.ts";
 
 interface SurveyRow {
   id: number;
@@ -14,6 +14,11 @@ interface SurveyRow {
   description: string | null;
   created_at: string;
   is_active: number;
+}
+
+interface SurveyCountRow {
+  survey_id: number;
+  response_count: number;
 }
 
 interface QuestionRow {
@@ -83,13 +88,18 @@ export function getDb(event: H3Event): D1DatabaseLike {
   return db;
 }
 
-function toSurvey(row: SurveyRow, questions: QuestionRow[]): Survey {
+function toSurvey(
+  row: SurveyRow,
+  questions: QuestionRow[],
+  responseCount?: number,
+): Survey {
   return {
     id: row.id,
     title: row.title,
     description: row.description ?? "",
     createdAt: row.created_at,
     isActive: row.is_active === 1,
+    responseCount,
     questions: [...questions]
       .sort((left, right) => left.sort_order - right.sort_order)
       .map(toSurveyQuestion),
@@ -105,9 +115,27 @@ export async function listSurveys(db: D1DatabaseLike): Promise<Survey[]> {
     .prepare("SELECT * FROM questions ORDER BY sort_order ASC")
     .all<QuestionRow>();
 
-  const questionsBySurveyId = groupQuestionsBySurveyId(questionRows);
+  const { results: countRows } = await db
+    .prepare(
+      `SELECT q.survey_id, COUNT(r.id) AS response_count
+       FROM questions q
+       LEFT JOIN responses r ON r.question_id = q.id
+       GROUP BY q.survey_id`,
+    )
+    .all<SurveyCountRow>();
 
-  return surveyRows.map((row) => toSurvey(row, questionsBySurveyId.get(row.id) ?? []));
+  const questionsBySurveyId = groupQuestionsBySurveyId(questionRows);
+  const responseCountBySurveyId = new Map(
+    countRows.map((row) => [row.survey_id, row.response_count]),
+  );
+
+  return surveyRows.map((row) =>
+    toSurvey(
+      row,
+      questionsBySurveyId.get(row.id) ?? [],
+      responseCountBySurveyId.get(row.id) ?? 0,
+    ),
+  );
 }
 
 export async function getSurvey(

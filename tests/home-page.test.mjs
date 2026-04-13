@@ -1,11 +1,11 @@
-import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import test from "node:test";
 
-test('home hero does not show the "議事録を見る" action', async () => {
+test("home page prioritizes action sections over legacy service cards", async () => {
   const page = await readFile(new URL("../app/pages/index.vue", import.meta.url), "utf8");
-  const heroActions = page.match(/<template #actions>([\s\S]*?)<\/template>/);
 
-  assert.ok(heroActions, "expected home page hero actions template to exist");
-  assert.doesNotMatch(heroActions[1], /議事録を見る/);
+  assert.match(page, /title="次にやること"/);
+  assert.match(page, /title="最近の資料"/);
+  assert.doesNotMatch(page, /homeSections/);
 });

@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import type { MinutesMeta } from "~~/types/portal";
+import { formatDisplayDate } from "~~/utils/content";
 import { interactiveCardClass, topicTagClass } from "~/utils/ui";
 
 const props = defineProps<{
   minutes: MinutesMeta[];
 }>();
 
-const search = ref("");
+const route = useRoute();
+const router = useRouter();
+const search = ref(typeof route.query.q === "string" ? route.query.q : "");
 
 function matchesKeyword(minutes: MinutesMeta, keyword: string) {
   return (
@@ -24,6 +27,26 @@ const filteredMinutes = computed(() => {
 
   return props.minutes.filter((minutes) => matchesKeyword(minutes, keyword));
 });
+
+watch(search, (value) => {
+  router.replace({
+    query: {
+      ...route.query,
+      q: value.trim() || undefined,
+    },
+  });
+});
+
+watch(
+  () => route.query.q,
+  (value) => {
+    const nextValue = typeof value === "string" ? value : "";
+
+    if (nextValue !== search.value) {
+      search.value = nextValue;
+    }
+  },
+);
 </script>
 
 <template>
@@ -38,9 +61,11 @@ const filteredMinutes = computed(() => {
       <input
         id="minutes-search"
         v-model="search"
+        name="minutes-search"
         type="search"
-        class="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-        placeholder="タイトルやトピックで検索"
+        autocomplete="off"
+        class="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 transition-[border-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+        placeholder="タイトルやトピックで検索…"
       >
     </div>
 
@@ -53,7 +78,7 @@ const filteredMinutes = computed(() => {
       >
         <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <h3 class="text-lg font-semibold tracking-tight text-slate-900">{{ minutes.title }}</h3>
-          <span class="text-sm text-slate-500">{{ minutes.date }}</span>
+          <span class="text-sm text-slate-500">{{ formatDisplayDate(minutes.date) }}</span>
         </div>
         <div class="mt-4 flex flex-wrap gap-2">
           <span
@@ -64,7 +89,6 @@ const filteredMinutes = computed(() => {
             {{ topic }}
           </span>
         </div>
-        <p class="mt-4 text-sm text-slate-500">参加者: {{ minutes.attendees.join("、") }}</p>
       </NuxtLink>
     </div>
 

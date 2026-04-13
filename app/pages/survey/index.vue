@@ -26,9 +26,8 @@ useSeoMeta({
 <template>
   <PageContainer size="wide">
     <SectionHeader
-      eyebrow="Survey"
       title="アンケート一覧"
-      description="回答受付中のフォームと、集計結果ページへの導線をまとめています。"
+      description="回答受付中のアンケートを確認できます。"
     />
 
     <div v-if="surveys.length" class="grid gap-4 md:grid-cols-2">
@@ -37,8 +36,10 @@ useSeoMeta({
         :key="survey.id"
         :class="`${surfaceCardClass} space-y-4`"
       >
-        <div class="flex items-start justify-between gap-3">
-          <h2 class="text-xl font-semibold tracking-tight text-slate-900">{{ survey.title }}</h2>
+        <div class="flex min-w-0 items-start justify-between gap-3">
+          <h2 class="min-w-0 text-pretty text-xl font-semibold tracking-tight text-slate-900">
+            {{ survey.title }}
+          </h2>
           <span
             class="shrink-0 rounded-full px-2.5 py-1 text-xs font-medium"
             :class="
@@ -51,9 +52,12 @@ useSeoMeta({
           </span>
         </div>
         <p class="text-sm leading-6 text-slate-500">{{ survey.description }}</p>
-        <p class="text-sm text-slate-500">
-          設問数: {{ survey.questions.length }} / 作成日: {{ survey.createdAt }}
-        </p>
+        <div class="flex flex-wrap gap-2 text-sm text-slate-500">
+          <span class="rounded-full bg-slate-100 px-3 py-1">設問数 {{ survey.questions.length }}問</span>
+          <span class="rounded-full bg-slate-100 px-3 py-1">
+            回答 {{ survey.responseCount ?? 0 }}件
+          </span>
+        </div>
         <div class="flex flex-wrap gap-3">
           <NuxtLink
             v-if="survey.isActive"
@@ -63,6 +67,7 @@ useSeoMeta({
             回答する
           </NuxtLink>
           <NuxtLink
+            v-if="(survey.responseCount ?? 0) > 0"
             :to="`/survey/${survey.id}/results`"
             :class="secondaryButtonClass"
           >

@@ -5,6 +5,7 @@
     "time": "15:00-16:00",
     "title": "第11回 AI勉強会",
     "meetingUrl": "https://meet.google.com/xxx-yyyy-zzz",
+    "minutesSlug": null,
     "topics": ["LLMのファインチューニング入門"],
     "presenter": "田中"
   },
@@ -14,6 +15,7 @@
     "time": "15:00-16:00",
     "title": "第12回 AI勉強会",
     "meetingUrl": "https://meet.google.com/xxx-yyyy-zzz",
+    "minutesSlug": null,
     "topics": ["プロンプトエンジニアリング実践"],
     "presenter": "鈴木"
   },
@@ -23,6 +25,7 @@
     "time": "15:00-16:00",
     "title": "第13回 AI勉強会",
     "meetingUrl": "https://meet.google.com/xxx-yyyy-zzz",
+    "minutesSlug": null,
     "topics": ["RAGアーキテクチャの設計パターン"],
     "presenter": "佐藤"
   }

@@ -3,7 +3,7 @@ import { secondaryButtonClass } from "~/utils/ui";
 
 const route = useRoute();
 const surveyId = Number(route.params.id);
-const { survey } = await useSurveyDetail(surveyId, {
+const { survey, responses } = await useSurveyDetail(surveyId, {
   requireActive: true,
   failureMessage: "Failed to load survey",
 });
@@ -24,6 +24,7 @@ useSeoMeta({
         一覧へ戻る
       </NuxtLink>
       <NuxtLink
+        v-if="responses.length"
         :to="`/survey/${survey.id}/results`"
         :class="secondaryButtonClass"
       >
@@ -33,7 +34,6 @@ useSeoMeta({
 
     <div class="space-y-4">
       <SectionHeader
-        eyebrow="Survey Form"
         :title="survey.title"
         :description="survey.description"
       />
@@ -45,14 +45,15 @@ useSeoMeta({
         <span class="rounded-full bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-600">
           回答受付中
         </span>
+        <span class="rounded-full bg-slate-100 px-3 py-1.5 text-sm text-slate-600">
+          回答 {{ responses.length }}件
+        </span>
       </div>
     </div>
 
     <div class="mt-8 space-y-4">
       <SectionHeader
-        eyebrow="Answer"
         title="アンケートに回答する"
-        description="選択式と自由記述の両方に対応しています。"
       />
 
       <SurveyForm :survey="survey" />

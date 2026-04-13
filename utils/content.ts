@@ -12,6 +12,12 @@ export const portalTitle = "N Portal";
 export const portalDescription =
   "社内AI勉強会の議事録、予定、資料、アンケートをまとめた軽量ポータルです。";
 
+const displayDateFormatter = new Intl.DateTimeFormat("ja-JP", {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+});
+
 function compareDateAscending<T extends { date: string }>(left: T, right: T) {
   return left.date.localeCompare(right.date);
 }
@@ -42,6 +48,17 @@ const minutesList = allMinutes.map(({ slug, title, date, attendees, topics }) =>
 
 const minutesBySlug = new Map(allMinutes.map((minutes) => [minutes.slug, minutes]));
 
+export function formatDisplayDate(date: string) {
+  const parsedDate = new Date(`${date}T00:00:00`);
+  return Number.isNaN(parsedDate.getTime())
+    ? date
+    : displayDateFormatter.format(parsedDate);
+}
+
+export function formatDisplayDateTime(date: string, time?: string) {
+  return time ? `${formatDisplayDate(date)} ${time}` : formatDisplayDate(date);
+}
+
 export function getMinutesList(): MinutesMeta[] {
   return [...minutesList];
 }
@@ -52,6 +69,14 @@ export function getMinutes(slug: string): Minutes | null {
 
 export function getResources(): ResourceItem[] {
   return [...allResources];
+}
+
+export function getRecentResources(limit = 3): ResourceItem[] {
+  return allResources.slice(0, limit);
+}
+
+export function getResourcesForMinutes(slug: string): ResourceItem[] {
+  return allResources.filter((resource) => resource.relatedMinutesSlug === slug);
 }
 
 export function getSchedule(): ScheduleItem[] {

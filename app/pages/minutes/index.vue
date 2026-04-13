@@ -12,7 +12,6 @@ useSeoMeta({
 <template>
   <PageContainer size="wide">
     <SectionHeader
-      eyebrow="Minutes"
       title="議事録一覧"
       description="タイトルやトピックで絞り込みながら振り返れます。"
     />
