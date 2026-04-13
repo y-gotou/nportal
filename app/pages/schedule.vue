@@ -31,14 +31,11 @@ useSeoMeta({
           <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div class="min-w-0 space-y-2">
               <p class="text-sm text-slate-500">
-                {{ formatDisplayDateTime(item.date, item.time) }}
+                {{ formatDisplayDateTime(item.date, item.time) }}<span v-if="item.location"> ・ {{ item.location }}</span>
               </p>
               <h2 class="text-pretty text-xl font-semibold tracking-tight text-slate-900">
                 {{ item.title }}
               </h2>
-              <p class="text-sm leading-6 text-slate-500">
-                発表者 {{ item.presenter }}
-              </p>
               <div class="flex flex-wrap gap-2">
                 <span
                   v-for="topic in item.topics"
@@ -57,7 +54,7 @@ useSeoMeta({
                 rel="noreferrer"
                 :class="primaryButtonClass"
               >
-                参加する
+                会議に参加する
               </a>
               <NuxtLink to="/survey" :class="secondaryButtonClass">
                 アンケートを見る
@@ -83,14 +80,11 @@ useSeoMeta({
           <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div class="min-w-0 space-y-2">
               <p class="text-sm text-slate-500">
-                {{ formatDisplayDateTime(item.date, item.time) }}
+                {{ formatDisplayDateTime(item.date, item.time) }}<span v-if="item.location"> ・ {{ item.location }}</span>
               </p>
               <h2 class="text-pretty text-lg font-semibold tracking-tight text-slate-900">
                 {{ item.title }}
               </h2>
-              <p class="text-sm leading-6 text-slate-500">
-                発表者 {{ item.presenter }}
-              </p>
               <div class="flex flex-wrap gap-2">
                 <span
                   v-for="topic in item.topics"

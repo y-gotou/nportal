@@ -26,38 +26,23 @@ useSeoMeta({
 
 <template>
   <PageContainer size="medium">
-    <PageHero eyebrow="議事録" :title="minutes.title">
-      <template #meta>
-        <div class="grid gap-4 text-sm md:grid-cols-3 md:text-base">
-          <div class="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-            <p class="mb-1 text-xs font-semibold tracking-[0.16em] text-white/60">
-              開催日
-            </p>
-            <p>{{ formatDisplayDate(minutes.date) }}</p>
-          </div>
-          <div class="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-            <p class="mb-1 text-xs font-semibold tracking-[0.16em] text-white/60">
-              参加者
-            </p>
-            <p>{{ minutes.attendees.join("、") }}</p>
-          </div>
-          <div class="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-            <p class="mb-1 text-xs font-semibold tracking-[0.16em] text-white/60">
-              トピック
-            </p>
-            <p>{{ minutes.topics.join("、") }}</p>
-          </div>
-        </div>
-      </template>
-      <template #actions>
-        <NuxtLink
-          to="/minutes"
-          :class="`${secondaryButtonClass} border-white/20 px-5 font-semibold text-white hover:bg-white/10 hover:text-white`"
-        >
-          一覧へ戻る
-        </NuxtLink>
-      </template>
-    </PageHero>
+    <div class="mb-6">
+      <div class="mb-3 flex items-center justify-between">
+        <span class="text-xs font-semibold tracking-[0.16em] text-slate-400">議事録</span>
+        <NuxtLink to="/minutes" :class="secondaryButtonClass">一覧へ戻る</NuxtLink>
+      </div>
+      <h1 class="text-pretty text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
+        {{ minutes.title }}
+      </h1>
+      <dl class="mt-3 grid grid-cols-[auto_1fr] items-baseline gap-x-4 gap-y-1.5 text-sm text-slate-500">
+        <dt class="text-xs font-semibold tracking-[0.14em] text-slate-400">開催日</dt>
+        <dd>{{ formatDisplayDate(minutes.date) }}</dd>
+        <dt class="text-xs font-semibold tracking-[0.14em] text-slate-400">参加者</dt>
+        <dd>{{ minutes.attendees.join("、") }}</dd>
+        <dt class="text-xs font-semibold tracking-[0.14em] text-slate-400">トピック</dt>
+        <dd>{{ minutes.topics.join("、") }}</dd>
+      </dl>
+    </div>
 
     <article
       class="prose max-w-none rounded-xl border border-slate-200 bg-white p-6 shadow-sm md:p-8"

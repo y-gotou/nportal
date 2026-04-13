@@ -30,49 +30,53 @@ useSeoMeta({
       description="回答受付中のアンケートを確認できます。"
     />
 
-    <div v-if="surveys.length" class="grid gap-4 md:grid-cols-2">
+    <div v-if="surveys.length" class="space-y-3">
       <article
         v-for="survey in surveys"
         :key="survey.id"
-        :class="`${surfaceCardClass} space-y-4`"
+        :class="surfaceCardClass"
       >
-        <div class="flex min-w-0 items-start justify-between gap-3">
-          <h2 class="min-w-0 text-pretty text-xl font-semibold tracking-tight text-slate-900">
-            {{ survey.title }}
-          </h2>
-          <span
-            class="shrink-0 rounded-full px-2.5 py-1 text-xs font-medium"
-            :class="
-              survey.isActive
-                ? 'bg-blue-50 text-blue-600'
-                : 'bg-slate-100 text-slate-500'
-            "
-          >
-            {{ survey.isActive ? "受付中" : "終了" }}
-          </span>
-        </div>
-        <p class="text-sm leading-6 text-slate-500">{{ survey.description }}</p>
-        <div class="flex flex-wrap gap-2 text-sm text-slate-500">
-          <span class="rounded-full bg-slate-100 px-3 py-1">設問数 {{ survey.questions.length }}問</span>
-          <span class="rounded-full bg-slate-100 px-3 py-1">
-            回答 {{ survey.responseCount ?? 0 }}件
-          </span>
-        </div>
-        <div class="flex flex-wrap gap-3">
-          <NuxtLink
-            v-if="survey.isActive"
-            :to="`/survey/${survey.id}`"
-            :class="primaryButtonClass"
-          >
-            回答する
-          </NuxtLink>
-          <NuxtLink
-            v-if="(survey.responseCount ?? 0) > 0"
-            :to="`/survey/${survey.id}/results`"
-            :class="secondaryButtonClass"
-          >
-            結果を見る
-          </NuxtLink>
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div class="min-w-0 space-y-2">
+            <div class="flex min-w-0 items-start gap-3">
+              <h2 class="min-w-0 text-pretty text-xl font-semibold tracking-tight text-slate-900">
+                {{ survey.title }}
+              </h2>
+              <span
+                class="shrink-0 rounded-full px-2.5 py-1 text-xs font-medium"
+                :class="
+                  survey.isActive
+                    ? 'bg-blue-50 text-blue-600'
+                    : 'bg-slate-100 text-slate-500'
+                "
+              >
+                {{ survey.isActive ? "受付中" : "終了" }}
+              </span>
+            </div>
+            <p class="text-sm leading-6 text-slate-500">{{ survey.description }}</p>
+            <div class="flex flex-wrap gap-2 text-sm text-slate-500">
+              <span class="rounded-full bg-slate-100 px-3 py-1">設問数 {{ survey.questions.length }}問</span>
+              <span class="rounded-full bg-slate-100 px-3 py-1">
+                回答 {{ survey.responseCount ?? 0 }}件
+              </span>
+            </div>
+          </div>
+          <div class="flex shrink-0 flex-wrap gap-3">
+            <NuxtLink
+              v-if="survey.isActive"
+              :to="`/survey/${survey.id}`"
+              :class="primaryButtonClass"
+            >
+              回答する
+            </NuxtLink>
+            <NuxtLink
+              v-if="(survey.responseCount ?? 0) > 0"
+              :to="`/survey/${survey.id}/results`"
+              :class="secondaryButtonClass"
+            >
+              結果を見る
+            </NuxtLink>
+          </div>
         </div>
       </article>
     </div>

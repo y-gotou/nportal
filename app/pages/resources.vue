@@ -35,8 +35,7 @@ function matchesSelectedFilters(resource: ResourceItem) {
 
   return (
     resource.title.toLowerCase().includes(keyword) ||
-    resource.tags.some((tag) => tag.toLowerCase().includes(keyword)) ||
-    (resource.presenter ?? "").toLowerCase().includes(keyword)
+    resource.tags.some((tag) => tag.toLowerCase().includes(keyword))
   );
 }
 
@@ -175,51 +174,48 @@ useSeoMeta({
         </template>
       </SectionHeader>
 
-      <div class="grid gap-4 md:grid-cols-2">
+      <div class="space-y-3">
         <article
           v-for="resource in filteredResources"
           :key="resource.id"
-          :class="`${interactiveCardClass} flex h-full flex-col p-5`"
+          :class="`${interactiveCardClass} p-5`"
         >
-          <div class="flex min-w-0 items-start justify-between gap-3">
-            <div class="min-w-0">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div class="min-w-0 space-y-2">
               <p class="text-sm text-slate-500">
                 {{ formatDisplayDate(resource.date) }}
-                <span v-if="resource.presenter"> / {{ resource.presenter }}</span>
+                <span class="ml-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-500">{{ resource.type }}</span>
               </p>
-              <h2 class="mt-2 text-pretty text-lg font-semibold tracking-tight text-slate-900">
+              <h2 class="text-pretty text-lg font-semibold tracking-tight text-slate-900">
                 {{ resource.title }}
               </h2>
+              <div class="flex flex-wrap gap-2">
+                <span
+                  v-for="tag in resource.tags"
+                  :key="tag"
+                  :class="topicTagClass"
+                >
+                  {{ tag }}
+                </span>
+              </div>
             </div>
-            <span class="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-500">
-              {{ resource.type }}
-            </span>
-          </div>
-          <div class="mt-4 flex flex-wrap gap-2">
-            <span
-              v-for="tag in resource.tags"
-              :key="tag"
-              :class="topicTagClass"
-            >
-              {{ tag }}
-            </span>
-          </div>
-          <div class="mt-5 flex flex-wrap gap-3">
-            <a
-              :href="resource.url"
-              target="_blank"
-              rel="noreferrer"
-              class="inline-flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-            >
-              資料を開く
-            </a>
-            <NuxtLink
-              v-if="resource.relatedMinutesSlug"
-              :to="`/minutes/${resource.relatedMinutesSlug}`"
-              :class="secondaryButtonClass"
-            >
-              関連議事録を見る
-            </NuxtLink>
+            <div class="flex shrink-0 flex-wrap gap-3">
+              <a
+                :href="resource.url"
+                target="_blank"
+                rel="noreferrer"
+                class="inline-flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+              >
+                資料を開く
+              </a>
+              <NuxtLink
+                v-if="resource.relatedMinutesSlug"
+                :to="`/minutes/${resource.relatedMinutesSlug}`"
+                :class="secondaryButtonClass"
+              >
+                関連議事録を見る
+              </NuxtLink>
+            </div>
           </div>
         </article>
       </div>
