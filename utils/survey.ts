@@ -1,10 +1,20 @@
 import type {
   Survey,
   SurveyAnswerValue,
+  SurveyChoiceAnswerWithOther,
   SurveyDistributionItem,
+  SurveyQuestionType,
   SurveyResponse,
   SurveyResultBlock,
 } from "../types/portal";
+
+export const SURVEY_OTHER_OPTION_VALUE = "__other__";
+export const SURVEY_OTHER_OPTION_LABEL = "その他";
+
+interface ParsedSurveySelectionAnswer {
+  selected: string[];
+  otherText: string;
+}
 
 function parseStringArray(value: string) {
   try {
@@ -17,11 +27,44 @@ function parseStringArray(value: string) {
   }
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function parseStructuredAnswer(answer: string): ParsedSurveySelectionAnswer | null {
+  try {
+    const parsed = JSON.parse(answer) as unknown;
+    if (!isRecord(parsed) || !("selected" in parsed)) {
+      return null;
+    }
+
+    const selectedRaw = parsed.selected;
+    const selected = Array.isArray(selectedRaw)
+      ? selectedRaw.filter((item): item is string => typeof item === "string")
+      : typeof selectedRaw === "string"
+        ? [selectedRaw]
+        : [];
+
+    return {
+      selected,
+      otherText: typeof parsed.otherText === "string" ? parsed.otherText : "",
+    };
+  } catch {
+    return null;
+  }
+}
+
 export function parseSurveyOptions(value: string | null | undefined) {
   return parseStringArray(value ?? "[]");
 }
 
 export function parseMultipleChoiceAnswer(answer: string) {
+  const structured = parseStructuredAnswer(answer);
+
+  if (structured) {
+    return structured.selected;
+  }
+
   const parsed = parseStringArray(answer);
 
   if (parsed.length > 0 || answer.trim().startsWith("[")) {
@@ -34,9 +77,46 @@ export function parseMultipleChoiceAnswer(answer: string) {
     .filter(Boolean);
 }
 
+export function parseSurveySelectionAnswer(
+  answer: string,
+  questionType: SurveyQuestionType,
+): ParsedSurveySelectionAnswer {
+  if (questionType === "free_text") {
+    return {
+      selected: [],
+      otherText: answer,
+    };
+  }
+
+  const structured = parseStructuredAnswer(answer);
+  if (structured) {
+    return structured;
+  }
+
+  if (questionType === "multiple_choice") {
+    return {
+      selected: parseMultipleChoiceAnswer(answer),
+      otherText: "",
+    };
+  }
+
+  return {
+    selected: answer.trim() ? [answer] : [],
+    otherText: "",
+  };
+}
+
 export function serializeSurveyAnswer(answer: SurveyAnswerValue | undefined) {
   if (Array.isArray(answer)) {
     return JSON.stringify(answer);
+  }
+
+  if (typeof answer === "object" && answer !== null) {
+    const normalized: SurveyChoiceAnswerWithOther = {
+      selected: answer.selected,
+      otherText: answer.otherText.trim(),
+    };
+    return JSON.stringify(normalized);
   }
 
   return answer ?? "";
@@ -89,24 +169,36 @@ export function buildSurveyResultBlocks(
         freeTextAnswers: questionResponses
           .map((response) => response.answer.trim())
           .filter(Boolean),
+        otherTextAnswers: [],
         distribution: [],
       };
     }
 
     const optionCounts = Object.fromEntries(
-      question.options.map((option) => [option, 0]),
+      [
+        ...question.options,
+        ...(question.allowOtherText ? [SURVEY_OTHER_OPTION_LABEL] : []),
+      ].map((option) => [option, 0]),
     ) as Record<string, number>;
+    const otherTextAnswers: string[] = [];
 
     for (const response of questionResponses) {
-      const values =
-        question.questionType === "multiple_choice"
-          ? parseMultipleChoiceAnswer(response.answer)
-          : [response.answer];
+      const parsedAnswer = parseSurveySelectionAnswer(
+        response.answer,
+        question.questionType,
+      );
 
-      for (const value of values) {
-        if (value in optionCounts) {
-          optionCounts[value] = (optionCounts[value] ?? 0) + 1;
+      for (const value of parsedAnswer.selected) {
+        const label =
+          value === SURVEY_OTHER_OPTION_VALUE ? SURVEY_OTHER_OPTION_LABEL : value;
+
+        if (label in optionCounts) {
+          optionCounts[label] = (optionCounts[label] ?? 0) + 1;
         }
+      }
+
+      if (parsedAnswer.otherText.trim()) {
+        otherTextAnswers.push(parsedAnswer.otherText.trim());
       }
     }
 
@@ -114,6 +206,7 @@ export function buildSurveyResultBlocks(
       ...question,
       responseCount: questionResponses.length,
       freeTextAnswers: [],
+      otherTextAnswers,
       distribution: buildDistribution(optionCounts, questionResponses.length),
     };
   });

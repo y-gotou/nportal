@@ -22,7 +22,6 @@ const form = reactive({
   date: item.date,
   time: item.time,
   title: item.title,
-  presenter: item.presenter,
   location: item.location ?? "",
   meetingUrl: item.meetingUrl ?? "",
   minutesSlug: item.minutesSlug ?? "",
@@ -38,7 +37,6 @@ function validate() {
   if (!form.date) e.date = "開催日は必須です。";
   if (!form.time) e.time = "開催時間は必須です。";
   if (!form.title.trim()) e.title = "タイトルは必須です。";
-  if (!form.presenter.trim()) e.presenter = "発表者は必須です。";
   Object.assign(errors, e);
   return Object.keys(e).length === 0;
 }
@@ -54,7 +52,6 @@ async function submit() {
         date: form.date,
         time: form.time,
         title: form.title.trim(),
-        presenter: form.presenter.trim(),
         location: form.location.trim() || null,
         meetingUrl: form.meetingUrl.trim() || null,
         minutesSlug: form.minutesSlug.trim() || null,
@@ -121,16 +118,6 @@ useSeoMeta({ title: `${item.title} を編集` });
           type="text"
           class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           :class="errors.title ? 'border-red-300' : ''"
-        >
-      </AdminFormField>
-
-      <AdminFormField label="発表者" field-id="presenter" :error="errors.presenter" required>
-        <input
-          id="presenter"
-          v-model="form.presenter"
-          type="text"
-          class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-          :class="errors.presenter ? 'border-red-300' : ''"
         >
       </AdminFormField>
 

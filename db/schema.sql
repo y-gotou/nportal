@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS questions (
   question_text TEXT NOT NULL,
   question_type TEXT NOT NULL,
   options TEXT,
+  allow_other_text INTEGER NOT NULL DEFAULT 0,
   sort_order INTEGER DEFAULT 0
 );
 
@@ -56,7 +57,6 @@ CREATE TABLE IF NOT EXISTS schedule (
   meeting_url  TEXT,
   minutes_slug TEXT,
   topics       TEXT NOT NULL DEFAULT '[]',
-  presenter    TEXT NOT NULL DEFAULT '',
   location     TEXT,
   created_at   TEXT DEFAULT (datetime('now')),
   updated_at   TEXT DEFAULT (datetime('now'))

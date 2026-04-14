@@ -42,6 +42,7 @@ function createPreparedStatement(query: string): D1PreparedStatement {
               question_text: "満足度",
               question_type: "single_choice",
               options: "[\"高い\",\"普通\"]",
+              allow_other_text: 0,
               sort_order: 1,
             },
             {
@@ -50,6 +51,7 @@ function createPreparedStatement(query: string): D1PreparedStatement {
               question_text: "テーマ",
               question_type: "multiple_choice",
               options: "[\"RAG\",\"MLOps\"]",
+              allow_other_text: 1,
               sort_order: 1,
             },
           ],
@@ -84,4 +86,6 @@ test("listSurveys includes response counts for survey cards", async () => {
 
   assert.equal(surveys[0].responseCount, 3);
   assert.equal(surveys[1].responseCount, 0);
+  assert.equal(surveys[0].questions[0]?.allowOtherText, false);
+  assert.equal(surveys[1].questions[0]?.allowOtherText, true);
 });

@@ -9,7 +9,6 @@ interface ScheduleRow {
   meeting_url: string | null;
   minutes_slug: string | null;
   topics: string;
-  presenter: string;
   location: string | null;
 }
 
@@ -22,7 +21,6 @@ function toScheduleItem(row: ScheduleRow): ScheduleItem {
     meetingUrl: row.meeting_url,
     minutesSlug: row.minutes_slug,
     topics: JSON.parse(row.topics) as string[],
-    presenter: row.presenter,
     location: row.location,
   };
 }
@@ -52,7 +50,6 @@ export interface SchedulePayload {
   meetingUrl?: string | null;
   minutesSlug?: string | null;
   topics: string[];
-  presenter: string;
   location?: string | null;
 }
 
@@ -62,8 +59,8 @@ export async function createScheduleItem(
 ): Promise<ScheduleItem> {
   const result = await db
     .prepare(
-      `INSERT INTO schedule (date, time, title, meeting_url, minutes_slug, topics, presenter, location)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `INSERT INTO schedule (date, time, title, meeting_url, minutes_slug, topics, location)
+       VALUES (?, ?, ?, ?, ?, ?, ?)
        RETURNING id`,
     )
     .bind(
@@ -73,7 +70,6 @@ export async function createScheduleItem(
       payload.meetingUrl ?? null,
       payload.minutesSlug ?? null,
       JSON.stringify(payload.topics),
-      payload.presenter,
       payload.location ?? null,
     )
     .first<{ id: number }>();
@@ -92,7 +88,7 @@ export async function updateScheduleItem(
   await db
     .prepare(
       `UPDATE schedule
-       SET date = ?, time = ?, title = ?, meeting_url = ?, minutes_slug = ?, topics = ?, presenter = ?, location = ?, updated_at = datetime('now')
+       SET date = ?, time = ?, title = ?, meeting_url = ?, minutes_slug = ?, topics = ?, location = ?, updated_at = datetime('now')
        WHERE id = ?`,
     )
     .bind(
@@ -102,7 +98,6 @@ export async function updateScheduleItem(
       payload.meetingUrl ?? null,
       payload.minutesSlug ?? null,
       JSON.stringify(payload.topics),
-      payload.presenter,
       payload.location ?? null,
       id,
     )

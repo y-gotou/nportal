@@ -11,8 +11,8 @@ export default defineEventHandler(async (event) => {
 
   const body = await readBody<Partial<SchedulePayload>>(event);
 
-  if (!body.date || !body.time || !body.title || !body.presenter) {
-    throw createError({ statusCode: 400, statusMessage: "date, time, title, presenter are required" });
+  if (!body.date || !body.time || !body.title) {
+    throw createError({ statusCode: 400, statusMessage: "date, time, title are required" });
   }
 
   const payload: SchedulePayload = {
@@ -22,7 +22,6 @@ export default defineEventHandler(async (event) => {
     meetingUrl: body.meetingUrl ?? null,
     minutesSlug: body.minutesSlug ?? null,
     topics: Array.isArray(body.topics) ? body.topics : [],
-    presenter: body.presenter,
     location: body.location ?? null,
   };
 

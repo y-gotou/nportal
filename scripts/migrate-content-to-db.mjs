@@ -66,7 +66,7 @@ function buildScheduleStatements() {
     const minutesSlug = item.minutesSlug ? `'${escapeSql(item.minutesSlug)}'` : "NULL";
     const location = item.location ? `'${escapeSql(item.location)}'` : "NULL";
     const topics = escapeSql(JSON.stringify(item.topics ?? []));
-    return `INSERT OR IGNORE INTO schedule (id, date, time, title, meeting_url, minutes_slug, topics, presenter, location) VALUES (${item.id}, '${escapeSql(item.date)}', '${escapeSql(item.time)}', '${escapeSql(item.title)}', ${meetingUrl}, ${minutesSlug}, '${topics}', '${escapeSql(item.presenter)}', ${location});`;
+    return `INSERT OR IGNORE INTO schedule (id, date, time, title, meeting_url, minutes_slug, topics, location) VALUES (${item.id}, '${escapeSql(item.date)}', '${escapeSql(item.time)}', '${escapeSql(item.title)}', ${meetingUrl}, ${minutesSlug}, '${topics}', ${location});`;
   });
 }
 

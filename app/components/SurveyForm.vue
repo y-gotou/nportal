@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import type { Survey, SurveyAnswerValue } from "~~/types/portal";
+import type { Survey, SurveyAnswerValue, SurveyQuestion } from "~~/types/portal";
 import {
   primaryButtonClass,
   secondaryButtonClass,
   surfaceCardClass,
 } from "~/utils/ui";
-import { serializeSurveyAnswer } from "~~/utils/survey";
+import {
+  serializeSurveyAnswer,
+  SURVEY_OTHER_OPTION_LABEL,
+  SURVEY_OTHER_OPTION_VALUE,
+} from "~~/utils/survey";
 
 const props = defineProps<{
   survey: Survey;
@@ -19,40 +23,106 @@ const validationErrors = ref<Record<number, string>>({});
 const successRef = ref<HTMLElement | null>(null);
 const errorRef = ref<HTMLElement | null>(null);
 
+function clearValidationError(questionId: number) {
+  if (validationErrors.value[questionId]) {
+    const { [questionId]: _, ...rest } = validationErrors.value;
+    validationErrors.value = rest;
+  }
+}
+
+function getSingleAnswer(questionId: number) {
+  const answer = answers.value[questionId];
+  if (typeof answer === "string") {
+    return answer;
+  }
+  if (Array.isArray(answer)) {
+    return "";
+  }
+  return typeof answer?.selected === "string" ? answer.selected : "";
+}
+
 function getMultipleAnswers(questionId: number) {
   const answer = answers.value[questionId];
-  return Array.isArray(answer) ? answer : [];
+  if (Array.isArray(answer)) {
+    return answer;
+  }
+  if (typeof answer === "object" && answer !== null && Array.isArray(answer.selected)) {
+    return answer.selected;
+  }
+  return [];
+}
+
+function getOtherText(questionId: number) {
+  const answer = answers.value[questionId];
+  if (typeof answer === "object" && answer !== null && !Array.isArray(answer)) {
+    return answer.otherText;
+  }
+  return "";
+}
+
+function isOtherSelected(question: SurveyQuestion) {
+  if (question.questionType === "single_choice") {
+    return getSingleAnswer(question.id) === SURVEY_OTHER_OPTION_VALUE;
+  }
+  if (question.questionType === "multiple_choice") {
+    return getMultipleAnswers(question.id).includes(SURVEY_OTHER_OPTION_VALUE);
+  }
+  return false;
 }
 
 function toggleMultipleAnswer(questionId: number, option: string) {
   const selected = getMultipleAnswers(questionId);
+  const otherText = getOtherText(questionId);
   const next = selected.includes(option)
     ? selected.filter((item) => item !== option)
     : [...selected, option];
 
   answers.value = {
     ...answers.value,
-    [questionId]: next,
+    [questionId]: next.includes(SURVEY_OTHER_OPTION_VALUE)
+      ? { selected: next, otherText }
+      : next,
   };
 
-  // 回答したらバリデーションエラーをクリア
-  if (validationErrors.value[questionId]) {
-    const { [questionId]: _, ...rest } = validationErrors.value;
-    validationErrors.value = rest;
-  }
+  clearValidationError(questionId);
 }
 
 function setSingleAnswer(questionId: number, answer: string) {
+  const otherText = getOtherText(questionId);
   answers.value = {
     ...answers.value,
-    [questionId]: answer,
+    [questionId]: answer === SURVEY_OTHER_OPTION_VALUE
+      ? { selected: answer, otherText }
+      : answer,
   };
 
-  // 回答したらバリデーションエラーをクリア
-  if (validationErrors.value[questionId]) {
-    const { [questionId]: _, ...rest } = validationErrors.value;
-    validationErrors.value = rest;
+  clearValidationError(questionId);
+}
+
+function setOtherText(question: SurveyQuestion, otherText: string) {
+  if (question.questionType === "single_choice") {
+    answers.value = {
+      ...answers.value,
+      [question.id]: {
+        selected: SURVEY_OTHER_OPTION_VALUE,
+        otherText,
+      },
+    };
+  } else if (question.questionType === "multiple_choice") {
+    const selected = getMultipleAnswers(question.id);
+    const nextSelected = selected.includes(SURVEY_OTHER_OPTION_VALUE)
+      ? selected
+      : [...selected, SURVEY_OTHER_OPTION_VALUE];
+    answers.value = {
+      ...answers.value,
+      [question.id]: {
+        selected: nextSelected,
+        otherText,
+      },
+    };
   }
+
+  clearValidationError(question.id);
 }
 
 function getTextAnswer(questionId: number) {
@@ -65,12 +135,26 @@ function validateAnswers(): boolean {
 
   for (const question of props.survey.questions) {
     if (question.questionType === "single_choice") {
-      if (!getTextAnswer(question.id)) {
+      const answer = getSingleAnswer(question.id);
+      if (!answer) {
         errors[question.id] = "1つ選択してください";
+      } else if (
+        question.allowOtherText &&
+        answer === SURVEY_OTHER_OPTION_VALUE &&
+        !getOtherText(question.id).trim()
+      ) {
+        errors[question.id] = "その他の内容を入力してください";
       }
     } else if (question.questionType === "multiple_choice") {
-      if (getMultipleAnswers(question.id).length === 0) {
+      const selected = getMultipleAnswers(question.id);
+      if (selected.length === 0) {
         errors[question.id] = "1つ以上選択してください";
+      } else if (
+        question.allowOtherText &&
+        selected.includes(SURVEY_OTHER_OPTION_VALUE) &&
+        !getOtherText(question.id).trim()
+      ) {
+        errors[question.id] = "その他の内容を入力してください";
       }
     }
     // text は任意入力
@@ -187,11 +271,37 @@ async function submitSurvey() {
             :name="`question-${question.id}`"
             type="radio"
             :value="option"
-            :checked="getTextAnswer(question.id) === option"
+            :checked="getSingleAnswer(question.id) === option"
             class="mt-0.5 h-4 w-4 border-slate-300 text-blue-500 focus:ring-blue-500"
             @change="setSingleAnswer(question.id, option)"
           >
           <span>{{ option }}</span>
+        </label>
+
+        <label
+          v-if="question.allowOtherText"
+          class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 transition hover:border-blue-200 hover:bg-blue-50"
+          :class="{ 'border-rose-200 bg-rose-50': validationErrors[question.id] }"
+        >
+          <input
+            :name="`question-${question.id}`"
+            type="radio"
+            :value="SURVEY_OTHER_OPTION_VALUE"
+            :checked="getSingleAnswer(question.id) === SURVEY_OTHER_OPTION_VALUE"
+            class="mt-0.5 h-4 w-4 border-slate-300 text-blue-500 focus:ring-blue-500"
+            @change="setSingleAnswer(question.id, SURVEY_OTHER_OPTION_VALUE)"
+          >
+          <span class="w-full space-y-3">
+            <span class="block">{{ SURVEY_OTHER_OPTION_LABEL }}</span>
+            <input
+              v-if="isOtherSelected(question)"
+              :value="getOtherText(question.id)"
+              type="text"
+              class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              placeholder="内容を入力してください"
+              @input="setOtherText(question, ($event.target as HTMLInputElement).value)"
+            >
+          </span>
         </label>
       </div>
 
@@ -210,6 +320,31 @@ async function submitSurvey() {
             @change="toggleMultipleAnswer(question.id, option)"
           >
           <span>{{ option }}</span>
+        </label>
+
+        <label
+          v-if="question.allowOtherText"
+          class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 transition hover:border-blue-200 hover:bg-blue-50"
+          :class="{ 'border-rose-200 bg-rose-50': validationErrors[question.id] }"
+        >
+          <input
+            :name="`question-${question.id}`"
+            type="checkbox"
+            :checked="getMultipleAnswers(question.id).includes(SURVEY_OTHER_OPTION_VALUE)"
+            class="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-500 focus:ring-blue-500"
+            @change="toggleMultipleAnswer(question.id, SURVEY_OTHER_OPTION_VALUE)"
+          >
+          <span class="w-full space-y-3">
+            <span class="block">{{ SURVEY_OTHER_OPTION_LABEL }}</span>
+            <input
+              v-if="isOtherSelected(question)"
+              :value="getOtherText(question.id)"
+              type="text"
+              class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              placeholder="内容を入力してください"
+              @input="setOtherText(question, ($event.target as HTMLInputElement).value)"
+            >
+          </span>
         </label>
       </div>
 
