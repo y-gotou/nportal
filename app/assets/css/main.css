@@ -153,3 +153,13 @@ body {
   padding: 0.75rem;
   text-align: left;
 }
+
+.prose a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.prose a:hover {
+  color: var(--primary-dark);
+}
