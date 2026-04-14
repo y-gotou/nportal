@@ -19,6 +19,30 @@ function isActive(path: string) {
 const userInitial = computed(() =>
   currentUser.value?.email?.charAt(0).toUpperCase() ?? "?",
 );
+
+// ユーザーメニュー
+const isMenuOpen = ref(false);
+const menuRef = ref<HTMLElement | null>(null);
+
+function toggleMenu() {
+  isMenuOpen.value = !isMenuOpen.value;
+}
+
+function logout() {
+  currentUser.value = null;
+  isMenuOpen.value = false;
+  window.location.href = "/api/logout";
+}
+
+// メニュー外クリックで閉じる
+function onClickOutside(event: MouseEvent) {
+  if (menuRef.value && !menuRef.value.contains(event.target as Node)) {
+    isMenuOpen.value = false;
+  }
+}
+
+onMounted(() => document.addEventListener("click", onClickOutside));
+onUnmounted(() => document.removeEventListener("click", onClickOutside));
 </script>
 
 <template>
@@ -59,16 +83,65 @@ const userInitial = computed(() =>
 
         <div
           v-if="currentUser"
-          class="shrink-0 flex items-center gap-2 border-l border-slate-200 pl-3"
-          :title="currentUser.email"
+          ref="menuRef"
+          class="relative shrink-0 border-l border-slate-200 pl-3"
         >
-          <span
-            class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-700"
-            aria-hidden="true"
+          <button
+            type="button"
+            class="flex items-center gap-2 rounded-lg px-2 py-1 transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+            :aria-expanded="isMenuOpen"
+            aria-haspopup="true"
+            @click.stop="toggleMenu"
           >
-            {{ userInitial }}
-          </span>
-          <span class="hidden text-xs text-slate-500 lg:block">{{ currentUser.email }}</span>
+            <span
+              class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-700"
+              aria-hidden="true"
+            >
+              {{ userInitial }}
+            </span>
+            <span class="hidden text-xs text-slate-600 lg:block">{{ currentUser.email }}</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-3.5 w-3.5 text-slate-400 transition-transform"
+              :class="isMenuOpen ? 'rotate-180' : ''"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          <!-- ドロップダウンメニュー -->
+          <div
+            v-if="isMenuOpen"
+            class="absolute right-0 top-full z-50 mt-1 w-52 rounded-xl border border-slate-200 bg-white py-1 shadow-lg"
+            role="menu"
+          >
+            <div class="border-b border-slate-100 px-4 py-2.5">
+              <p class="truncate text-xs font-medium text-slate-900">{{ currentUser.email }}</p>
+            </div>
+            <!-- 将来: プロフィールへの遷移などをここに追加 -->
+            <button
+              type="button"
+              class="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
+              role="menuitem"
+              @click="logout"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4 text-slate-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              ログアウト
+            </button>
+          </div>
         </div>
       </div>
     </div>
