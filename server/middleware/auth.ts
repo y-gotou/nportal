@@ -39,38 +39,37 @@ function validateJwtPayload(payload: JwtPayload, expectedAud?: string): boolean 
 export default defineEventHandler((event) => {
   const path = event.path ?? "";
 
-  // 静的プリレンダーページと /login はスキップ
-  // 認証が必要なのはAPIルートと動的ページ（/survey/**）のみ
-  if (!path.startsWith("/api/") && !path.startsWith("/survey")) {
-    return;
-  }
-
   const env = (
     event.context.cloudflare as
       | { env?: Record<string, string | undefined> }
       | undefined
   )?.env;
 
-  // Cloudflare Access JWT による認証
+  // 全ルートでJWTからユーザー情報を取得（ヘッダー表示などに利用）
   const token = getHeader(event, "Cf-Access-Jwt-Assertion");
   if (token) {
     const payload = decodeJwtPayload(token);
     const expectedAud = env?.CF_ACCESS_AUD;
     if (payload.email && validateJwtPayload(payload, expectedAud)) {
       event.context.user = { email: payload.email };
-      return;
     }
   }
 
   // ローカル開発用: MOCK_USER_EMAIL 環境変数からモックユーザーを設定
-  const mockEmail = env?.MOCK_USER_EMAIL;
-  if (mockEmail) {
-    event.context.user = { email: mockEmail };
-    return;
+  if (!event.context.user) {
+    const mockEmail = env?.MOCK_USER_EMAIL;
+    if (mockEmail) {
+      event.context.user = { email: mockEmail };
+    }
   }
 
-  throw createError({
-    statusCode: 401,
-    statusMessage: "Unauthorized. Please log in via Cloudflare Access.",
-  });
+  // APIルートと動的ページは認証必須
+  if (path.startsWith("/api/") || path.startsWith("/survey")) {
+    if (!event.context.user) {
+      throw createError({
+        statusCode: 401,
+        statusMessage: "Unauthorized. Please log in via Cloudflare Access.",
+      });
+    }
+  }
 });
