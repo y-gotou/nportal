@@ -1,7 +1,11 @@
 <script setup lang="ts">
-import { getMinutesList } from "~~/utils/content";
+import type { MinutesListResponse } from "~~/types/portal";
 
-const minutes = getMinutesList();
+const { data } = await useFetch<MinutesListResponse>("/api/minutes", {
+  default: () => ({ minutes: [] }),
+});
+
+const minutes = computed(() => data.value?.minutes ?? []);
 
 useSeoMeta({
   title: "議事録",

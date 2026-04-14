@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import type { SurveysResponse } from "~~/types/portal";
+import type {
+  MinutesListResponse,
+  ResourcesListResponse,
+  ScheduleListResponse,
+  SurveysResponse,
+} from "~~/types/portal";
 import {
   formatDisplayDate,
   formatDisplayDateTime,
-  getNextEvent,
-  getRecentMinutes,
-  getRecentResources,
+  getTodayDate,
   portalDescription,
 } from "~~/utils/content";
 import {
@@ -16,16 +19,27 @@ import {
   topicTagClass,
 } from "~/utils/ui";
 
-const nextEvent = getNextEvent();
-const recentMinutes = getRecentMinutes();
-const recentResources = getRecentResources();
+const today = getTodayDate();
 
-const { data } = await useFetch<SurveysResponse>("/api/surveys", {
-  default: () => ({ surveys: [] }),
-});
+const [
+  { data: scheduleData },
+  { data: minutesData },
+  { data: resourcesData },
+  { data: surveysData },
+] = await Promise.all([
+  useFetch<ScheduleListResponse>("/api/schedule", { default: () => ({ schedule: [] }) }),
+  useFetch<MinutesListResponse>("/api/minutes", { default: () => ({ minutes: [] }) }),
+  useFetch<ResourcesListResponse>("/api/resources", { default: () => ({ resources: [] }) }),
+  useFetch<SurveysResponse>("/api/surveys", { default: () => ({ surveys: [] }) }),
+]);
 
+const nextEvent = computed(() =>
+  (scheduleData.value?.schedule ?? []).find((item) => item.date >= today) ?? null,
+);
+const recentMinutes = computed(() => (minutesData.value?.minutes ?? []).slice(0, 3));
+const recentResources = computed(() => (resourcesData.value?.resources ?? []).slice(0, 3));
 const activeSurveys = computed(() =>
-  (data.value?.surveys ?? [])
+  (surveysData.value?.surveys ?? [])
     .filter((survey) => survey.isActive && !survey.hasResponded)
     .slice(0, 2),
 );

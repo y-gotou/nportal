@@ -1,0 +1,70 @@
+import { readBody } from "h3";
+import { getDb } from "~~/server/utils/survey";
+import { assertAdmin } from "~~/server/utils/admin";
+import type { SurveyQuestionType } from "~~/types/portal";
+
+interface QuestionInput {
+  questionText: string;
+  questionType: SurveyQuestionType;
+  options: string[];
+}
+
+interface CreateSurveyBody {
+  title?: string;
+  description?: string;
+  isActive?: boolean;
+  questions?: QuestionInput[];
+}
+
+export default defineEventHandler(async (event) => {
+  assertAdmin(event);
+
+  const body = await readBody<CreateSurveyBody>(event);
+
+  if (!body.title) {
+    throw createError({ statusCode: 400, statusMessage: "title is required" });
+  }
+
+  const db = getDb(event);
+
+  // アンケート作成
+  const surveyResult = await db
+    .prepare(
+      `INSERT INTO surveys (title, description, is_active)
+       VALUES (?, ?, ?)
+       RETURNING id`,
+    )
+    .bind(
+      body.title,
+      body.description ?? "",
+      body.isActive !== false ? 1 : 0,
+    )
+    .first<{ id: number }>();
+
+  if (!surveyResult) {
+    throw createError({ statusCode: 500, statusMessage: "Failed to create survey" });
+  }
+
+  const surveyId = surveyResult.id;
+
+  // 設問を一括挿入
+  const questions = body.questions ?? [];
+  if (questions.length > 0) {
+    const stmt = db.prepare(
+      "INSERT INTO questions (survey_id, question_text, question_type, options, sort_order) VALUES (?, ?, ?, ?, ?)",
+    );
+    await db.batch(
+      questions.map((q, i) =>
+        stmt.bind(
+          surveyId,
+          q.questionText,
+          q.questionType,
+          JSON.stringify(q.options ?? []),
+          i,
+        ),
+      ),
+    );
+  }
+
+  return { surveyId };
+});

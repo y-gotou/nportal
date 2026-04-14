@@ -2,11 +2,26 @@
 import {
   formatDisplayDateTime,
   getTodayDate,
-  splitScheduleByDate,
 } from "~~/utils/content";
 import { primaryButtonClass, secondaryButtonClass, topicTagClass } from "~/utils/ui";
+import type { ScheduleListResponse } from "~~/types/portal";
 
-const { upcoming, past } = splitScheduleByDate(getTodayDate());
+const { data } = await useFetch<ScheduleListResponse>("/api/schedule", {
+  default: () => ({ schedule: [] }),
+});
+
+const today = getTodayDate();
+
+const upcoming = computed(() =>
+  (data.value?.schedule ?? []).filter((item) => item.date >= today),
+);
+
+const past = computed(() =>
+  (data.value?.schedule ?? [])
+    .filter((item) => item.date < today)
+    .slice()
+    .reverse(),
+);
 
 useSeoMeta({
   title: "スケジュール",

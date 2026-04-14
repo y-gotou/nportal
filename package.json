@@ -3,13 +3,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "content:build": "node scripts/build-minutes.mjs",
-    "predev": "npm run content:build",
     "dev": "nuxt dev",
-    "prebuild": "npm run content:build",
     "build": "nuxt build",
-    "pretest": "npm run content:build",
-    "pretypecheck": "npm run content:build",
     "typecheck": "nuxt typecheck",
     "test": "node --experimental-strip-types --test tests/*.test.ts tests/*.test.mjs",
     "check": "npm run typecheck && npm run build",
@@ -20,6 +15,10 @@
     "db:migrate:local": "wrangler d1 execute nportal-db --local --file db/migrate.sql",
     "db:migrate:prod": "wrangler d1 execute nportal-db --remote --file db/migrate.sql",
     "db:migrate:preview": "wrangler d1 execute nportal-preview-db --remote --file db/migrate.sql",
+    "db:migrate-content:generate": "node scripts/migrate-content-to-db.mjs",
+    "db:migrate-content:local": "npm run db:migrate-content:generate && wrangler d1 execute nportal-db --local --file db/migrate_content.sql",
+    "db:migrate-content:prod": "npm run db:migrate-content:generate && wrangler d1 execute nportal-db --remote --file db/migrate_content.sql",
+    "db:migrate-content:preview": "npm run db:migrate-content:generate && wrangler d1 execute nportal-preview-db --remote --file db/migrate_content.sql",
     "postinstall": "nuxt prepare"
   },
   "dependencies": {

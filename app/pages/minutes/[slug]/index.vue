@@ -1,26 +1,26 @@
 <script setup lang="ts">
-import {
-  formatDisplayDate,
-  getMinutes,
-  getResourcesForMinutes,
-} from "~~/utils/content";
+import { formatDisplayDate } from "~~/utils/content";
 import { secondaryButtonClass } from "~/utils/ui";
+import type { MinutesDetailResponse, ResourcesListResponse } from "~~/types/portal";
 
 const route = useRoute();
 const slug = String(route.params.slug);
-const minutes = getMinutes(slug);
-const relatedResources = getResourcesForMinutes(slug);
 
-if (!minutes) {
-  throw createError({
-    statusCode: 404,
-    statusMessage: "Minutes not found",
-  });
+const [{ data, error }, { data: resourcesData }] = await Promise.all([
+  useFetch<MinutesDetailResponse>("/api/minute", { query: { slug } }),
+  useFetch<ResourcesListResponse>("/api/resources", { query: { minutesSlug: slug } }),
+]);
+
+if (error.value || !data.value?.minutes) {
+  throw createError({ statusCode: 404, statusMessage: "Minutes not found" });
 }
 
+const minutes = computed(() => data.value!.minutes);
+const relatedResources = computed(() => resourcesData.value?.resources ?? []);
+
 useSeoMeta({
-  title: minutes.title,
-  description: `${formatDisplayDate(minutes.date)} 開催分の議事録です。`,
+  title: () => minutes.value.title,
+  description: () => `${formatDisplayDate(minutes.value.date)} 開催分の議事録です。`,
 });
 </script>
 

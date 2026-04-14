@@ -1,12 +1,4 @@
-import { existsSync, readdirSync } from "node:fs";
 import tailwindcss from "@tailwindcss/vite";
-
-const minutesDir = new URL("./content/minutes/", import.meta.url);
-const minutesRoutes = existsSync(minutesDir)
-  ? readdirSync(minutesDir)
-      .filter((file) => file.endsWith(".md"))
-      .map((file) => `/minutes/${file.replace(/\.md$/, "")}`)
-  : [];
 
 export default defineNuxtConfig({
   compatibilityDate: "2026-03-31",
@@ -34,14 +26,17 @@ export default defineNuxtConfig({
   },
   nitro: {
     preset: "cloudflare_pages",
-    prerender: {
-      routes: ["/", "/minutes", "/schedule", "/resources", ...minutesRoutes],
-    },
   },
   routeRules: {
     "/api/**": { prerender: false },
     "/survey": { prerender: false },
     "/survey/**": { prerender: false },
+    "/minutes": { prerender: false },
+    "/minutes/**": { prerender: false },
+    "/schedule": { prerender: false },
+    "/resources": { prerender: false },
+    "/admin/**": { prerender: false },
+    "/": { prerender: false },
     "/login": { prerender: false },
   },
 });

@@ -169,7 +169,7 @@ async function submitSurvey() {
         <h3 class="text-lg font-semibold tracking-tight text-slate-900">
           {{ question.questionText }}
           <span
-            v-if="question.questionType !== 'text'"
+            v-if="question.questionType !== 'free_text'"
             class="ml-1 text-sm font-normal text-rose-500"
             aria-hidden="true"
           >*</span>

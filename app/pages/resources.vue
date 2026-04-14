@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { formatDisplayDate, getResources } from "~~/utils/content";
+import { formatDisplayDate } from "~~/utils/content";
 import { interactiveCardClass, secondaryButtonClass, topicTagClass } from "~/utils/ui";
-import type { ResourceItem } from "~~/types/portal";
+import type { ResourceItem, ResourcesListResponse } from "~~/types/portal";
 
-const resources = getResources();
+const { data } = await useFetch<ResourcesListResponse>("/api/resources", {
+  default: () => ({ resources: [] }),
+});
+
 const route = useRoute();
 const router = useRouter();
 
@@ -15,8 +18,9 @@ const selectedType = ref<string | null>(
   typeof route.query.type === "string" ? route.query.type : null,
 );
 
-const allTags = [...new Set(resources.flatMap((resource) => resource.tags))];
-const allTypes = [...new Set(resources.map((resource) => resource.type))];
+const resources = computed(() => data.value?.resources ?? []);
+const allTags = computed(() => [...new Set(resources.value.flatMap((r) => r.tags))]);
+const allTypes = computed(() => [...new Set(resources.value.map((r) => r.type))]);
 
 function matchesSelectedFilters(resource: ResourceItem) {
   if (selectedTag.value && !resource.tags.includes(selectedTag.value)) {
@@ -39,7 +43,7 @@ function matchesSelectedFilters(resource: ResourceItem) {
   );
 }
 
-const filteredResources = computed(() => resources.filter(matchesSelectedFilters));
+const filteredResources = computed(() => resources.value.filter(matchesSelectedFilters));
 
 function syncQuery() {
   router.replace({
@@ -60,17 +64,9 @@ watch(
     const nextType = typeof query.type === "string" ? query.type : null;
     const nextTag = typeof query.tag === "string" ? query.tag : null;
 
-    if (nextSearch !== search.value) {
-      search.value = nextSearch;
-    }
-
-    if (nextType !== selectedType.value) {
-      selectedType.value = nextType;
-    }
-
-    if (nextTag !== selectedTag.value) {
-      selectedTag.value = nextTag;
-    }
+    if (nextSearch !== search.value) search.value = nextSearch;
+    if (nextType !== selectedType.value) selectedType.value = nextType;
+    if (nextTag !== selectedTag.value) selectedTag.value = nextTag;
   },
   { deep: true },
 );
@@ -84,8 +80,8 @@ useSeoMeta({
 <template>
   <PageContainer size="wide">
     <SectionHeader
-        title="資料共有"
-        description="資料を検索し、必要に応じて種類やタグで絞り込めます。"
+      title="資料共有"
+      description="資料を検索し、必要に応じて種類やタグで絞り込めます。"
     />
 
     <div class="space-y-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -108,11 +104,7 @@ useSeoMeta({
         <span class="text-sm font-medium text-slate-700">種類</span>
         <button
           class="rounded-full px-3 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-          :class="
-            selectedType === null
-              ? 'bg-blue-500 text-white'
-              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-          "
+          :class="selectedType === null ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
           type="button"
           @click="selectedType = null"
         >
@@ -122,11 +114,7 @@ useSeoMeta({
           v-for="type in allTypes"
           :key="type"
           class="rounded-full px-3 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-          :class="
-            selectedType === type
-              ? 'bg-blue-500 text-white'
-              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-          "
+          :class="selectedType === type ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
           type="button"
           @click="selectedType = selectedType === type ? null : type"
         >
@@ -140,11 +128,7 @@ useSeoMeta({
           v-for="tag in allTags"
           :key="tag"
           class="rounded-full px-3 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-          :class="
-            selectedTag === tag
-              ? 'bg-blue-500 text-white'
-              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-          "
+          :class="selectedTag === tag ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
           type="button"
           @click="selectedTag = selectedTag === tag ? null : tag"
         >
@@ -163,11 +147,7 @@ useSeoMeta({
             v-if="search || selectedType || selectedTag"
             type="button"
             :class="secondaryButtonClass"
-            @click="
-              search = '';
-              selectedType = null;
-              selectedTag = null;
-            "
+            @click="search = ''; selectedType = null; selectedTag = null;"
           >
             条件をクリア
           </button>

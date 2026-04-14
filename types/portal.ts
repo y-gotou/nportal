@@ -81,10 +81,27 @@ export interface SurveysResponse {
 
 export interface CurrentUser {
   email: string;
+  isAdmin: boolean;
 }
 
 export interface MeResponse {
   user: CurrentUser;
+}
+
+export interface MinutesListResponse {
+  minutes: MinutesMeta[];
+}
+
+export interface MinutesDetailResponse {
+  minutes: Minutes;
+}
+
+export interface ScheduleListResponse {
+  schedule: ScheduleItem[];
+}
+
+export interface ResourcesListResponse {
+  resources: ResourceItem[];
 }
 
 export interface SurveyDistributionItem {
