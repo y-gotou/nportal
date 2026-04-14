@@ -48,18 +48,14 @@ useSeoMeta({
               <span
                 class="shrink-0 rounded-full px-2.5 py-1 text-xs font-medium"
                 :class="
-                  survey.isActive
-                    ? 'bg-blue-50 text-blue-600'
-                    : 'bg-slate-100 text-slate-500'
+                  survey.hasResponded
+                    ? 'bg-green-50 text-green-700'
+                    : survey.isActive
+                      ? 'bg-blue-50 text-blue-600'
+                      : 'bg-slate-100 text-slate-500'
                 "
               >
-                {{ survey.isActive ? "受付中" : "終了" }}
-              </span>
-              <span
-                v-if="survey.hasResponded"
-                class="shrink-0 rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700"
-              >
-                回答済み
+                {{ survey.hasResponded ? "回答済み" : survey.isActive ? "受付中" : "終了" }}
               </span>
             </div>
             <p class="text-sm leading-6 text-slate-500">{{ survey.description }}</p>

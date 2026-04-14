@@ -44,17 +44,14 @@ useSeoMeta({
         <span class="rounded-full bg-slate-100 px-3 py-1.5 text-sm text-slate-600">
           設問数: {{ survey.questions.length }}問
         </span>
-        <span class="rounded-full bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-600">
-          回答受付中
+        <span
+          class="rounded-full px-3 py-1.5 text-sm font-medium"
+          :class="hasResponded ? 'bg-green-50 text-green-700' : 'bg-blue-50 text-blue-600'"
+        >
+          {{ hasResponded ? "回答済み" : "回答受付中" }}
         </span>
         <span class="rounded-full bg-slate-100 px-3 py-1.5 text-sm text-slate-600">
           回答 {{ responses.length }}件
-        </span>
-        <span
-          v-if="hasResponded"
-          class="rounded-full bg-green-50 px-3 py-1.5 text-sm font-medium text-green-700"
-        >
-          回答済み
         </span>
       </div>
     </div>

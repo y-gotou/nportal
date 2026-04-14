@@ -12,6 +12,7 @@ import {
   interactiveCardClass,
   primaryButtonClass,
   secondaryButtonClass,
+  surfaceCardClass,
   topicTagClass,
 } from "~/utils/ui";
 
@@ -25,7 +26,7 @@ const { data } = await useFetch<SurveysResponse>("/api/surveys", {
 
 const activeSurveys = computed(() =>
   (data.value?.surveys ?? [])
-    .filter((survey) => survey.isActive)
+    .filter((survey) => survey.isActive && !survey.hasResponded)
     .slice(0, 2),
 );
 
@@ -85,11 +86,11 @@ useSeoMeta({
         <article
           v-for="survey in activeSurveys"
           :key="survey.id"
-          :class="`${interactiveCardClass} p-5`"
+          :class="surfaceCardClass"
         >
           <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div class="min-w-0 space-y-2">
-              <div class="flex min-w-0 items-start gap-3">
+              <div class="flex min-w-0 flex-wrap items-start gap-2">
                 <h2 class="min-w-0 text-pretty text-xl font-semibold tracking-tight text-slate-900">
                   {{ survey.title }}
                 </h2>
@@ -97,18 +98,11 @@ useSeoMeta({
                   受付中
                 </span>
               </div>
-              <p class="text-sm leading-6 text-slate-500">
-                {{ survey.description }}
-              </p>
+              <p class="text-sm leading-6 text-slate-500">{{ survey.description }}</p>
               <div class="flex flex-wrap gap-2 text-sm text-slate-500">
+                <span class="rounded-full bg-slate-100 px-3 py-1">設問数 {{ survey.questions.length }}問</span>
                 <span class="rounded-full bg-slate-100 px-3 py-1">
-                  設問数 {{ survey.questions.length }}問
-                </span>
-                <span
-                  v-if="typeof survey.responseCount === 'number'"
-                  class="rounded-full bg-slate-100 px-3 py-1"
-                >
-                  回答 {{ survey.responseCount }}件
+                  回答 {{ survey.responseCount ?? 0 }}件
                 </span>
               </div>
             </div>
@@ -121,7 +115,7 @@ useSeoMeta({
                 :to="`/survey/${survey.id}/results`"
                 :class="secondaryButtonClass"
               >
-                集計を見る
+                結果を見る
               </NuxtLink>
             </div>
           </div>

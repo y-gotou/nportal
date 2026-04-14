@@ -46,9 +46,21 @@ useSeoMeta({
         </span>
         <span
           class="rounded-full px-3 py-1.5 text-sm font-medium"
-          :class="survey.isActive ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-600'"
+          :class="
+            Object.keys(myAnswers).length > 0
+              ? 'bg-green-50 text-green-700'
+              : survey.isActive
+                ? 'bg-blue-50 text-blue-600'
+                : 'bg-slate-100 text-slate-600'
+          "
         >
-          {{ survey.isActive ? "受付中" : "受付終了" }}
+          {{
+            Object.keys(myAnswers).length > 0
+              ? "回答済み"
+              : survey.isActive
+                ? "受付中"
+                : "受付終了"
+          }}
         </span>
       </div>
     </div>

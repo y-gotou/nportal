@@ -56,9 +56,6 @@ useSeoMeta({
               >
                 会議に参加する
               </a>
-              <NuxtLink to="/survey" :class="secondaryButtonClass">
-                アンケートを見る
-              </NuxtLink>
             </div>
           </div>
         </article>
