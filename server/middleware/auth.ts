@@ -45,13 +45,15 @@ export default defineEventHandler((event) => {
       | undefined
   )?.env;
 
+  const adminEmails = (env?.ADMIN_EMAILS ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+
   // 全ルートでJWTからユーザー情報を取得（ヘッダー表示などに利用）
   const token = getHeader(event, "Cf-Access-Jwt-Assertion");
   if (token) {
     const payload = decodeJwtPayload(token);
     const expectedAud = env?.CF_ACCESS_AUD;
     if (payload.email && validateJwtPayload(payload, expectedAud)) {
-      event.context.user = { email: payload.email };
+      event.context.user = { email: payload.email, isAdmin: adminEmails.includes(payload.email) };
     }
   }
 
@@ -59,7 +61,7 @@ export default defineEventHandler((event) => {
   if (!event.context.user) {
     const mockEmail = env?.MOCK_USER_EMAIL;
     if (mockEmail) {
-      event.context.user = { email: mockEmail };
+      event.context.user = { email: mockEmail, isAdmin: adminEmails.includes(mockEmail) };
     }
   }
 
