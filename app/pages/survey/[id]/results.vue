@@ -23,7 +23,7 @@ useSeoMeta({
         一覧へ戻る
       </NuxtLink>
       <NuxtLink
-        v-if="survey.isActive"
+        v-if="survey.isActive && Object.keys(myAnswers).length === 0"
         :to="`/survey/${survey.id}`"
         :class="secondaryButtonClass"
       >

@@ -41,8 +41,23 @@ function onClickOutside(event: MouseEvent) {
   }
 }
 
-onMounted(() => document.addEventListener("click", onClickOutside));
-onUnmounted(() => document.removeEventListener("click", onClickOutside));
+// Escape キーでメニューを閉じる
+function onKeydown(event: KeyboardEvent) {
+  if (event.key === "Escape" && isMenuOpen.value) {
+    isMenuOpen.value = false;
+    // トリガーボタンにフォーカスを戻す
+    menuRef.value?.querySelector<HTMLElement>("button")?.focus();
+  }
+}
+
+onMounted(() => {
+  document.addEventListener("click", onClickOutside);
+  document.addEventListener("keydown", onKeydown);
+});
+onUnmounted(() => {
+  document.removeEventListener("click", onClickOutside);
+  document.removeEventListener("keydown", onKeydown);
+});
 </script>
 
 <template>

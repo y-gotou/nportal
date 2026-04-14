@@ -15,6 +15,9 @@ const answers = ref<Record<number, SurveyAnswerValue>>({});
 const isSubmitting = ref(false);
 const isSubmitted = ref(false);
 const errorMessage = ref("");
+const validationErrors = ref<Record<number, string>>({});
+const successRef = ref<HTMLElement | null>(null);
+const errorRef = ref<HTMLElement | null>(null);
 
 function getMultipleAnswers(questionId: number) {
   const answer = answers.value[questionId];
@@ -31,6 +34,12 @@ function toggleMultipleAnswer(questionId: number, option: string) {
     ...answers.value,
     [questionId]: next,
   };
+
+  // 回答したらバリデーションエラーをクリア
+  if (validationErrors.value[questionId]) {
+    const { [questionId]: _, ...rest } = validationErrors.value;
+    validationErrors.value = rest;
+  }
 }
 
 function setSingleAnswer(questionId: number, answer: string) {
@@ -38,6 +47,12 @@ function setSingleAnswer(questionId: number, answer: string) {
     ...answers.value,
     [questionId]: answer,
   };
+
+  // 回答したらバリデーションエラーをクリア
+  if (validationErrors.value[questionId]) {
+    const { [questionId]: _, ...rest } = validationErrors.value;
+    validationErrors.value = rest;
+  }
 }
 
 function getTextAnswer(questionId: number) {
@@ -45,7 +60,40 @@ function getTextAnswer(questionId: number) {
   return typeof answer === "string" ? answer : "";
 }
 
+function validateAnswers(): boolean {
+  const errors: Record<number, string> = {};
+
+  for (const question of props.survey.questions) {
+    if (question.questionType === "single_choice") {
+      if (!getTextAnswer(question.id)) {
+        errors[question.id] = "1つ選択してください";
+      }
+    } else if (question.questionType === "multiple_choice") {
+      if (getMultipleAnswers(question.id).length === 0) {
+        errors[question.id] = "1つ以上選択してください";
+      }
+    }
+    // text は任意入力
+  }
+
+  validationErrors.value = errors;
+  return Object.keys(errors).length === 0;
+}
+
 async function submitSurvey() {
+  if (!validateAnswers()) {
+    // 最初のバリデーションエラーの設問にフォーカスを移動
+    await nextTick();
+    const firstErrorId = Object.keys(validationErrors.value)[0];
+    if (firstErrorId) {
+      const el = document.querySelector<HTMLElement>(
+        `[data-question-id="${firstErrorId}"]`,
+      );
+      el?.focus();
+    }
+    return;
+  }
+
   errorMessage.value = "";
   isSubmitting.value = true;
 
@@ -62,8 +110,12 @@ async function submitSurvey() {
     });
 
     isSubmitted.value = true;
+    await nextTick();
+    successRef.value?.focus();
   } catch {
     errorMessage.value = "送信に失敗しました。時間をおいて再度お試しください。";
+    await nextTick();
+    errorRef.value?.focus();
   } finally {
     isSubmitting.value = false;
   }
@@ -71,10 +123,17 @@ async function submitSurvey() {
 </script>
 
 <template>
+  <!-- スクリーンリーダー向け aria-live リージョン（常にDOMに存在） -->
+  <div aria-live="polite" aria-atomic="true" class="sr-only">
+    <span v-if="isSubmitted">回答ありがとうございました。回答は保存されました。</span>
+    <span v-else-if="errorMessage">{{ errorMessage }}</span>
+  </div>
+
   <div
     v-if="isSubmitted"
-    aria-live="polite"
-    class="space-y-4 rounded-xl border border-emerald-200 bg-emerald-50 p-6 shadow-sm"
+    ref="successRef"
+    tabindex="-1"
+    class="space-y-4 rounded-xl border border-green-200 bg-green-50 p-6 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
   >
     <h2 class="text-xl font-semibold tracking-tight text-slate-900">回答ありがとうございました</h2>
     <p class="text-sm leading-6 text-slate-600">
@@ -101,6 +160,7 @@ async function submitSurvey() {
       v-for="(question, index) in survey.questions"
       :key="question.id"
       :class="`${surfaceCardClass} space-y-4`"
+      :aria-describedby="validationErrors[question.id] ? `error-${question.id}` : undefined"
     >
       <div class="space-y-1">
         <p class="text-xs font-semibold tracking-[0.16em] text-slate-500">
@@ -108,6 +168,11 @@ async function submitSurvey() {
         </p>
         <h3 class="text-lg font-semibold tracking-tight text-slate-900">
           {{ question.questionText }}
+          <span
+            v-if="question.questionType !== 'text'"
+            class="ml-1 text-sm font-normal text-rose-500"
+            aria-hidden="true"
+          >*</span>
         </h3>
       </div>
 
@@ -116,6 +181,7 @@ async function submitSurvey() {
           v-for="option in question.options"
           :key="option"
           class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 transition hover:border-blue-200 hover:bg-blue-50"
+          :class="{ 'border-rose-200 bg-rose-50': validationErrors[question.id] }"
         >
           <input
             :name="`question-${question.id}`"
@@ -134,6 +200,7 @@ async function submitSurvey() {
           v-for="option in question.options"
           :key="option"
           class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 transition hover:border-blue-200 hover:bg-blue-50"
+          :class="{ 'border-rose-200 bg-rose-50': validationErrors[question.id] }"
         >
           <input
             :name="`question-${question.id}`"
@@ -148,22 +215,46 @@ async function submitSurvey() {
 
       <textarea
         v-else
+        :id="`question-${question.id}`"
         :value="getTextAnswer(question.id)"
         :name="`question-${question.id}`"
+        :aria-label="question.questionText"
         autocomplete="off"
         class="min-h-32 w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 transition-[border-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
         rows="5"
         placeholder="自由にご記入ください…"
         @input="setSingleAnswer(question.id, ($event.target as HTMLTextAreaElement).value)"
       />
+
+      <!-- バリデーションエラーメッセージ -->
+      <p
+        v-if="validationErrors[question.id]"
+        :id="`error-${question.id}`"
+        :data-question-id="question.id"
+        tabindex="-1"
+        class="flex items-center gap-1.5 text-sm text-rose-600 focus-visible:outline-none"
+        role="alert"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+        </svg>
+        {{ validationErrors[question.id] }}
+      </p>
     </section>
 
-    <p
+    <!-- 送信エラーメッセージ -->
+    <div
       v-if="errorMessage"
-      aria-live="polite"
-      class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600"
+      ref="errorRef"
+      tabindex="-1"
+      class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+      role="alert"
     >
       {{ errorMessage }}
+    </div>
+
+    <p class="text-xs text-slate-500">
+      <span class="text-rose-500" aria-hidden="true">*</span> は必須項目です
     </p>
 
     <button

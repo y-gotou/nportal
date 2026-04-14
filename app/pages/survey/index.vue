@@ -8,13 +8,6 @@ import {
 
 const { data, error } = await useFetch<SurveysResponse>("/api/surveys");
 
-if (error.value) {
-  throw createError({
-    statusCode: error.value.statusCode || 500,
-    statusMessage: error.value.statusMessage || "Failed to load surveys",
-  });
-}
-
 const surveys = computed(() => data.value?.surveys ?? []);
 
 useSeoMeta({
@@ -30,7 +23,17 @@ useSeoMeta({
       description="回答受付中のアンケートを確認できます。"
     />
 
-    <div v-if="surveys.length" class="space-y-3">
+    <!-- APIエラー表示 -->
+    <div
+      v-if="error"
+      class="rounded-xl border border-rose-200 bg-rose-50 p-6"
+      role="alert"
+    >
+      <p class="font-medium text-rose-800">アンケートの読み込みに失敗しました</p>
+      <p class="mt-1 text-sm text-rose-600">しばらくしてからページを再読み込みしてください。</p>
+    </div>
+
+    <div v-else-if="surveys.length" class="space-y-3">
       <article
         v-for="survey in surveys"
         :key="survey.id"
