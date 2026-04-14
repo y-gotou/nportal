@@ -7,7 +7,6 @@
     "meetingUrl": "https://meet.google.com/xxx-yyyy-zzz",
     "minutesSlug": null,
     "topics": ["LLMのファインチューニング入門"],
-    "presenter": "田中",
     "location": "第1会議室"
   },
   {
@@ -18,7 +17,6 @@
     "meetingUrl": "https://meet.google.com/xxx-yyyy-zzz",
     "minutesSlug": null,
     "topics": ["プロンプトエンジニアリング実践"],
-    "presenter": "鈴木",
     "location": "オンライン"
   },
   {
@@ -29,7 +27,6 @@
     "meetingUrl": "https://meet.google.com/xxx-yyyy-zzz",
     "minutesSlug": null,
     "topics": ["RAGアーキテクチャの設計パターン"],
-    "presenter": "佐藤",
     "location": "第2会議室"
   }
 ]

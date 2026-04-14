@@ -6,7 +6,6 @@ import type {
   SurveyQuestion,
   SurveyResponse,
 } from "../../types/portal.ts";
-import { parseSurveyOptions } from "../../utils/survey";
 
 interface SurveyRow {
   id: number;
@@ -27,6 +26,7 @@ interface QuestionRow {
   question_text: string;
   question_type: SurveyQuestion["questionType"];
   options: string;
+  allow_other_text: number;
   sort_order: number;
 }
 
@@ -39,6 +39,17 @@ interface ResponseRow {
 interface SubmissionRow {
   survey_id: number;
   user_email: string;
+}
+
+function parseSurveyOptions(value: string | null | undefined) {
+  try {
+    const parsed = JSON.parse(value ?? "[]") as unknown;
+    return Array.isArray(parsed)
+      ? parsed.filter((item): item is string => typeof item === "string")
+      : [];
+  } catch {
+    return [];
+  }
 }
 
 export function parseSurveyId(
@@ -75,6 +86,7 @@ function toSurveyQuestion(question: QuestionRow): SurveyQuestion {
     questionText: question.question_text,
     questionType: question.question_type,
     options: parseSurveyOptions(question.options),
+    allowOtherText: question.allow_other_text === 1,
   };
 }
 

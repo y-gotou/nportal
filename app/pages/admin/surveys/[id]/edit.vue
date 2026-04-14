@@ -24,19 +24,26 @@ const form = reactive({
 interface QuestionDraft {
   questionText: string;
   questionType: SurveyQuestionType;
-  options: string;
+  options: string[];
+  allowOtherText: boolean;
 }
 
 const questions = ref<QuestionDraft[]>(
   survey.questions.map((q) => ({
     questionText: q.questionText,
     questionType: q.questionType,
-    options: q.options.join(", "),
+    options: q.questionType === "free_text" ? [] : (q.options.length ? [...q.options] : [""]),
+    allowOtherText: q.allowOtherText,
   })),
 );
 
 function addQuestion() {
-  questions.value.push({ questionText: "", questionType: "single_choice", options: "" });
+  questions.value.push({
+    questionText: "",
+    questionType: "single_choice",
+    options: [""],
+    allowOtherText: false,
+  });
 }
 
 function removeQuestion(index: number) {
@@ -59,6 +66,45 @@ function moveDown(index: number) {
   arr.splice(index, 2, next, curr);
 }
 
+function addOption(question: QuestionDraft) {
+  question.options.push("");
+}
+
+function removeOption(question: QuestionDraft, optionIndex: number) {
+  question.options.splice(optionIndex, 1);
+}
+
+function moveOptionUp(question: QuestionDraft, optionIndex: number) {
+  if (optionIndex === 0) return;
+  const options = question.options;
+  const previous = options[optionIndex - 1]!;
+  const current = options[optionIndex]!;
+  options.splice(optionIndex - 1, 2, current, previous);
+}
+
+function moveOptionDown(question: QuestionDraft, optionIndex: number) {
+  if (optionIndex === question.options.length - 1) return;
+  const options = question.options;
+  const current = options[optionIndex]!;
+  const next = options[optionIndex + 1]!;
+  options.splice(optionIndex, 2, next, current);
+}
+
+function handleQuestionTypeChange(question: QuestionDraft) {
+  if (question.questionType === "free_text") {
+    question.allowOtherText = false;
+    return;
+  }
+
+  if (question.options.length === 0) {
+    question.options.push("");
+  }
+}
+
+function normalizeOptions(options: string[]) {
+  return options.map((option) => option.trim()).filter(Boolean);
+}
+
 const errors = reactive<Record<string, string>>({});
 const isSubmitting = ref(false);
 const serverError = ref<string | null>(null);
@@ -69,8 +115,13 @@ function validate() {
   if (questions.value.length === 0) e.questions = "設問を1つ以上追加してください。";
   questions.value.forEach((q, i) => {
     if (!q.questionText.trim()) e[`q_${i}_text`] = `設問${i + 1}の文章は必須です。`;
-    if (q.questionType !== "free_text" && !q.options.trim()) {
-      e[`q_${i}_options`] = `設問${i + 1}の選択肢は必須です。`;
+    if (q.questionType !== "free_text") {
+      const normalizedOptions = normalizeOptions(q.options);
+      if (normalizedOptions.length === 0) {
+        e[`q_${i}_options`] = `設問${i + 1}の選択肢は1件以上必要です。`;
+      } else if (normalizedOptions.length !== q.options.length) {
+        e[`q_${i}_options`] = `設問${i + 1}に空の選択肢があります。`;
+      }
     }
   });
   Object.assign(errors, e);
@@ -97,9 +148,8 @@ async function submit() {
           questions: questions.value.map((q) => ({
             questionText: q.questionText.trim(),
             questionType: q.questionType,
-            options: q.questionType !== "free_text"
-              ? q.options.split(",").map((s) => s.trim()).filter(Boolean)
-              : [],
+            options: q.questionType !== "free_text" ? normalizeOptions(q.options) : [],
+            allowOtherText: q.questionType !== "free_text" && q.allowOtherText,
           })),
         },
       }),
@@ -228,6 +278,7 @@ useSeoMeta({ title: `${survey.title} を編集` });
               :id="`q_${i}_type`"
               v-model="q.questionType"
               class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              @change="handleQuestionTypeChange(q)"
             >
               <option value="single_choice">単一選択</option>
               <option value="multiple_choice">複数選択</option>
@@ -241,16 +292,74 @@ useSeoMeta({ title: `${survey.title} を編集` });
             :field-id="`q_${i}_options`"
             :error="errors[`q_${i}_options`]"
             required
-            hint="カンマ区切り（例: はい, いいえ, どちらでもない）"
+            hint="1件ずつ編集できます。"
+          >
+            <div class="space-y-3">
+              <div
+                v-for="(option, optionIndex) in q.options"
+                :key="`q-${i}-option-${optionIndex}`"
+                class="flex items-center gap-2"
+              >
+                <input
+                  :id="optionIndex === 0 ? `q_${i}_options` : undefined"
+                  v-model="q.options[optionIndex]"
+                  type="text"
+                  class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                  :class="errors[`q_${i}_options`] ? 'border-red-300' : ''"
+                  :placeholder="`選択肢 ${optionIndex + 1}`"
+                >
+                <button
+                  type="button"
+                  class="rounded p-1 text-slate-400 hover:bg-slate-100 disabled:opacity-30"
+                  :disabled="optionIndex === 0"
+                  aria-label="選択肢を上に移動"
+                  @click="moveOptionUp(q, optionIndex)"
+                >
+                  ▲
+                </button>
+                <button
+                  type="button"
+                  class="rounded p-1 text-slate-400 hover:bg-slate-100 disabled:opacity-30"
+                  :disabled="optionIndex === q.options.length - 1"
+                  aria-label="選択肢を下に移動"
+                  @click="moveOptionDown(q, optionIndex)"
+                >
+                  ▼
+                </button>
+                <button
+                  type="button"
+                  class="rounded p-1 text-red-400 hover:bg-red-50"
+                  aria-label="選択肢を削除"
+                  @click="removeOption(q, optionIndex)"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <button
+                type="button"
+                class="inline-flex items-center rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                @click="addOption(q)"
+              >
+                + 選択肢を追加
+              </button>
+            </div>
+          </AdminFormField>
+
+          <div
+            v-if="q.questionType !== 'free_text'"
+            class="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3"
           >
             <input
-              :id="`q_${i}_options`"
-              v-model="q.options"
-              type="text"
-              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-              :class="errors[`q_${i}_options`] ? 'border-red-300' : ''"
+              :id="`q_${i}_allow_other`"
+              v-model="q.allowOtherText"
+              type="checkbox"
+              class="h-4 w-4 rounded border-slate-300 text-blue-500 focus:ring-blue-500"
             >
-          </AdminFormField>
+            <label :for="`q_${i}_allow_other`" class="text-sm font-medium text-slate-700">
+              「その他」の自由記述欄を追加する
+            </label>
+          </div>
         </div>
 
         <button

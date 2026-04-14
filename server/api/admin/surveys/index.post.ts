@@ -7,6 +7,7 @@ interface QuestionInput {
   questionText: string;
   questionType: SurveyQuestionType;
   options: string[];
+  allowOtherText?: boolean;
 }
 
 interface CreateSurveyBody {
@@ -51,7 +52,7 @@ export default defineEventHandler(async (event) => {
   const questions = body.questions ?? [];
   if (questions.length > 0) {
     const stmt = db.prepare(
-      "INSERT INTO questions (survey_id, question_text, question_type, options, sort_order) VALUES (?, ?, ?, ?, ?)",
+      "INSERT INTO questions (survey_id, question_text, question_type, options, allow_other_text, sort_order) VALUES (?, ?, ?, ?, ?, ?)",
     );
     await db.batch(
       questions.map((q, i) =>
@@ -60,6 +61,7 @@ export default defineEventHandler(async (event) => {
           q.questionText,
           q.questionType,
           JSON.stringify(q.options ?? []),
+          q.allowOtherText ? 1 : 0,
           i,
         ),
       ),

@@ -12,3 +12,26 @@ CREATE TABLE IF NOT EXISTS submissions (
 );
 
 CREATE INDEX IF NOT EXISTS idx_submissions_survey_user ON submissions(survey_id, user_email);
+
+ALTER TABLE questions ADD COLUMN allow_other_text INTEGER NOT NULL DEFAULT 0;
+
+CREATE TABLE schedule_new (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  date         TEXT NOT NULL,
+  time         TEXT NOT NULL,
+  title        TEXT NOT NULL,
+  meeting_url  TEXT,
+  minutes_slug TEXT,
+  topics       TEXT NOT NULL DEFAULT '[]',
+  location     TEXT,
+  created_at   TEXT DEFAULT (datetime('now')),
+  updated_at   TEXT DEFAULT (datetime('now'))
+);
+
+INSERT INTO schedule_new (id, date, time, title, meeting_url, minutes_slug, topics, location, created_at, updated_at)
+SELECT id, date, time, title, meeting_url, minutes_slug, topics, location, created_at, updated_at
+FROM schedule;
+
+DROP TABLE schedule;
+ALTER TABLE schedule_new RENAME TO schedule;
+CREATE INDEX IF NOT EXISTS idx_schedule_date ON schedule(date);

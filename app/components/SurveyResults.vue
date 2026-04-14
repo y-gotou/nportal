@@ -1,6 +1,11 @@
 <script setup lang="ts">
-import type { Survey, SurveyResponse } from "~~/types/portal";
-import { buildSurveyResultBlocks, parseMultipleChoiceAnswer } from "~~/utils/survey";
+import type { Survey, SurveyQuestionType, SurveyResponse } from "~~/types/portal";
+import {
+  buildSurveyResultBlocks,
+  parseSurveySelectionAnswer,
+  SURVEY_OTHER_OPTION_LABEL,
+  SURVEY_OTHER_OPTION_VALUE,
+} from "~~/utils/survey";
 import { surfaceCardClass } from "~/utils/ui";
 
 const props = defineProps<{
@@ -11,18 +16,28 @@ const props = defineProps<{
 
 const blocks = computed(() => buildSurveyResultBlocks(props.survey, props.responses));
 
-function isMyChoice(questionId: number, optionLabel: string, questionType: string): boolean {
+function isMyChoice(questionId: number, optionLabel: string, questionType: SurveyQuestionType): boolean {
   const myAnswer = props.myAnswers?.[questionId];
   if (!myAnswer) return false;
-  if (questionType === "multiple_choice") {
-    return parseMultipleChoiceAnswer(myAnswer).includes(optionLabel);
-  }
-  return myAnswer === optionLabel;
+  const parsedAnswer = parseSurveySelectionAnswer(myAnswer, questionType);
+  const selectedValue =
+    optionLabel === SURVEY_OTHER_OPTION_LABEL ? SURVEY_OTHER_OPTION_VALUE : optionLabel;
+  return parsedAnswer.selected.includes(selectedValue);
 }
 
 function isMyFreeText(questionId: number, answer: string): boolean {
   const myAnswer = props.myAnswers?.[questionId];
   return myAnswer !== undefined && myAnswer.trim() === answer.trim();
+}
+
+function isMyOtherText(
+  questionId: number,
+  answer: string,
+  questionType: SurveyQuestionType,
+): boolean {
+  const myAnswer = props.myAnswers?.[questionId];
+  if (!myAnswer) return false;
+  return parseSurveySelectionAnswer(myAnswer, questionType).otherText.trim() === answer.trim();
 }
 </script>
 
@@ -111,6 +126,26 @@ function isMyFreeText(questionId: number, answer: string): boolean {
               "
               :style="{ width: item.width }"
             />
+          </div>
+        </div>
+
+        <div v-if="block.otherTextAnswers.length" class="space-y-3 rounded-lg border border-slate-200 bg-white px-4 py-4">
+          <p class="text-sm font-semibold text-slate-700">その他の自由記述</p>
+          <div
+            v-for="(answer, answerIndex) in block.otherTextAnswers"
+            :key="`${block.id}-other-${answerIndex}`"
+            class="rounded-lg border px-4 py-3 text-sm leading-6"
+            :class="
+              isMyOtherText(block.id, answer, block.questionType)
+                ? 'border-blue-300 bg-blue-50 text-blue-800'
+                : 'border-slate-200 bg-slate-50 text-slate-700'
+            "
+          >
+            <span
+              v-if="isMyOtherText(block.id, answer, block.questionType)"
+              class="mb-1 block text-xs font-semibold text-blue-600"
+            >あなたの回答</span>
+            {{ answer }}
           </div>
         </div>
       </div>

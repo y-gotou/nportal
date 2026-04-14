@@ -6,7 +6,6 @@ export interface ScheduleItem {
   meetingUrl?: string | null;
   minutesSlug?: string | null;
   topics: string[];
-  presenter: string;
   location?: string | null;
 }
 
@@ -44,6 +43,7 @@ export interface SurveyQuestion {
   questionText: string;
   questionType: SurveyQuestionType;
   options: string[];
+  allowOtherText: boolean;
 }
 
 export interface Survey {
@@ -68,7 +68,15 @@ export interface SurveyAnswerInput {
   answer: string;
 }
 
-export type SurveyAnswerValue = string | string[];
+export interface SurveyChoiceAnswerWithOther {
+  selected: string | string[];
+  otherText: string;
+}
+
+export type SurveyAnswerValue =
+  | string
+  | string[]
+  | SurveyChoiceAnswerWithOther;
 
 export interface SurveyGetResponse {
   survey: Survey;
@@ -114,6 +122,7 @@ export interface SurveyDistributionItem {
 export interface SurveyResultBlock extends SurveyQuestion {
   responseCount: number;
   freeTextAnswers: string[];
+  otherTextAnswers: string[];
   distribution: SurveyDistributionItem[];
 }
 
