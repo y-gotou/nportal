@@ -8,7 +8,7 @@ const route = useRoute();
 const router = useRouter();
 const id = Number(route.params.id);
 
-const { data, error } = await useFetch<SurveyGetResponse>(`/api/survey/${id}`);
+const { data, error } = await useFetch<SurveyGetResponse>("/api/survey", { query: { surveyId: id } });
 if (error.value || !data.value?.survey) {
   throw createError({ statusCode: 404, statusMessage: "Survey not found" });
 }
