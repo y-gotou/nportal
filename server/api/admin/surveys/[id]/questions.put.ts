@@ -15,7 +15,8 @@ export default defineEventHandler(async (event) => {
   const id = Number(event.context.params?.id);
   if (!Number.isInteger(id) || id < 1) throw createError({ statusCode: 400, statusMessage: "Invalid id" });
 
-  const questions = await readBody<QuestionInput[]>(event);
+  const body = await readBody<QuestionInput[] | { questions: QuestionInput[] }>(event);
+  const questions = Array.isArray(body) ? body : body?.questions;
 
   if (!Array.isArray(questions)) {
     throw createError({ statusCode: 400, statusMessage: "Request body must be an array of questions" });
