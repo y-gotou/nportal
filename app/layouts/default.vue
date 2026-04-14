@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { portalDescription, portalTitle } from "~~/utils/content";
+import { fetchCurrentUser } from "~/composables/useCurrentUser";
 
 useSeoMeta({
   titleTemplate: (title) => (title ? `${title} | ${portalTitle}` : portalTitle),
@@ -7,6 +8,9 @@ useSeoMeta({
   ogTitle: portalTitle,
   ogDescription: portalDescription,
 });
+
+// CF Access が認証を管理するため、ユーザー情報のみ取得（リダイレクトなし）
+await fetchCurrentUser().catch(() => {});
 </script>
 
 <template>
