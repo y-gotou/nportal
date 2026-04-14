@@ -21,7 +21,7 @@ const form = reactive({
   date: minutes.date,
   attendees: minutes.attendees.join(", "),
   topics: minutes.topics.join(", "),
-  contentMd: (minutes as unknown as { contentMd?: string }).contentMd ?? "",
+  contentMd: minutes.contentMd,
 });
 
 const errors = reactive<Record<string, string>>({});

@@ -30,6 +30,7 @@ export interface MinutesMeta {
 }
 
 export interface Minutes extends MinutesMeta {
+  contentMd: string;
   contentHtml: string;
 }
 

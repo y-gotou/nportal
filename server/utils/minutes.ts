@@ -25,6 +25,7 @@ function toMinutesMeta(row: MinutesRow): MinutesMeta {
 function toMinutes(row: MinutesRow): Minutes {
   return {
     ...toMinutesMeta(row),
+    contentMd: row.content_md,
     contentHtml: row.content_html,
   };
 }
