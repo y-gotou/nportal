@@ -41,7 +41,14 @@ export default defineEventHandler(async (event) => {
     }));
 
   const db = getDb(event);
-  await getRequiredSurvey(db, surveyId);
+  const survey = await getRequiredSurvey(db, surveyId);
+
+  if (survey.status !== "active") {
+    throw createError({
+      statusCode: 409,
+      statusMessage: "Survey is not accepting responses.",
+    });
+  }
 
   // 重複回答チェック
   const alreadySubmitted = await checkSubmission(db, surveyId, user.email);

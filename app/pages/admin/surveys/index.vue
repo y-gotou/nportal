@@ -1,21 +1,25 @@
 <script setup lang="ts">
-import type { SurveysResponse } from "~~/types/portal";
+import type { SurveyStatus, SurveysResponse } from "~~/types/portal";
 
 definePageMeta({ layout: "admin" });
 await useAdminGuard();
 
-const { data, refresh } = await useFetch<SurveysResponse>("/api/surveys", {
+const { data } = await useFetch<SurveysResponse>("/api/surveys", {
   default: () => ({ surveys: [] }),
 });
 
 const surveys = computed(() => data.value?.surveys ?? []);
 
-async function toggleActive(id: number, current: boolean) {
-  await $fetch(`/api/admin/surveys/${id}`, {
-    method: "PUT",
-    body: { isActive: !current },
-  });
-  await refresh();
+function getStatusLabel(status: SurveyStatus) {
+  if (status === "draft") return "下書き";
+  if (status === "active") return "受付中";
+  return "停止中";
+}
+
+function getStatusClass(status: SurveyStatus) {
+  if (status === "draft") return "bg-amber-50 text-amber-700";
+  if (status === "active") return "bg-green-50 text-green-700";
+  return "bg-slate-100 text-slate-500";
 }
 
 useSeoMeta({ title: "アンケート管理" });
@@ -56,16 +60,12 @@ useSeoMeta({ title: "アンケート管理" });
               {{ survey.responseCount ?? 0 }}件
             </td>
             <td class="px-4 py-3">
-              <button
-                type="button"
-                class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium transition-colors"
-                :class="survey.isActive
-                  ? 'bg-green-50 text-green-700 hover:bg-green-100'
-                  : 'bg-slate-100 text-slate-500 hover:bg-slate-200'"
-                @click="toggleActive(survey.id, survey.isActive)"
+              <span
+                class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium"
+                :class="getStatusClass(survey.status)"
               >
-                {{ survey.isActive ? "受付中" : "停止中" }}
-              </button>
+                {{ getStatusLabel(survey.status) }}
+              </span>
             </td>
             <td class="px-4 py-3 text-right">
               <NuxtLink

@@ -1,11 +1,12 @@
 import { readBody } from "h3";
-import { getDb } from "~~/server/utils/survey";
+import { getDb, parseSurveyStatus } from "~~/server/utils/survey";
 import { assertAdmin } from "~~/server/utils/admin";
+import type { SurveyStatus } from "~~/types/portal";
 
 interface UpdateSurveyBody {
   title?: string;
   description?: string;
-  isActive?: boolean;
+  status?: SurveyStatus;
 }
 
 export default defineEventHandler(async (event) => {
@@ -17,20 +18,29 @@ export default defineEventHandler(async (event) => {
   const body = await readBody<UpdateSurveyBody>(event);
 
   const db = getDb(event);
+  const status = body.status !== undefined
+    ? parseSurveyStatus(body.status, "Invalid survey payload.")
+    : undefined;
 
-  // isActive のみ更新する部分更新に対応
   if (body.title !== undefined) {
-    await db
-      .prepare(
-        "UPDATE surveys SET title = ?, description = ?, is_active = ? WHERE id = ?",
-      )
-      .bind(body.title, body.description ?? "", body.isActive !== false ? 1 : 0, id)
-      .first();
+    if (status !== undefined) {
+      await db
+        .prepare(
+          "UPDATE surveys SET title = ?, description = ?, status = ? WHERE id = ?",
+        )
+        .bind(body.title, body.description ?? "", status, id)
+        .first();
+    } else {
+      await db
+        .prepare("UPDATE surveys SET title = ?, description = ? WHERE id = ?")
+        .bind(body.title, body.description ?? "", id)
+        .first();
+    }
   }
-  else if (body.isActive !== undefined) {
+  else if (status !== undefined) {
     await db
-      .prepare("UPDATE surveys SET is_active = ? WHERE id = ?")
-      .bind(body.isActive ? 1 : 0, id)
+      .prepare("UPDATE surveys SET status = ? WHERE id = ?")
+      .bind(status, id)
       .first();
   }
 

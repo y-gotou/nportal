@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { SurveyGetResponse, SurveyQuestionType } from "~~/types/portal";
+import type { SurveyGetResponse, SurveyQuestionType, SurveyStatus } from "~~/types/portal";
 
 definePageMeta({ layout: "admin" });
 await useAdminGuard();
@@ -18,7 +18,7 @@ const survey = data.value.survey;
 const form = reactive({
   title: survey.title,
   description: survey.description,
-  isActive: survey.isActive,
+  status: survey.status as SurveyStatus,
 });
 
 interface QuestionDraft {
@@ -139,7 +139,7 @@ async function submit() {
         body: {
           title: form.title.trim(),
           description: form.description.trim(),
-          isActive: form.isActive,
+          status: form.status,
         },
       }),
       $fetch(`/api/admin/surveys/${id}/questions`, {
@@ -208,15 +208,17 @@ useSeoMeta({ title: `${survey.title} を編集` });
           />
         </AdminFormField>
 
-        <div class="flex items-center gap-3">
-          <input
-            id="isActive"
-            v-model="form.isActive"
-            type="checkbox"
-            class="h-4 w-4 rounded border-slate-300 text-blue-500 focus:ring-blue-500"
+        <AdminFormField label="状態" field-id="status">
+          <select
+            id="status"
+            v-model="form.status"
+            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           >
-          <label for="isActive" class="text-sm font-medium text-slate-700">受付中（公開中）</label>
-        </div>
+            <option value="draft">下書き</option>
+            <option value="active">受付中</option>
+            <option value="closed">停止中</option>
+          </select>
+        </AdminFormField>
       </div>
 
       <!-- 設問 -->

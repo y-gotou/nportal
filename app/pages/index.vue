@@ -40,7 +40,7 @@ const recentMinutes = computed(() => (minutesData.value?.minutes ?? []).slice(0,
 const recentResources = computed(() => (resourcesData.value?.resources ?? []).slice(0, 3));
 const activeSurveys = computed(() =>
   (surveysData.value?.surveys ?? [])
-    .filter((survey) => survey.isActive && !survey.hasResponded)
+    .filter((survey) => survey.status === "active" && !survey.hasResponded)
     .slice(0, 2),
 );
 

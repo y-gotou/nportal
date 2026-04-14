@@ -1,7 +1,7 @@
 import { readBody } from "h3";
-import { getDb } from "~~/server/utils/survey";
+import { getDb, parseSurveyStatus } from "~~/server/utils/survey";
 import { assertAdmin } from "~~/server/utils/admin";
-import type { SurveyQuestionType } from "~~/types/portal";
+import type { SurveyQuestionType, SurveyStatus } from "~~/types/portal";
 
 interface QuestionInput {
   questionText: string;
@@ -13,7 +13,7 @@ interface QuestionInput {
 interface CreateSurveyBody {
   title?: string;
   description?: string;
-  isActive?: boolean;
+  status?: SurveyStatus;
   questions?: QuestionInput[];
 }
 
@@ -27,18 +27,21 @@ export default defineEventHandler(async (event) => {
   }
 
   const db = getDb(event);
+  const status = body.status
+    ? parseSurveyStatus(body.status, "Invalid survey payload.")
+    : "draft";
 
   // アンケート作成
   const surveyResult = await db
     .prepare(
-      `INSERT INTO surveys (title, description, is_active)
+      `INSERT INTO surveys (title, description, status)
        VALUES (?, ?, ?)
        RETURNING id`,
     )
     .bind(
       body.title,
       body.description ?? "",
-      body.isActive !== false ? 1 : 0,
+      status,
     )
     .first<{ id: number }>();
 

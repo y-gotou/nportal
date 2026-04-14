@@ -31,7 +31,7 @@ export async function useSurveyDetail(
   const responses: SurveyResponse[] = data.value?.responses ?? [];
   const myAnswers: Record<number, string> = data.value?.myAnswers ?? {};
 
-  if (!survey || (options.requireActive && !survey.isActive)) {
+  if (!survey || (options.requireActive && survey.status !== "active")) {
     throw createError({
       statusCode: 404,
       statusMessage: "Survey not found",

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { SurveyQuestionType } from "~~/types/portal";
+import type { SurveyQuestionType, SurveyStatus } from "~~/types/portal";
 
 definePageMeta({ layout: "admin" });
 await useAdminGuard();
@@ -9,7 +9,7 @@ const router = useRouter();
 const form = reactive({
   title: "",
   description: "",
-  isActive: true,
+  status: "draft" as SurveyStatus,
 });
 
 interface QuestionDraft {
@@ -124,7 +124,7 @@ async function submit() {
       body: {
         title: form.title.trim(),
         description: form.description.trim(),
-        isActive: form.isActive,
+        status: form.status,
         questions: questions.value.map((q) => ({
           questionText: q.questionText.trim(),
           questionType: q.questionType,
@@ -182,15 +182,17 @@ useSeoMeta({ title: "アンケートを作成" });
           />
         </AdminFormField>
 
-        <div class="flex items-center gap-3">
-          <input
-            id="isActive"
-            v-model="form.isActive"
-            type="checkbox"
-            class="h-4 w-4 rounded border-slate-300 text-blue-500 focus:ring-blue-500"
+        <AdminFormField label="状態" field-id="status">
+          <select
+            id="status"
+            v-model="form.status"
+            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           >
-          <label for="isActive" class="text-sm font-medium text-slate-700">作成後すぐに受付を開始する</label>
-        </div>
+            <option value="draft">下書き</option>
+            <option value="active">受付中</option>
+            <option value="closed">停止中</option>
+          </select>
+        </AdminFormField>
       </div>
 
       <!-- 設問 -->

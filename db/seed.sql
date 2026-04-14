@@ -3,10 +3,10 @@ DELETE FROM submissions;
 DELETE FROM questions;
 DELETE FROM surveys;
 
-INSERT INTO surveys (id, title, description, created_at, is_active)
+INSERT INTO surveys (id, title, description, created_at, status)
 VALUES
-  (1, '第11回 勉強会フィードバック', 'LLMのファインチューニング入門についての感想をお聞かせください', '2026-04-03', 1),
-  (2, '今後のテーマ希望アンケート', '次回以降の勉強会で取り上げてほしいテーマを教えてください', '2026-03-31', 1);
+  (1, '第11回 勉強会フィードバック', 'LLMのファインチューニング入門についての感想をお聞かせください', '2026-04-03', 'active'),
+  (2, '今後のテーマ希望アンケート', '次回以降の勉強会で取り上げてほしいテーマを教えてください', '2026-03-31', 'active');
 
 INSERT INTO questions (id, survey_id, question_text, question_type, options, allow_other_text, sort_order) VALUES
   (1, 1, '今回の勉強会の満足度を教えてください', 'single_choice', '["とても満足","満足","普通","やや不満","不満"]', 0, 1),
