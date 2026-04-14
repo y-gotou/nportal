@@ -1,4 +1,5 @@
 DELETE FROM responses;
+DELETE FROM submissions;
 DELETE FROM questions;
 DELETE FROM surveys;
 
