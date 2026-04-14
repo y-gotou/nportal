@@ -25,7 +25,7 @@ useSeoMeta({
 </script>
 
 <template>
-  <PageContainer size="medium">
+  <PageContainer size="wide">
     <div class="mb-6">
       <div class="mb-3 flex items-center justify-between">
         <span class="text-xs font-semibold tracking-[0.16em] text-slate-400">議事録</span>
