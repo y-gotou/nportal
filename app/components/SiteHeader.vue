@@ -12,6 +12,12 @@ const navItems = [
   { to: "/resources", label: "資料共有" },
 ];
 
+const mobileMenuId = "site-mobile-navigation";
+const isUserMenuOpen = ref(false);
+const isMobileMenuOpen = ref(false);
+const userMenuRef = ref<HTMLElement | null>(null);
+const mobileMenuButtonRef = ref<HTMLButtonElement | null>(null);
+
 function isActive(path: string) {
   return route.path === path || (path !== "/" && route.path.startsWith(path));
 }
@@ -20,93 +26,118 @@ const userInitial = computed(() =>
   currentUser.value?.email?.charAt(0).toUpperCase() ?? "?",
 );
 
-// ユーザーメニュー
-const isMenuOpen = ref(false);
-const menuRef = ref<HTMLElement | null>(null);
+function toggleUserMenu() {
+  isUserMenuOpen.value = !isUserMenuOpen.value;
+}
 
-function toggleMenu() {
-  isMenuOpen.value = !isMenuOpen.value;
+function closeUserMenu() {
+  isUserMenuOpen.value = false;
+}
+
+function toggleMobileMenu() {
+  isMobileMenuOpen.value = !isMobileMenuOpen.value;
+}
+
+function closeMobileMenu() {
+  isMobileMenuOpen.value = false;
 }
 
 function logout() {
   currentUser.value = null;
-  isMenuOpen.value = false;
+  closeUserMenu();
+  closeMobileMenu();
   window.location.href = "/api/logout";
 }
 
-// メニュー外クリックで閉じる
 function onClickOutside(event: MouseEvent) {
-  if (menuRef.value && !menuRef.value.contains(event.target as Node)) {
-    isMenuOpen.value = false;
+  if (userMenuRef.value && !userMenuRef.value.contains(event.target as Node)) {
+    closeUserMenu();
   }
 }
 
-// Escape キーでメニューを閉じる
 function onKeydown(event: KeyboardEvent) {
-  if (event.key === "Escape" && isMenuOpen.value) {
-    isMenuOpen.value = false;
-    // トリガーボタンにフォーカスを戻す
-    menuRef.value?.querySelector<HTMLElement>("button")?.focus();
+  if (event.key !== "Escape") {
+    return;
+  }
+
+  if (isUserMenuOpen.value) {
+    closeUserMenu();
+    userMenuRef.value?.querySelector<HTMLElement>("button")?.focus();
+  }
+
+  if (isMobileMenuOpen.value) {
+    closeMobileMenu();
+    mobileMenuButtonRef.value?.focus();
   }
 }
+
+watch(() => route.fullPath, () => {
+  closeUserMenu();
+  closeMobileMenu();
+});
+
+watch(isMobileMenuOpen, (isOpen) => {
+  if (!import.meta.client) return;
+  document.body.style.overflow = isOpen ? "hidden" : "";
+});
 
 onMounted(() => {
   document.addEventListener("click", onClickOutside);
   document.addEventListener("keydown", onKeydown);
 });
+
 onUnmounted(() => {
   document.removeEventListener("click", onClickOutside);
   document.removeEventListener("keydown", onKeydown);
+  document.body.style.overflow = "";
 });
 </script>
 
 <template>
   <header class="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
     <div
-      class="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-4 md:flex-row md:items-center md:justify-between md:px-6"
+      class="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-4 md:px-6"
     >
-      <NuxtLink to="/" class="flex items-center gap-3" translate="no">
-        <span
-          class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500 text-base font-bold text-white"
-        >
-          N
-        </span>
-        <span class="flex flex-col">
-          <strong class="text-base font-semibold tracking-tight text-slate-900">N Portal</strong>
-        </span>
-      </NuxtLink>
+      <div class="flex min-w-0 items-center gap-6">
+        <NuxtLink to="/" class="flex items-center gap-3" translate="no">
+          <span
+            class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500 text-base font-bold text-white"
+          >
+            N
+          </span>
+          <span class="flex flex-col">
+            <strong class="text-base font-semibold tracking-tight text-slate-900">N Portal</strong>
+          </span>
+        </NuxtLink>
 
-      <div class="flex items-center gap-3 overflow-x-auto pb-1 md:overflow-visible md:pb-0">
         <nav
-          class="flex items-center gap-2"
+          class="hidden items-center gap-2 md:flex"
           aria-label="グローバルナビゲーション"
         >
           <NuxtLink
             v-for="item in navItems"
             :key="item.to"
             :to="item.to"
-            class="shrink-0 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-            :class="
-              isActive(item.to)
-                ? 'bg-blue-50 text-blue-600'
-                : ''
-            "
+            class="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+            :class="isActive(item.to) ? 'bg-blue-50 text-blue-600' : ''"
           >
             {{ item.label }}
           </NuxtLink>
         </nav>
+      </div>
 
+      <div class="flex items-center gap-3">
         <div
           v-if="currentUser"
-          ref="menuRef"
-          class="relative shrink-0 border-l border-slate-200 pl-3"
+          ref="userMenuRef"
+          class="relative hidden shrink-0 border-l border-slate-200 pl-3 md:block"
         >
           <button
             type="button"
             class="flex items-center gap-2 rounded-lg px-2 py-1 transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-            :aria-expanded="isMenuOpen"
+            :aria-expanded="isUserMenuOpen"
             aria-haspopup="true"
-            @click.stop="toggleMenu"
+            @click.stop="toggleUserMenu"
           >
             <span
               class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-700"
@@ -118,7 +149,7 @@ onUnmounted(() => {
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="h-3.5 w-3.5 text-slate-400 transition-transform"
-              :class="isMenuOpen ? 'rotate-180' : ''"
+              :class="isUserMenuOpen ? 'rotate-180' : ''"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -128,9 +159,8 @@ onUnmounted(() => {
             </svg>
           </button>
 
-          <!-- ドロップダウンメニュー -->
           <div
-            v-if="isMenuOpen"
+            v-if="isUserMenuOpen"
             class="absolute right-0 top-full z-50 mt-1 w-52 rounded-xl border border-slate-200 bg-white py-1 shadow-lg"
             role="menu"
           >
@@ -142,7 +172,7 @@ onUnmounted(() => {
               to="/admin"
               class="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
               role="menuitem"
-              @click="isMenuOpen = false"
+              @click="closeUserMenu"
             >
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -170,7 +200,124 @@ onUnmounted(() => {
             </button>
           </div>
         </div>
+
+        <button
+          ref="mobileMenuButtonRef"
+          type="button"
+          class="flex items-center justify-center rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 md:hidden"
+          :aria-controls="mobileMenuId"
+          :aria-expanded="isMobileMenuOpen"
+          aria-label="メニューを開く"
+          @click="toggleMobileMenu"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path
+              v-if="isMobileMenuOpen"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+            <path
+              v-else
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M4 12h16M4 18h16"
+            />
+          </svg>
+        </button>
       </div>
     </div>
   </header>
+
+  <Transition
+    enter-active-class="transition-opacity duration-200 ease-out"
+    enter-from-class="opacity-0"
+    enter-to-class="opacity-100"
+    leave-active-class="transition-opacity duration-150 ease-in"
+    leave-from-class="opacity-100"
+    leave-to-class="opacity-0"
+  >
+    <div
+      v-if="isMobileMenuOpen"
+      class="fixed inset-0 z-40 bg-slate-950/30 md:hidden"
+      @click="closeMobileMenu"
+    />
+  </Transition>
+
+  <Transition
+    enter-active-class="transform transition duration-200 ease-out"
+    enter-from-class="translate-x-full"
+    enter-to-class="translate-x-0"
+    leave-active-class="transform transition duration-150 ease-in"
+    leave-from-class="translate-x-0"
+    leave-to-class="translate-x-full"
+  >
+    <aside
+      v-if="isMobileMenuOpen"
+      :id="mobileMenuId"
+      class="fixed inset-y-0 right-0 z-50 flex w-full max-w-xs flex-col border-l border-slate-200 bg-white shadow-2xl md:hidden"
+      aria-label="モバイルメニュー"
+    >
+      <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+        <span class="text-sm font-semibold text-slate-900">メニュー</span>
+        <button
+          type="button"
+          class="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+          aria-label="メニューを閉じる"
+          @click="closeMobileMenu"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <nav class="flex-1 overflow-y-auto px-3 py-4" aria-label="グローバルナビゲーション（モバイル）">
+        <NuxtLink
+          v-for="item in navItems"
+          :key="item.to"
+          :to="item.to"
+          class="flex items-center rounded-xl px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900"
+          :class="isActive(item.to) ? 'bg-blue-50 text-blue-600' : ''"
+          @click="closeMobileMenu"
+        >
+          {{ item.label }}
+        </NuxtLink>
+
+        <div v-if="currentUser" class="mt-6 border-t border-slate-200 pt-6">
+          <div class="flex items-center gap-3 px-4 py-2">
+            <span
+              class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700"
+              aria-hidden="true"
+            >
+              {{ userInitial }}
+            </span>
+            <div class="min-w-0">
+              <p class="text-xs font-medium text-slate-500">ログイン中</p>
+              <p class="truncate text-sm font-medium text-slate-900">{{ currentUser.email }}</p>
+            </div>
+          </div>
+
+          <NuxtLink
+            v-if="currentUser.isAdmin"
+            to="/admin"
+            class="mt-4 flex items-center rounded-xl px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900"
+            @click="closeMobileMenu"
+          >
+            管理画面
+          </NuxtLink>
+
+          <button
+            type="button"
+            class="mt-2 flex w-full items-center rounded-xl px-4 py-3 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900"
+            @click="logout"
+          >
+            ログアウト
+          </button>
+        </div>
+      </nav>
+    </aside>
+  </Transition>
 </template>
