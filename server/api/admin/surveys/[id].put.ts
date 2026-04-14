@@ -22,14 +22,14 @@ export default defineEventHandler(async (event) => {
   if (body.title !== undefined) {
     await db
       .prepare(
-        "UPDATE surveys SET title = ?, description = ?, is_active = ?, updated_at = datetime('now') WHERE id = ?",
+        "UPDATE surveys SET title = ?, description = ?, is_active = ? WHERE id = ?",
       )
       .bind(body.title, body.description ?? "", body.isActive !== false ? 1 : 0, id)
       .first();
   }
   else if (body.isActive !== undefined) {
     await db
-      .prepare("UPDATE surveys SET is_active = ?, updated_at = datetime('now') WHERE id = ?")
+      .prepare("UPDATE surveys SET is_active = ? WHERE id = ?")
       .bind(body.isActive ? 1 : 0, id)
       .first();
   }
