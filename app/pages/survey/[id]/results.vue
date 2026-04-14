@@ -23,7 +23,7 @@ useSeoMeta({
         一覧へ戻る
       </NuxtLink>
       <NuxtLink
-        v-if="survey.isActive && Object.keys(myAnswers).length === 0"
+        v-if="survey.status === 'active' && Object.keys(myAnswers).length === 0"
         :to="`/survey/${survey.id}`"
         :class="secondaryButtonClass"
       >
@@ -49,7 +49,7 @@ useSeoMeta({
           :class="
             Object.keys(myAnswers).length > 0
               ? 'bg-green-50 text-green-700'
-              : survey.isActive
+              : survey.status === 'active'
                 ? 'bg-blue-50 text-blue-600'
                 : 'bg-slate-100 text-slate-600'
           "
@@ -57,9 +57,9 @@ useSeoMeta({
           {{
             Object.keys(myAnswers).length > 0
               ? "回答済み"
-              : survey.isActive
+              : survey.status === 'active'
                 ? "受付中"
-                : "受付終了"
+                : "停止中"
           }}
         </span>
       </div>

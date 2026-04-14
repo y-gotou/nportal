@@ -38,6 +38,11 @@ export type SurveyQuestionType =
   | "multiple_choice"
   | "free_text";
 
+export type SurveyStatus =
+  | "draft"
+  | "active"
+  | "closed";
+
 export interface SurveyQuestion {
   id: number;
   questionText: string;
@@ -51,7 +56,7 @@ export interface Survey {
   title: string;
   description: string;
   createdAt: string;
-  isActive: boolean;
+  status: SurveyStatus;
   responseCount?: number;
   hasResponded?: boolean;
   questions: SurveyQuestion[];

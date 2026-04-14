@@ -4,6 +4,7 @@ import type {
   Survey,
   SurveyAnswerInput,
   SurveyQuestion,
+  SurveyStatus,
   SurveyResponse,
 } from "../../types/portal.ts";
 
@@ -12,7 +13,7 @@ interface SurveyRow {
   title: string;
   description: string | null;
   created_at: string;
-  is_active: number;
+  status: string;
 }
 
 interface SurveyCountRow {
@@ -68,6 +69,20 @@ export function parseSurveyId(
   return surveyId;
 }
 
+export function parseSurveyStatus(
+  value: unknown,
+  message = "Invalid survey status.",
+): SurveyStatus {
+  if (value === "draft" || value === "active" || value === "closed") {
+    return value;
+  }
+
+  throw createError({
+    statusCode: 400,
+    statusMessage: message,
+  });
+}
+
 function groupQuestionsBySurveyId(questionRows: QuestionRow[]) {
   const grouped = new Map<number, QuestionRow[]>();
 
@@ -115,7 +130,7 @@ function toSurvey(
     title: row.title,
     description: row.description ?? "",
     createdAt: row.created_at,
-    isActive: row.is_active === 1,
+    status: parseSurveyStatus(row.status, "Invalid survey status in database."),
     responseCount,
     questions: [...questions]
       .sort((left, right) => left.sort_order - right.sort_order)
@@ -126,6 +141,7 @@ function toSurvey(
 export async function listSurveys(
   db: D1DatabaseLike,
   userEmail?: string,
+  options: { includeDraft?: boolean } = {},
 ): Promise<Survey[]> {
   const { results: surveyRows } = await db
     .prepare("SELECT * FROM surveys ORDER BY created_at DESC")
@@ -161,26 +177,29 @@ export async function listSurveys(
     }
   }
 
-  return surveyRows.map((row) => ({
-    ...toSurvey(
-      row,
-      questionsBySurveyId.get(row.id) ?? [],
-      responseCountBySurveyId.get(row.id) ?? 0,
-    ),
-    hasResponded: respondedSurveyIds.has(row.id),
-  }));
+  return surveyRows
+    .filter((row) => options.includeDraft || row.status !== "draft")
+    .map((row) => ({
+      ...toSurvey(
+        row,
+        questionsBySurveyId.get(row.id) ?? [],
+        responseCountBySurveyId.get(row.id) ?? 0,
+      ),
+      hasResponded: respondedSurveyIds.has(row.id),
+    }));
 }
 
 export async function getSurvey(
   db: D1DatabaseLike,
   id: number,
+  options: { includeDraft?: boolean } = {},
 ): Promise<Survey | null> {
   const surveyRow = await db
     .prepare("SELECT * FROM surveys WHERE id = ?")
     .bind(id)
     .first<SurveyRow>();
 
-  if (!surveyRow) {
+  if (!surveyRow || (!options.includeDraft && surveyRow.status === "draft")) {
     return null;
   }
 
@@ -195,8 +214,9 @@ export async function getSurvey(
 export async function getRequiredSurvey(
   db: D1DatabaseLike,
   id: number,
+  options: { includeDraft?: boolean } = {},
 ): Promise<Survey> {
-  const survey = await getSurvey(db, id);
+  const survey = await getSurvey(db, id, options);
 
   if (!survey) {
     throw createError({

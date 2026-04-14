@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { SurveysResponse } from "~~/types/portal";
+import type { SurveyStatus, SurveysResponse } from "~~/types/portal";
 import {
   primaryButtonClass,
   secondaryButtonClass,
@@ -10,9 +10,21 @@ const { data, error } = await useFetch<SurveysResponse>("/api/surveys");
 
 const surveys = computed(() => data.value?.surveys ?? []);
 
+function getSurveyStatusLabel(status: SurveyStatus, hasResponded: boolean) {
+  if (hasResponded) return "回答済み";
+  return status === "active" ? "受付中" : "停止中";
+}
+
+function getSurveyStatusClass(status: SurveyStatus, hasResponded: boolean) {
+  if (hasResponded) return "bg-green-50 text-green-700";
+  return status === "active"
+    ? "bg-blue-50 text-blue-600"
+    : "bg-slate-100 text-slate-500";
+}
+
 useSeoMeta({
   title: "アンケート",
-  description: "勉強会のフィードバックやテーマ希望アンケートの一覧です。",
+  description: "回答可能なアンケートと過去アンケートの結果を確認できます。",
 });
 </script>
 
@@ -20,7 +32,7 @@ useSeoMeta({
   <PageContainer size="wide">
     <SectionHeader
       title="アンケート一覧"
-      description="回答受付中のアンケートを確認できます。"
+      description="回答可能なアンケートと公開済み結果を確認できます。"
     />
 
     <!-- APIエラー表示 -->
@@ -47,15 +59,9 @@ useSeoMeta({
               </h2>
               <span
                 class="shrink-0 rounded-full px-2.5 py-1 text-xs font-medium"
-                :class="
-                  survey.hasResponded
-                    ? 'bg-green-50 text-green-700'
-                    : survey.isActive
-                      ? 'bg-blue-50 text-blue-600'
-                      : 'bg-slate-100 text-slate-500'
-                "
+                :class="getSurveyStatusClass(survey.status, survey.hasResponded ?? false)"
               >
-                {{ survey.hasResponded ? "回答済み" : survey.isActive ? "受付中" : "終了" }}
+                {{ getSurveyStatusLabel(survey.status, survey.hasResponded ?? false) }}
               </span>
             </div>
             <p class="text-sm leading-6 text-slate-500">{{ survey.description }}</p>
@@ -68,7 +74,7 @@ useSeoMeta({
           </div>
           <div class="flex shrink-0 flex-wrap gap-3">
             <NuxtLink
-              v-if="survey.isActive && !survey.hasResponded"
+              v-if="survey.status === 'active' && !survey.hasResponded"
               :to="`/survey/${survey.id}`"
               :class="primaryButtonClass"
             >

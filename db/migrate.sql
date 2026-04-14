@@ -15,6 +15,13 @@ CREATE INDEX IF NOT EXISTS idx_submissions_survey_user ON submissions(survey_id,
 
 ALTER TABLE questions ADD COLUMN allow_other_text INTEGER NOT NULL DEFAULT 0;
 
+ALTER TABLE surveys ADD COLUMN status TEXT NOT NULL DEFAULT 'draft';
+
+UPDATE surveys
+SET status = CASE WHEN is_active = 1 THEN 'active' ELSE 'closed' END;
+
+PRAGMA foreign_keys = OFF;
+
 CREATE TABLE schedule_new (
   id           INTEGER PRIMARY KEY AUTOINCREMENT,
   date         TEXT NOT NULL,
@@ -35,3 +42,5 @@ FROM schedule;
 DROP TABLE schedule;
 ALTER TABLE schedule_new RENAME TO schedule;
 CREATE INDEX IF NOT EXISTS idx_schedule_date ON schedule(date);
+
+PRAGMA foreign_keys = ON;

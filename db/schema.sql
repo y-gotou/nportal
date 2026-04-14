@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS surveys (
   title TEXT NOT NULL,
   description TEXT,
   created_at TEXT DEFAULT (datetime('now')),
-  is_active INTEGER DEFAULT 1
+  status TEXT NOT NULL DEFAULT 'draft'
 );
 
 CREATE TABLE IF NOT EXISTS questions (

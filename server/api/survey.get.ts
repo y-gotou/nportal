@@ -14,8 +14,10 @@ export default defineEventHandler(async (event) => {
   );
 
   const db = getDb(event);
-  const user = event.context.user as { email: string } | undefined;
-  const survey = await getRequiredSurvey(db, surveyId);
+  const user = event.context.user as { email: string; isAdmin?: boolean } | undefined;
+  const survey = await getRequiredSurvey(db, surveyId, {
+    includeDraft: user?.isAdmin === true,
+  });
   const responses = await getResponses(db, surveyId);
   const myAnswers = user
     ? await getUserAnswers(db, surveyId, user.email)

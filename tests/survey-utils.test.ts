@@ -15,7 +15,7 @@ const survey: Survey = {
   title: "勉強会アンケート",
   description: "テスト用アンケート",
   createdAt: "2026-04-01",
-  isActive: true,
+  status: "active",
   questions: [
     {
       id: 100,
