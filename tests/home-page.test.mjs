@@ -5,7 +5,8 @@ import test from "node:test";
 test("home page prioritizes action sections over legacy service cards", async () => {
   const page = await readFile(new URL("../app/pages/index.vue", import.meta.url), "utf8");
 
-  assert.match(page, /title="次にやること"/);
+  assert.match(page, /title="回答受付中のアンケート"/);
   assert.match(page, /title="最近の資料"/);
-  assert.doesNotMatch(page, /homeSections/);
+  assert.match(page, /PageHero/);
+  assert.doesNotMatch(page, /service cards/i);
 });

@@ -15,6 +15,7 @@ const navItems = [
   { to: "/admin/schedule", label: "スケジュール" },
   { to: "/admin/surveys", label: "アンケート" },
   { to: "/admin/resources", label: "資料" },
+  { to: "/admin/reports", label: "不具合・要望" },
   { to: "/admin/speakers", label: "発表募集" },
 ];
 

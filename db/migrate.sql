@@ -59,3 +59,16 @@ CREATE TABLE IF NOT EXISTS speaker_applications (
 
 CREATE INDEX IF NOT EXISTS idx_speaker_applications_email ON speaker_applications(user_email);
 CREATE INDEX IF NOT EXISTS idx_speaker_applications_status ON speaker_applications(status);
+
+-- Migration: Add reports table
+CREATE TABLE IF NOT EXISTS reports (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  report_type TEXT NOT NULL,
+  title       TEXT NOT NULL,
+  detail      TEXT NOT NULL,
+  user_email  TEXT NOT NULL,
+  created_at  TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_reports_created_at ON reports(created_at);
+CREATE INDEX IF NOT EXISTS idx_reports_report_type ON reports(report_type);
