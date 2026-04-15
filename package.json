@@ -15,14 +15,9 @@
     "db:migrate:local": "wrangler d1 execute nportal-db --local --file db/migrate.sql",
     "db:migrate:prod": "wrangler d1 execute nportal-db --remote --file db/migrate.sql",
     "db:migrate:preview": "wrangler d1 execute nportal-preview-db --remote --file db/migrate.sql",
-    "db:migrate-content:generate": "node scripts/migrate-content-to-db.mjs",
-    "db:migrate-content:local": "npm run db:migrate-content:generate && wrangler d1 execute nportal-db --local --file db/migrate_content.sql",
-    "db:migrate-content:prod": "npm run db:migrate-content:generate && wrangler d1 execute nportal-db --remote --file db/migrate_content.sql",
-    "db:migrate-content:preview": "npm run db:migrate-content:generate && wrangler d1 execute nportal-preview-db --remote --file db/migrate_content.sql",
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
-    "gray-matter": "^4.0.3",
     "nuxt": "^4.4.2",
     "remark": "^15.0.1",
     "remark-gfm": "^4.0.1",
