@@ -78,3 +78,18 @@ CREATE TABLE IF NOT EXISTS resources (
 CREATE INDEX IF NOT EXISTS idx_minutes_date ON minutes(date);
 CREATE INDEX IF NOT EXISTS idx_schedule_date ON schedule(date);
 CREATE INDEX IF NOT EXISTS idx_resources_date ON resources(date);
+
+CREATE TABLE IF NOT EXISTS speaker_applications (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_email TEXT NOT NULL,
+  title      TEXT NOT NULL,
+  duration   INTEGER NOT NULL,
+  note       TEXT,
+  status     TEXT NOT NULL DEFAULT 'pending',
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now'))
+);
+-- status: 'pending'（応募中）/ 'scheduled'（発表予定）/ 'done'（発表済み）
+
+CREATE INDEX IF NOT EXISTS idx_speaker_applications_email ON speaker_applications(user_email);
+CREATE INDEX IF NOT EXISTS idx_speaker_applications_status ON speaker_applications(status);

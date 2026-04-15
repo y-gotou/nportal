@@ -131,6 +131,23 @@ export interface SurveyResultBlock extends SurveyQuestion {
   distribution: SurveyDistributionItem[];
 }
 
+export type SpeakerApplicationStatus = 'pending' | 'scheduled' | 'done';
+
+export interface SpeakerApplication {
+  id: number;
+  user_email: string;
+  title: string;
+  duration: number;
+  note: string | null;
+  status: SpeakerApplicationStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SpeakersListResponse {
+  applications: SpeakerApplication[];
+}
+
 export interface D1PreparedStatement {
   bind(...values: unknown[]): D1PreparedStatement;
   first<T = unknown>(): Promise<T | null>;
