@@ -44,3 +44,18 @@ ALTER TABLE schedule_new RENAME TO schedule;
 CREATE INDEX IF NOT EXISTS idx_schedule_date ON schedule(date);
 
 PRAGMA foreign_keys = ON;
+
+-- Migration: Add speaker_applications table
+CREATE TABLE IF NOT EXISTS speaker_applications (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_email TEXT NOT NULL,
+  title      TEXT NOT NULL,
+  duration   INTEGER NOT NULL,
+  note       TEXT,
+  status     TEXT NOT NULL DEFAULT 'pending',
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_speaker_applications_email ON speaker_applications(user_email);
+CREATE INDEX IF NOT EXISTS idx_speaker_applications_status ON speaker_applications(status);

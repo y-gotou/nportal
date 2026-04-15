@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { MinutesListResponse, ScheduleListResponse, ResourcesListResponse, SurveysResponse } from "~~/types/portal";
+import type { MinutesListResponse, ScheduleListResponse, ResourcesListResponse, SurveysResponse, SpeakersListResponse } from "~~/types/portal";
 
 definePageMeta({ layout: "admin" });
 await useAdminGuard();
@@ -9,12 +9,18 @@ const [
   { data: scheduleData },
   { data: resourcesData },
   { data: surveysData },
+  { data: speakersData },
 ] = await Promise.all([
   useFetch<MinutesListResponse>("/api/minutes", { default: () => ({ minutes: [] }) }),
   useFetch<ScheduleListResponse>("/api/schedule", { default: () => ({ schedule: [] }) }),
   useFetch<ResourcesListResponse>("/api/resources", { default: () => ({ resources: [] }) }),
   useFetch<SurveysResponse>("/api/surveys", { default: () => ({ surveys: [] }) }),
+  useFetch<SpeakersListResponse>("/api/speakers", { default: () => ({ applications: [] }) }),
 ]);
+
+const pendingSpeakers = computed(() =>
+  (speakersData.value?.applications ?? []).filter((a) => a.status === "pending").length,
+);
 
 const stats = computed(() => [
   {
@@ -41,6 +47,13 @@ const stats = computed(() => [
     to: "/admin/resources",
     newTo: "/admin/resources/new",
   },
+  {
+    label: "発表募集",
+    count: speakersData.value?.applications.length ?? 0,
+    subLabel: pendingSpeakers.value > 0 ? `応募中 ${pendingSpeakers.value}件` : undefined,
+    to: "/admin/speakers",
+    newTo: null,
+  },
 ]);
 
 useSeoMeta({ title: "ダッシュボード" });
@@ -58,6 +71,7 @@ useSeoMeta({ title: "ダッシュボード" });
       >
         <p class="text-sm font-medium text-slate-500">{{ stat.label }}</p>
         <p class="mt-1 text-3xl font-bold tracking-tight text-slate-900">{{ stat.count }}</p>
+        <p v-if="stat.subLabel" class="text-xs text-amber-600">{{ stat.subLabel }}</p>
         <div class="mt-4 flex gap-2">
           <NuxtLink
             :to="stat.to"
@@ -65,13 +79,15 @@ useSeoMeta({ title: "ダッシュボード" });
           >
             一覧
           </NuxtLink>
-          <span class="text-slate-300">|</span>
-          <NuxtLink
-            :to="stat.newTo"
-            class="text-xs font-medium text-blue-600 hover:underline"
-          >
-            新規追加
-          </NuxtLink>
+          <template v-if="stat.newTo">
+            <span class="text-slate-300">|</span>
+            <NuxtLink
+              :to="stat.newTo"
+              class="text-xs font-medium text-blue-600 hover:underline"
+            >
+              新規追加
+            </NuxtLink>
+          </template>
         </div>
       </div>
     </div>
