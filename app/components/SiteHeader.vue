@@ -169,6 +169,24 @@ onUnmounted(() => {
               <p class="truncate text-xs font-medium text-slate-900">{{ currentUser.email }}</p>
             </div>
             <NuxtLink
+              to="/reports"
+              class="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
+              role="menuitem"
+              @click="closeUserMenu"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4 text-slate-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h6m-6 4h10M5 4h14a2 2 0 012 2v12a2 2 0 01-2 2H9l-4 0V6a2 2 0 012-2z" />
+              </svg>
+              不具合・要望報告
+            </NuxtLink>
+            <NuxtLink
               v-if="currentUser.isAdmin"
               to="/admin"
               class="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
@@ -302,9 +320,17 @@ onUnmounted(() => {
           </div>
 
           <NuxtLink
+            to="/reports"
+            class="mt-4 flex items-center rounded-xl px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900"
+            @click="closeMobileMenu"
+          >
+            不具合・要望報告
+          </NuxtLink>
+
+          <NuxtLink
             v-if="currentUser.isAdmin"
             to="/admin"
-            class="mt-4 flex items-center rounded-xl px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900"
+            class="mt-2 flex items-center rounded-xl px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900"
             @click="closeMobileMenu"
           >
             管理画面

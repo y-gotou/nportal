@@ -133,6 +133,27 @@ export interface SurveyResultBlock extends SurveyQuestion {
 
 export type SpeakerApplicationStatus = 'pending' | 'scheduled' | 'done';
 
+export type ReportType = "bug" | "request";
+
+export interface Report {
+  id: number;
+  reportType: ReportType;
+  title: string;
+  detail: string;
+  userEmail: string;
+  createdAt: string;
+}
+
+export interface CreateReportInput {
+  reportType: ReportType;
+  title: string;
+  detail: string;
+}
+
+export interface ReportsListResponse {
+  reports: Report[];
+}
+
 export interface SpeakerApplication {
   id: number;
   user_email: string;

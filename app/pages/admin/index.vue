@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { MinutesListResponse, ScheduleListResponse, ResourcesListResponse, SurveysResponse, SpeakersListResponse } from "~~/types/portal";
+import type { MinutesListResponse, ReportsListResponse, ResourcesListResponse, ScheduleListResponse, SpeakersListResponse, SurveysResponse } from "~~/types/portal";
 
 definePageMeta({ layout: "admin" });
 await useAdminGuard();
@@ -9,12 +9,14 @@ const [
   { data: scheduleData },
   { data: resourcesData },
   { data: surveysData },
+  { data: reportsData },
   { data: speakersData },
 ] = await Promise.all([
   useFetch<MinutesListResponse>("/api/minutes", { default: () => ({ minutes: [] }) }),
   useFetch<ScheduleListResponse>("/api/schedule", { default: () => ({ schedule: [] }) }),
   useFetch<ResourcesListResponse>("/api/resources", { default: () => ({ resources: [] }) }),
   useFetch<SurveysResponse>("/api/surveys", { default: () => ({ surveys: [] }) }),
+  useFetch<ReportsListResponse>("/api/admin/reports", { default: () => ({ reports: [] }) }),
   useFetch<SpeakersListResponse>("/api/speakers", { default: () => ({ applications: [] }) }),
 ]);
 
@@ -46,6 +48,12 @@ const stats = computed(() => [
     count: resourcesData.value?.resources.length ?? 0,
     to: "/admin/resources",
     newTo: "/admin/resources/new",
+  },
+  {
+    label: "不具合・要望",
+    count: reportsData.value?.reports.length ?? 0,
+    to: "/admin/reports",
+    newTo: null,
   },
   {
     label: "発表募集",
