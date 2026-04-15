@@ -84,7 +84,7 @@ useSeoMeta({
         </a>
         <NuxtLink
           to="/schedule"
-          :class="`${secondaryButtonClass} border-white/20 text-white hover:bg-white/10 hover:text-white`"
+          :class="`${secondaryButtonClass} !bg-transparent border-white/20 text-white hover:!bg-white/10 hover:text-white`"
         >
           予定一覧を見る
         </NuxtLink>

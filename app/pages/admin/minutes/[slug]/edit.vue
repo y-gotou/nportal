@@ -32,7 +32,7 @@ function validate() {
   const e: Record<string, string> = {};
   if (!form.title.trim()) e.title = "タイトルは必須です。";
   if (!form.date) e.date = "開催日は必須です。";
-  if (!form.attendees.trim()) e.attendees = "参加者は必須です。";
+  if (!form.attendees.trim()) e.attendees = "発表者は必須です。";
   if (!form.topics.trim()) e.topics = "トピックは必須です。";
   Object.assign(errors, e);
   return Object.keys(e).length === 0;
@@ -116,7 +116,7 @@ useSeoMeta({ title: `${minutes.title} を編集` });
         >
       </AdminFormField>
 
-      <AdminFormField label="参加者" field-id="attendees" :error="errors.attendees" required hint="カンマ区切り">
+      <AdminFormField label="発表者" field-id="attendees" :error="errors.attendees" required hint="カンマ区切り">
         <input
           id="attendees"
           v-model="form.attendees"

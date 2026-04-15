@@ -23,7 +23,7 @@ function validate() {
   else if (!/^[a-z0-9-]+$/.test(form.slug.trim())) e.slug = "スラッグは英小文字・数字・ハイフンのみ使用できます。";
   if (!form.title.trim()) e.title = "タイトルは必須です。";
   if (!form.date) e.date = "開催日は必須です。";
-  if (!form.attendees.trim()) e.attendees = "参加者は必須です。";
+  if (!form.attendees.trim()) e.attendees = "発表者は必須です。";
   if (!form.topics.trim()) e.topics = "トピックは必須です。";
   Object.assign(errors, e);
   return Object.keys(e).length === 0;
@@ -104,7 +104,7 @@ useSeoMeta({ title: "議事録を作成" });
         >
       </AdminFormField>
 
-      <AdminFormField label="参加者" field-id="attendees" :error="errors.attendees" required hint="カンマ区切りで入力（例: 田中、鈴木、佐藤）">
+      <AdminFormField label="発表者" field-id="attendees" :error="errors.attendees" required hint="カンマ区切りで入力（例: 田中、鈴木、佐藤）">
         <input
           id="attendees"
           v-model="form.attendees"

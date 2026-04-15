@@ -32,10 +32,7 @@ useSeoMeta({
 <template>
   <PageContainer size="wide">
     <section v-if="upcoming.length" class="space-y-4">
-      <SectionHeader
-        title="今後の予定"
-        description="参加リンクとテーマをまとめています。"
-      />
+      <SectionHeader title="今後の予定" />
 
       <div class="space-y-3">
         <article
@@ -78,10 +75,7 @@ useSeoMeta({
     </section>
 
     <section v-if="past.length" class="mt-10 space-y-4">
-      <SectionHeader
-        title="開催済みの回"
-        description="議事録や関連導線を確認できます。"
-      />
+      <SectionHeader title="開催済みの回" />
 
       <div class="space-y-3">
         <article

@@ -26,18 +26,21 @@ useSeoMeta({
 
 <template>
   <PageContainer size="wide">
+    <div class="mb-4 flex flex-wrap gap-3">
+      <NuxtLink to="/minutes" :class="secondaryButtonClass">
+        <IconArrowLeft />
+        一覧へ戻る
+      </NuxtLink>
+    </div>
+
     <div class="mb-6">
-      <div class="mb-3 flex items-center justify-between">
-        <span class="text-xs font-semibold tracking-[0.16em] text-slate-400">議事録</span>
-        <NuxtLink to="/minutes" :class="secondaryButtonClass">一覧へ戻る</NuxtLink>
-      </div>
       <h1 class="text-pretty text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
         {{ minutes.title }}
       </h1>
       <dl class="mt-3 grid grid-cols-[auto_1fr] items-baseline gap-x-4 gap-y-1.5 text-sm text-slate-500">
         <dt class="text-xs font-semibold tracking-[0.14em] text-slate-400">開催日</dt>
         <dd>{{ formatDisplayDate(minutes.date) }}</dd>
-        <dt class="text-xs font-semibold tracking-[0.14em] text-slate-400">参加者</dt>
+        <dt class="text-xs font-semibold tracking-[0.14em] text-slate-400">発表者</dt>
         <dd>{{ minutes.attendees.join("、") }}</dd>
         <dt class="text-xs font-semibold tracking-[0.14em] text-slate-400">トピック</dt>
         <dd>{{ minutes.topics.join("、") }}</dd>
