@@ -23,6 +23,7 @@ useSeoMeta({
         to="/survey"
         :class="secondaryButtonClass"
       >
+        <IconArrowLeft />
         一覧へ戻る
       </NuxtLink>
       <NuxtLink
@@ -49,9 +50,6 @@ useSeoMeta({
           :class="hasResponded ? 'bg-green-50 text-green-700' : 'bg-blue-50 text-blue-600'"
         >
           {{ hasResponded ? "回答済み" : "回答受付中" }}
-        </span>
-        <span class="rounded-full bg-slate-100 px-3 py-1.5 text-sm text-slate-600">
-          回答 {{ responses.length }}件
         </span>
       </div>
     </div>
@@ -83,10 +81,6 @@ useSeoMeta({
 
     <!-- 未回答の場合 -->
     <div v-else class="mt-8 space-y-4">
-      <SectionHeader
-        title="アンケートに回答する"
-      />
-
       <SurveyForm :survey="survey" />
     </div>
   </PageContainer>

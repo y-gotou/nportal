@@ -30,10 +30,7 @@ useSeoMeta({
 
 <template>
   <PageContainer size="wide">
-    <SectionHeader
-      title="アンケート一覧"
-      description="回答可能なアンケートと公開済み結果を確認できます。"
-    />
+    <SectionHeader title="アンケート一覧" />
 
     <!-- APIエラー表示 -->
     <div

@@ -234,6 +234,7 @@ async function submitSurvey() {
         to="/survey"
         :class="secondaryButtonClass"
       >
+        <IconArrowLeft />
         一覧へ戻る
       </NuxtLink>
     </div>

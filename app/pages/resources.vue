@@ -79,25 +79,32 @@ useSeoMeta({
 
 <template>
   <PageContainer size="wide">
-    <SectionHeader
-      title="資料共有"
-      description="資料を検索し、必要に応じて種類やタグで絞り込めます。"
-    />
+    <SectionHeader title="資料共有" />
 
     <div class="space-y-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <div class="space-y-2">
         <label for="resource-search" class="block text-sm font-medium text-slate-700">
           資料を検索
         </label>
-        <input
-          id="resource-search"
-          v-model="search"
-          name="resource-search"
-          type="search"
-          autocomplete="off"
-          class="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 transition-[border-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-          placeholder="タイトル・タグ・発表者で検索…"
-        >
+        <div class="flex items-center gap-2">
+          <input
+            id="resource-search"
+            v-model="search"
+            name="resource-search"
+            type="search"
+            autocomplete="off"
+            class="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 transition-[border-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+            placeholder="タイトル・タグ・発表者で検索…"
+          >
+          <button
+            type="button"
+            :class="secondaryButtonClass"
+            class="!px-2.5 !py-0 !text-xs shrink-0 self-stretch"
+            @click="search = ''; selectedType = null; selectedTag = null;"
+          >
+            条件をクリア
+          </button>
+        </div>
       </div>
 
       <div class="flex flex-wrap items-center gap-2">
@@ -135,24 +142,10 @@ useSeoMeta({
           {{ tag }}
         </button>
       </div>
+
     </div>
 
     <section v-if="filteredResources.length" class="mt-8 space-y-4">
-      <SectionHeader
-        :title="`${filteredResources.length}件の資料`"
-        description="必要な資料から開いてください。"
-      >
-        <template #action>
-          <button
-            v-if="search || selectedType || selectedTag"
-            type="button"
-            :class="secondaryButtonClass"
-            @click="search = ''; selectedType = null; selectedTag = null;"
-          >
-            条件をクリア
-          </button>
-        </template>
-      </SectionHeader>
 
       <div class="space-y-3">
         <article
@@ -193,7 +186,7 @@ useSeoMeta({
                 :to="`/minutes/${resource.relatedMinutesSlug}`"
                 :class="secondaryButtonClass"
               >
-                関連議事録を見る
+                関連議事録
               </NuxtLink>
             </div>
           </div>

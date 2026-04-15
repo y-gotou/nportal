@@ -20,6 +20,7 @@ useSeoMeta({
         to="/survey"
         :class="secondaryButtonClass"
       >
+        <IconArrowLeft />
         一覧へ戻る
       </NuxtLink>
       <NuxtLink
@@ -32,10 +33,7 @@ useSeoMeta({
     </div>
 
     <div class="space-y-4">
-      <SectionHeader
-        :title="`${survey.title} の集計結果`"
-        :description="survey.description"
-      />
+      <SectionHeader :title="`${survey.title} の集計結果`" />
 
       <div class="flex flex-wrap gap-2">
         <span class="rounded-full bg-slate-100 px-3 py-1.5 text-sm text-slate-600">
@@ -66,10 +64,6 @@ useSeoMeta({
     </div>
 
     <div v-if="responses.length" class="mt-8 space-y-4">
-      <SectionHeader
-        title="設問ごとの回答内訳"
-        description="選択式は分布、自由記述は一覧で確認できます。"
-      />
       <SurveyResults :survey="survey" :responses="responses" :my-answers="myAnswers" />
     </div>
 
