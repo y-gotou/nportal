@@ -138,6 +138,59 @@ function toSurvey(
   };
 }
 
+async function getSurveyResponseCounts(db: D1DatabaseLike) {
+  const { results: submissionCountRows } = await db
+    .prepare(
+      `SELECT survey_id, COUNT(*) AS response_count
+       FROM submissions
+       GROUP BY survey_id`,
+    )
+    .all<SurveyCountRow>();
+
+  const { results: fallbackCountRows } = await db
+    .prepare(
+      `SELECT q.survey_id, COUNT(DISTINCT r.user_email) AS response_count
+       FROM questions q
+       JOIN responses r ON r.question_id = q.id
+       WHERE r.user_email IS NOT NULL
+       GROUP BY q.survey_id`,
+    )
+    .all<SurveyCountRow>();
+
+  const { results: legacyCountRows } = await db
+    .prepare(
+      `SELECT q.survey_id, COUNT(r.id) AS response_count
+       FROM questions q
+       LEFT JOIN responses r ON r.question_id = q.id
+       GROUP BY q.survey_id`,
+    )
+    .all<SurveyCountRow>();
+
+  const submissionCountBySurveyId = new Map(
+    submissionCountRows.map((row) => [row.survey_id, row.response_count]),
+  );
+  const fallbackCountBySurveyId = new Map(
+    fallbackCountRows.map((row) => [row.survey_id, row.response_count]),
+  );
+  const legacyCountBySurveyId = new Map(
+    legacyCountRows.map((row) => [row.survey_id, row.response_count]),
+  );
+
+  return new Map(
+    [
+      ...submissionCountBySurveyId.keys(),
+      ...fallbackCountBySurveyId.keys(),
+      ...legacyCountBySurveyId.keys(),
+    ].map((surveyId) => [
+      surveyId,
+      submissionCountBySurveyId.get(surveyId)
+        ?? fallbackCountBySurveyId.get(surveyId)
+        ?? legacyCountBySurveyId.get(surveyId)
+        ?? 0,
+    ]),
+  );
+}
+
 export async function listSurveys(
   db: D1DatabaseLike,
   userEmail?: string,
@@ -151,19 +204,8 @@ export async function listSurveys(
     .prepare("SELECT * FROM questions ORDER BY sort_order ASC")
     .all<QuestionRow>();
 
-  const { results: countRows } = await db
-    .prepare(
-      `SELECT q.survey_id, COUNT(r.id) AS response_count
-       FROM questions q
-       LEFT JOIN responses r ON r.question_id = q.id
-       GROUP BY q.survey_id`,
-    )
-    .all<SurveyCountRow>();
-
   const questionsBySurveyId = groupQuestionsBySurveyId(questionRows);
-  const responseCountBySurveyId = new Map(
-    countRows.map((row) => [row.survey_id, row.response_count]),
-  );
+  const responseCountBySurveyId = await getSurveyResponseCounts(db);
 
   // ユーザーの回答済みアンケートを取得
   const respondedSurveyIds = new Set<number>();
@@ -208,7 +250,9 @@ export async function getSurvey(
     .bind(id)
     .all<QuestionRow>();
 
-  return toSurvey(surveyRow, questionRows);
+  const responseCountBySurveyId = await getSurveyResponseCounts(db);
+
+  return toSurvey(surveyRow, questionRows, responseCountBySurveyId.get(id) ?? 0);
 }
 
 export async function getRequiredSurvey(

@@ -1,86 +1,158 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { listSurveys } from "../server/utils/survey.ts";
+import { getSurvey, listSurveys } from "../server/utils/survey.ts";
 import type { D1DatabaseLike, D1PreparedStatement } from "../types/portal.ts";
 
-function createPreparedStatement(query: string): D1PreparedStatement {
+interface MockDbOptions {
+  surveyRows?: Array<{
+    id: number;
+    title: string;
+    description: string;
+    created_at: string;
+    status: string;
+  }>;
+  questionRows?: Array<{
+    id: number;
+    survey_id: number;
+    question_text: string;
+    question_type: "single_choice" | "multiple_choice" | "free_text";
+    options: string;
+    allow_other_text: number;
+    sort_order: number;
+  }>;
+  submissionCounts?: Array<{ survey_id: number; response_count: number }>;
+  fallbackCounts?: Array<{ survey_id: number; response_count: number }>;
+  legacyCounts?: Array<{ survey_id: number; response_count: number }>;
+  respondedSurveyIds?: number[];
+}
+
+const defaultSurveyRows = [
+  {
+    id: 1,
+    title: "第11回 勉強会フィードバック",
+    description: "LLMのファインチューニング入門についての感想をお聞かせください",
+    created_at: "2026-04-03",
+    status: "active",
+  },
+  {
+    id: 2,
+    title: "今後のテーマ希望アンケート",
+    description: "次回以降の勉強会で取り上げてほしいテーマを教えてください",
+    created_at: "2026-03-31",
+    status: "closed",
+  },
+  {
+    id: 3,
+    title: "下書きアンケート",
+    description: "管理画面のみで編集中",
+    created_at: "2026-04-10",
+    status: "draft",
+  },
+];
+
+const defaultQuestionRows = [
+  {
+    id: 1,
+    survey_id: 1,
+    question_text: "満足度",
+    question_type: "single_choice" as const,
+    options: "[\"高い\",\"普通\"]",
+    allow_other_text: 0,
+    sort_order: 1,
+  },
+  {
+    id: 2,
+    survey_id: 2,
+    question_text: "テーマ",
+    question_type: "multiple_choice" as const,
+    options: "[\"RAG\",\"MLOps\"]",
+    allow_other_text: 1,
+    sort_order: 1,
+  },
+  {
+    id: 3,
+    survey_id: 3,
+    question_text: "下書き設問",
+    question_type: "free_text" as const,
+    options: "[]",
+    allow_other_text: 0,
+    sort_order: 1,
+  },
+];
+
+function createPreparedStatement(
+  query: string,
+  options: MockDbOptions = {},
+): D1PreparedStatement {
+  let boundValues: unknown[] = [];
+
   return {
-    bind() {
+    bind(...values: unknown[]) {
+      boundValues = values;
       return this;
     },
     async first() {
+      if (query.includes("SELECT * FROM surveys WHERE id = ?")) {
+        const surveyId = boundValues[0];
+        return (
+          (options.surveyRows ?? defaultSurveyRows).find((row) => row.id === surveyId)
+          ?? null
+        );
+      }
+
       return null;
     },
     async all() {
       if (query.includes("SELECT * FROM surveys")) {
         return {
-          results: [
-            {
-              id: 1,
-              title: "第11回 勉強会フィードバック",
-              description: "LLMのファインチューニング入門についての感想をお聞かせください",
-              created_at: "2026-04-03",
-              status: "active",
-            },
-            {
-              id: 2,
-              title: "今後のテーマ希望アンケート",
-              description: "次回以降の勉強会で取り上げてほしいテーマを教えてください",
-              created_at: "2026-03-31",
-              status: "closed",
-            },
-            {
-              id: 3,
-              title: "下書きアンケート",
-              description: "管理画面のみで編集中",
-              created_at: "2026-04-10",
-              status: "draft",
-            },
-          ],
+          results: options.surveyRows ?? defaultSurveyRows,
+        };
+      }
+
+      if (query.includes("SELECT * FROM questions WHERE survey_id = ?")) {
+        const surveyId = boundValues[0];
+        return {
+          results: (options.questionRows ?? defaultQuestionRows).filter(
+            (row) => row.survey_id === surveyId,
+          ),
         };
       }
 
       if (query.includes("SELECT * FROM questions")) {
         return {
-          results: [
-            {
-              id: 1,
-              survey_id: 1,
-              question_text: "満足度",
-              question_type: "single_choice",
-              options: "[\"高い\",\"普通\"]",
-              allow_other_text: 0,
-              sort_order: 1,
-            },
-            {
-              id: 2,
-              survey_id: 2,
-              question_text: "テーマ",
-              question_type: "multiple_choice",
-              options: "[\"RAG\",\"MLOps\"]",
-              allow_other_text: 1,
-              sort_order: 1,
-            },
-            {
-              id: 3,
-              survey_id: 3,
-              question_text: "下書き設問",
-              question_type: "free_text",
-              options: "[]",
-              allow_other_text: 0,
-              sort_order: 1,
-            },
-          ],
+          results: options.questionRows ?? defaultQuestionRows,
+        };
+      }
+
+      if (query.includes("FROM submissions") && query.includes("COUNT(*) AS response_count")) {
+        return {
+          results: options.submissionCounts ?? [],
+        };
+      }
+
+      if (query.includes("COUNT(DISTINCT r.user_email) AS response_count")) {
+        return {
+          results: options.fallbackCounts ?? [],
         };
       }
 
       if (query.includes("COUNT(r.id) AS response_count")) {
         return {
-          results: [
-            { survey_id: 1, response_count: 3 },
-            { survey_id: 2, response_count: 0 },
-            { survey_id: 3, response_count: 0 },
-          ],
+          results: options.legacyCounts ?? [],
+        };
+      }
+
+      if (query.includes("SELECT survey_id FROM submissions WHERE user_email = ?")) {
+        const userEmail = boundValues[0];
+        if (typeof userEmail !== "string") {
+          return { results: [] };
+        }
+
+        return {
+          results: (options.respondedSurveyIds ?? []).map((survey_id) => ({
+            survey_id,
+            user_email: userEmail,
+          })),
         };
       }
 
@@ -89,20 +161,33 @@ function createPreparedStatement(query: string): D1PreparedStatement {
   };
 }
 
-const db: D1DatabaseLike = {
-  prepare(query: string) {
-    return createPreparedStatement(query);
-  },
-  async batch() {
-    return [];
-  },
-};
+function createDb(options: MockDbOptions = {}): D1DatabaseLike {
+  return {
+    prepare(query: string) {
+      return createPreparedStatement(query, options);
+    },
+    async batch() {
+      return [];
+    },
+  };
+}
 
-test("listSurveys includes response counts for survey cards", async () => {
-  const surveys = await listSurveys(db);
+test("listSurveys counts respondents from submissions for survey cards", async () => {
+  const surveys = await listSurveys(
+    createDb({
+      submissionCounts: [
+        { survey_id: 1, response_count: 2 },
+        { survey_id: 2, response_count: 0 },
+        { survey_id: 3, response_count: 0 },
+      ],
+      fallbackCounts: [
+        { survey_id: 1, response_count: 3 },
+      ],
+    }),
+  );
 
   assert.equal(surveys.length, 2);
-  assert.equal(surveys[0].responseCount, 3);
+  assert.equal(surveys[0].responseCount, 2);
   assert.equal(surveys[1].responseCount, 0);
   assert.equal(surveys[0].status, "active");
   assert.equal(surveys[1].status, "closed");
@@ -110,12 +195,71 @@ test("listSurveys includes response counts for survey cards", async () => {
   assert.equal(surveys[1].questions[0]?.allowOtherText, true);
 });
 
+test("listSurveys falls back to distinct response users when submissions are missing", async () => {
+  const surveys = await listSurveys(
+    createDb({
+      fallbackCounts: [
+        { survey_id: 1, response_count: 2 },
+        { survey_id: 2, response_count: 1 },
+      ],
+      legacyCounts: [
+        { survey_id: 1, response_count: 4 },
+        { survey_id: 2, response_count: 3 },
+      ],
+    }),
+  );
+
+  assert.equal(surveys[0].responseCount, 2);
+  assert.equal(surveys[1].responseCount, 1);
+});
+
+test("listSurveys falls back to legacy response counts for pre-migration data", async () => {
+  const surveys = await listSurveys(
+    createDb({
+      legacyCounts: [
+        { survey_id: 1, response_count: 3 },
+        { survey_id: 2, response_count: 1 },
+      ],
+    }),
+  );
+
+  assert.equal(surveys[0].responseCount, 3);
+  assert.equal(surveys[1].responseCount, 1);
+});
+
+test("listSurveys marks surveys as responded for the current user", async () => {
+  const surveys = await listSurveys(
+    createDb({
+      submissionCounts: [{ survey_id: 1, response_count: 1 }],
+      respondedSurveyIds: [1],
+    }),
+    "member@example.com",
+  );
+
+  assert.equal(surveys[0].hasResponded, true);
+  assert.equal(surveys[1].hasResponded, false);
+});
+
 test("listSurveys includes draft surveys for admin views when requested", async () => {
-  const surveys = await listSurveys(db, undefined, { includeDraft: true });
+  const surveys = await listSurveys(createDb(), undefined, { includeDraft: true });
 
   assert.equal(surveys.length, 3);
   assert.deepEqual(
     surveys.map((survey) => survey.status),
     ["active", "closed", "draft"],
   );
+});
+
+test("getSurvey includes respondent counts for detail views", async () => {
+  const survey = await getSurvey(
+    createDb({
+      submissionCounts: [{ survey_id: 1, response_count: 2 }],
+      fallbackCounts: [{ survey_id: 1, response_count: 3 }],
+      legacyCounts: [{ survey_id: 1, response_count: 4 }],
+    }),
+    1,
+  );
+
+  assert.equal(survey?.responseCount, 2);
+  assert.equal(survey?.questions.length, 1);
 });
