@@ -1,5 +1,5 @@
-import { readBody } from "h3";
-import { getDb } from "~~/server/utils/survey";
+import { createError, readBody } from "h3";
+import { getDb, hasSurveyResponseData } from "~~/server/utils/survey";
 import { assertAdmin } from "~~/server/utils/admin";
 import type { SurveyQuestionType } from "~~/types/portal";
 
@@ -24,6 +24,14 @@ export default defineEventHandler(async (event) => {
   }
 
   const db = getDb(event);
+  const hasResponseData = await hasSurveyResponseData(db, id);
+
+  if (hasResponseData) {
+    throw createError({
+      statusCode: 409,
+      statusMessage: "Cannot edit questions for a survey that already has responses.",
+    });
+  }
 
   // 既存の設問と回答を削除してから再挿入（一括置換）
   const existingQuestions = await db

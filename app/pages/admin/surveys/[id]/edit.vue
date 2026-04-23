@@ -14,6 +14,7 @@ if (error.value || !data.value?.survey) {
 }
 
 const survey = data.value.survey;
+const isQuestionEditingLocked = computed(() => (survey.responseCount ?? 0) > 0);
 
 const form = reactive({
   title: survey.title,
@@ -38,6 +39,7 @@ const questions = ref<QuestionDraft[]>(
 );
 
 function addQuestion() {
+  if (isQuestionEditingLocked.value) return;
   questions.value.push({
     questionText: "",
     questionType: "single_choice",
@@ -47,10 +49,12 @@ function addQuestion() {
 }
 
 function removeQuestion(index: number) {
+  if (isQuestionEditingLocked.value) return;
   questions.value.splice(index, 1);
 }
 
 function moveUp(index: number) {
+  if (isQuestionEditingLocked.value) return;
   if (index === 0) return;
   const arr = questions.value;
   const prev = arr[index - 1]!;
@@ -59,6 +63,7 @@ function moveUp(index: number) {
 }
 
 function moveDown(index: number) {
+  if (isQuestionEditingLocked.value) return;
   const arr = questions.value;
   if (index === arr.length - 1) return;
   const curr = arr[index]!;
@@ -67,14 +72,17 @@ function moveDown(index: number) {
 }
 
 function addOption(question: QuestionDraft) {
+  if (isQuestionEditingLocked.value) return;
   question.options.push("");
 }
 
 function removeOption(question: QuestionDraft, optionIndex: number) {
+  if (isQuestionEditingLocked.value) return;
   question.options.splice(optionIndex, 1);
 }
 
 function moveOptionUp(question: QuestionDraft, optionIndex: number) {
+  if (isQuestionEditingLocked.value) return;
   if (optionIndex === 0) return;
   const options = question.options;
   const previous = options[optionIndex - 1]!;
@@ -83,6 +91,7 @@ function moveOptionUp(question: QuestionDraft, optionIndex: number) {
 }
 
 function moveOptionDown(question: QuestionDraft, optionIndex: number) {
+  if (isQuestionEditingLocked.value) return;
   if (optionIndex === question.options.length - 1) return;
   const options = question.options;
   const current = options[optionIndex]!;
@@ -91,6 +100,7 @@ function moveOptionDown(question: QuestionDraft, optionIndex: number) {
 }
 
 function handleQuestionTypeChange(question: QuestionDraft) {
+  if (isQuestionEditingLocked.value) return;
   if (question.questionType === "free_text") {
     question.allowOtherText = false;
     return;
@@ -112,18 +122,24 @@ const serverError = ref<string | null>(null);
 function validate() {
   const e: Record<string, string> = {};
   if (!form.title.trim()) e.title = "タイトルは必須です。";
-  if (questions.value.length === 0) e.questions = "設問を1つ以上追加してください。";
-  questions.value.forEach((q, i) => {
-    if (!q.questionText.trim()) e[`q_${i}_text`] = `設問${i + 1}の文章は必須です。`;
-    if (q.questionType !== "free_text") {
-      const normalizedOptions = normalizeOptions(q.options);
-      if (normalizedOptions.length === 0) {
-        e[`q_${i}_options`] = `設問${i + 1}の選択肢は1件以上必要です。`;
-      } else if (normalizedOptions.length !== q.options.length) {
-        e[`q_${i}_options`] = `設問${i + 1}に空の選択肢があります。`;
+  if (!isQuestionEditingLocked.value) {
+    if (questions.value.length === 0) e.questions = "設問を1つ以上追加してください。";
+    questions.value.forEach((q, i) => {
+      if (!q.questionText.trim()) e[`q_${i}_text`] = `設問${i + 1}の文章は必須です。`;
+      if (q.questionType !== "free_text") {
+        const normalizedOptions = normalizeOptions(q.options);
+        if (normalizedOptions.length === 0) {
+          e[`q_${i}_options`] = `設問${i + 1}の選択肢は1件以上必要です。`;
+        } else if (normalizedOptions.length !== q.options.length) {
+          e[`q_${i}_options`] = `設問${i + 1}に空の選択肢があります。`;
+        }
       }
-    }
-  });
+    });
+  }
+
+  for (const key of Object.keys(errors)) {
+    delete errors[key];
+  }
   Object.assign(errors, e);
   return Object.keys(e).length === 0;
 }
@@ -133,16 +149,17 @@ async function submit() {
   isSubmitting.value = true;
   serverError.value = null;
   try {
-    await Promise.all([
-      $fetch(`/api/admin/surveys/${id}`, {
-        method: "PUT",
-        body: {
-          title: form.title.trim(),
-          description: form.description.trim(),
-          status: form.status,
-        },
-      }),
-      $fetch(`/api/admin/surveys/${id}/questions`, {
+    await $fetch(`/api/admin/surveys/${id}`, {
+      method: "PUT",
+      body: {
+        title: form.title.trim(),
+        description: form.description.trim(),
+        status: form.status,
+      },
+    });
+
+    if (!isQuestionEditingLocked.value) {
+      await $fetch(`/api/admin/surveys/${id}/questions`, {
         method: "PUT",
         body: {
           questions: questions.value.map((q) => ({
@@ -152,8 +169,9 @@ async function submit() {
             allowOtherText: q.questionType !== "free_text" && q.allowOtherText,
           })),
         },
-      }),
-    ]);
+      });
+    }
+
     await router.push("/admin/surveys");
   }
   catch (e: unknown) {
@@ -228,6 +246,13 @@ useSeoMeta({ title: `${survey.title} を編集` });
           <p v-if="errors.questions" class="text-xs text-red-600">{{ errors.questions }}</p>
         </div>
 
+        <p
+          v-if="isQuestionEditingLocked"
+          class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800"
+        >
+          回答済みのアンケートは設問を編集できません。基本情報と状態のみ更新できます。設問変更が必要な場合は、新しいアンケートを作成してください。
+        </p>
+
         <div
           v-for="(q, i) in questions"
           :key="i"
@@ -239,7 +264,7 @@ useSeoMeta({ title: `${survey.title} を編集` });
               <button
                 type="button"
                 class="rounded p-1 text-slate-400 hover:bg-slate-100 disabled:opacity-30"
-                :disabled="i === 0"
+                :disabled="isQuestionEditingLocked || i === 0"
                 aria-label="上に移動"
                 @click="moveUp(i)"
               >
@@ -248,7 +273,7 @@ useSeoMeta({ title: `${survey.title} を編集` });
               <button
                 type="button"
                 class="rounded p-1 text-slate-400 hover:bg-slate-100 disabled:opacity-30"
-                :disabled="i === questions.length - 1"
+                :disabled="isQuestionEditingLocked || i === questions.length - 1"
                 aria-label="下に移動"
                 @click="moveDown(i)"
               >
@@ -256,7 +281,8 @@ useSeoMeta({ title: `${survey.title} を編集` });
               </button>
               <button
                 type="button"
-                class="rounded p-1 text-red-400 hover:bg-red-50"
+                class="rounded p-1 text-red-400 hover:bg-red-50 disabled:opacity-30"
+                :disabled="isQuestionEditingLocked"
                 aria-label="設問を削除"
                 @click="removeQuestion(i)"
               >
@@ -272,6 +298,7 @@ useSeoMeta({ title: `${survey.title} を編集` });
               type="text"
               class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
               :class="errors[`q_${i}_text`] ? 'border-red-300' : ''"
+              :disabled="isQuestionEditingLocked"
             >
           </AdminFormField>
 
@@ -280,6 +307,7 @@ useSeoMeta({ title: `${survey.title} を編集` });
               :id="`q_${i}_type`"
               v-model="q.questionType"
               class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              :disabled="isQuestionEditingLocked"
               @change="handleQuestionTypeChange(q)"
             >
               <option value="single_choice">単一選択</option>
@@ -309,11 +337,12 @@ useSeoMeta({ title: `${survey.title} を編集` });
                   class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                   :class="errors[`q_${i}_options`] ? 'border-red-300' : ''"
                   :placeholder="`選択肢 ${optionIndex + 1}`"
+                  :disabled="isQuestionEditingLocked"
                 >
                 <button
                   type="button"
                   class="rounded p-1 text-slate-400 hover:bg-slate-100 disabled:opacity-30"
-                  :disabled="optionIndex === 0"
+                  :disabled="isQuestionEditingLocked || optionIndex === 0"
                   aria-label="選択肢を上に移動"
                   @click="moveOptionUp(q, optionIndex)"
                 >
@@ -322,7 +351,7 @@ useSeoMeta({ title: `${survey.title} を編集` });
                 <button
                   type="button"
                   class="rounded p-1 text-slate-400 hover:bg-slate-100 disabled:opacity-30"
-                  :disabled="optionIndex === q.options.length - 1"
+                  :disabled="isQuestionEditingLocked || optionIndex === q.options.length - 1"
                   aria-label="選択肢を下に移動"
                   @click="moveOptionDown(q, optionIndex)"
                 >
@@ -330,7 +359,8 @@ useSeoMeta({ title: `${survey.title} を編集` });
                 </button>
                 <button
                   type="button"
-                  class="rounded p-1 text-red-400 hover:bg-red-50"
+                  class="rounded p-1 text-red-400 hover:bg-red-50 disabled:opacity-30"
+                  :disabled="isQuestionEditingLocked"
                   aria-label="選択肢を削除"
                   @click="removeOption(q, optionIndex)"
                 >
@@ -340,7 +370,8 @@ useSeoMeta({ title: `${survey.title} を編集` });
 
               <button
                 type="button"
-                class="inline-flex items-center rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                class="inline-flex items-center rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                :disabled="isQuestionEditingLocked"
                 @click="addOption(q)"
               >
                 + 選択肢を追加
@@ -357,6 +388,7 @@ useSeoMeta({ title: `${survey.title} を編集` });
               v-model="q.allowOtherText"
               type="checkbox"
               class="h-4 w-4 rounded border-slate-300 text-blue-500 focus:ring-blue-500"
+              :disabled="isQuestionEditingLocked"
             >
             <label :for="`q_${i}_allow_other`" class="text-sm font-medium text-slate-700">
               「その他」の自由記述欄を追加する
@@ -366,7 +398,8 @@ useSeoMeta({ title: `${survey.title} を編集` });
 
         <button
           type="button"
-          class="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 py-3 text-sm font-medium text-slate-500 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
+          class="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 py-3 text-sm font-medium text-slate-500 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600 disabled:opacity-50"
+          :disabled="isQuestionEditingLocked"
           @click="addQuestion"
         >
           + 設問を追加
