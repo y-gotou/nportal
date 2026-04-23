@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { getSurvey, listSurveys } from "../server/utils/survey.ts";
+import {
+  getSurvey,
+  hasSurveyResponseData,
+  listSurveys,
+} from "../server/utils/survey.ts";
 import type { D1DatabaseLike, D1PreparedStatement } from "../types/portal.ts";
 
 interface MockDbOptions {
@@ -24,6 +28,8 @@ interface MockDbOptions {
   fallbackCounts?: Array<{ survey_id: number; response_count: number }>;
   legacyCounts?: Array<{ survey_id: number; response_count: number }>;
   respondedSurveyIds?: number[];
+  submissionExistsForSurveyIds?: number[];
+  responseExistsForSurveyIds?: number[];
 }
 
 const defaultSurveyRows = [
@@ -98,6 +104,30 @@ function createPreparedStatement(
           (options.surveyRows ?? defaultSurveyRows).find((row) => row.id === surveyId)
           ?? null
         );
+      }
+
+      if (query.includes("SELECT id FROM submissions WHERE survey_id = ? LIMIT 1")) {
+        const surveyId = boundValues[0];
+        if (
+          typeof surveyId === "number"
+          && (options.submissionExistsForSurveyIds ?? []).includes(surveyId)
+        ) {
+          return { id: 1 };
+        }
+
+        return null;
+      }
+
+      if (query.includes("SELECT r.id") && query.includes("WHERE q.survey_id = ?")) {
+        const surveyId = boundValues[0];
+        if (
+          typeof surveyId === "number"
+          && (options.responseExistsForSurveyIds ?? []).includes(surveyId)
+        ) {
+          return { id: 1 };
+        }
+
+        return null;
       }
 
       return null;
@@ -262,4 +292,28 @@ test("getSurvey includes respondent counts for detail views", async () => {
 
   assert.equal(survey?.responseCount, 2);
   assert.equal(survey?.questions.length, 1);
+});
+
+test("hasSurveyResponseData returns true when at least one submission exists", async () => {
+  const hasResponseData = await hasSurveyResponseData(
+    createDb({ submissionExistsForSurveyIds: [1] }),
+    1,
+  );
+
+  assert.equal(hasResponseData, true);
+});
+
+test("hasSurveyResponseData returns true when legacy responses exist without submissions", async () => {
+  const hasResponseData = await hasSurveyResponseData(
+    createDb({ responseExistsForSurveyIds: [2] }),
+    2,
+  );
+
+  assert.equal(hasResponseData, true);
+});
+
+test("hasSurveyResponseData returns false when no submissions or responses exist", async () => {
+  const hasResponseData = await hasSurveyResponseData(createDb(), 2);
+
+  assert.equal(hasResponseData, false);
 });

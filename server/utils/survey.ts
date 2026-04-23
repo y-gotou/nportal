@@ -324,6 +324,33 @@ export async function checkSubmission(
   return row !== null;
 }
 
+export async function hasSurveyResponseData(
+  db: D1DatabaseLike,
+  surveyId: number,
+): Promise<boolean> {
+  const submissionRow = await db
+    .prepare("SELECT id FROM submissions WHERE survey_id = ? LIMIT 1")
+    .bind(surveyId)
+    .first<{ id: number }>();
+
+  if (submissionRow !== null) {
+    return true;
+  }
+
+  const responseRow = await db
+    .prepare(
+      `SELECT r.id
+       FROM responses r
+       JOIN questions q ON q.id = r.question_id
+       WHERE q.survey_id = ?
+       LIMIT 1`,
+    )
+    .bind(surveyId)
+    .first<{ id: number }>();
+
+  return responseRow !== null;
+}
+
 export async function addSubmission(
   db: D1DatabaseLike,
   surveyId: number,
