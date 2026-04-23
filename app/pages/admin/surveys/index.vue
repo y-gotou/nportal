@@ -43,7 +43,7 @@ useSeoMeta({ title: "アンケート管理" });
           <tr>
             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">タイトル</th>
             <th class="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 sm:table-cell">設問数</th>
-            <th class="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 sm:table-cell">回答数</th>
+            <th class="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 sm:table-cell">回答者数</th>
             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">状態</th>
             <th class="px-4 py-3" />
           </tr>
@@ -57,7 +57,7 @@ useSeoMeta({ title: "アンケート管理" });
               {{ survey.questions.length }}問
             </td>
             <td class="hidden px-4 py-3 text-sm text-slate-600 sm:table-cell">
-              {{ survey.responseCount ?? 0 }}件
+              {{ survey.responseCount ?? 0 }}人
             </td>
             <td class="px-4 py-3">
               <span

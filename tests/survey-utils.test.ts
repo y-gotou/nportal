@@ -48,11 +48,17 @@ const responses: SurveyResponse[] = [
     answer: "{\"selected\":\"__other__\",\"otherText\":\"非常に高い\"}",
     submittedAt: "2026-04-01T10:01:00Z",
   },
+  { questionId: 100, answer: " ", submittedAt: "2026-04-01T10:01:30Z" },
   { questionId: 101, answer: "[\"RAG\",\"運用\"]", submittedAt: "2026-04-01T10:02:00Z" },
   {
     questionId: 101,
     answer: "{\"selected\":[\"評価\",\"__other__\"],\"otherText\":\"監査\"}",
     submittedAt: "2026-04-01T10:03:00Z",
+  },
+  {
+    questionId: 101,
+    answer: "{\"selected\":[],\"otherText\":\" \"}",
+    submittedAt: "2026-04-01T10:03:30Z",
   },
   { questionId: 102, answer: " 参考になりました ", submittedAt: "2026-04-01T10:04:00Z" },
   { questionId: 102, answer: " ", submittedAt: "2026-04-01T10:05:00Z" },
@@ -106,7 +112,7 @@ test("buildSurveyResultBlocks aggregates survey responses by question type", () 
   ]);
   assert.deepEqual(blocks[1].otherTextAnswers, ["監査"]);
 
-  assert.equal(blocks[2].responseCount, 2);
+  assert.equal(blocks[2].responseCount, 1);
   assert.deepEqual(blocks[2].freeTextAnswers, ["参考になりました"]);
   assert.deepEqual(blocks[2].otherTextAnswers, []);
   assert.deepEqual(blocks[2].distribution, []);

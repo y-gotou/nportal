@@ -153,6 +153,12 @@ function groupResponsesByQuestionId(responses: SurveyResponse[]) {
   return grouped;
 }
 
+function hasMeaningfulAnswer(
+  answer: ParsedSurveySelectionAnswer,
+) {
+  return answer.selected.length > 0 || answer.otherText.trim().length > 0;
+}
+
 export function buildSurveyResultBlocks(
   survey: Survey,
   responses: SurveyResponse[],
@@ -163,12 +169,14 @@ export function buildSurveyResultBlocks(
     const questionResponses = responsesByQuestionId.get(question.id) ?? [];
 
     if (question.questionType === "free_text") {
+      const freeTextAnswers = questionResponses
+        .map((response) => response.answer.trim())
+        .filter(Boolean);
+
       return {
         ...question,
-        responseCount: questionResponses.length,
-        freeTextAnswers: questionResponses
-          .map((response) => response.answer.trim())
-          .filter(Boolean),
+        responseCount: freeTextAnswers.length,
+        freeTextAnswers,
         otherTextAnswers: [],
         distribution: [],
       };
@@ -181,12 +189,18 @@ export function buildSurveyResultBlocks(
       ].map((option) => [option, 0]),
     ) as Record<string, number>;
     const otherTextAnswers: string[] = [];
+    let responseCount = 0;
 
     for (const response of questionResponses) {
       const parsedAnswer = parseSurveySelectionAnswer(
         response.answer,
         question.questionType,
       );
+      const otherText = parsedAnswer.otherText.trim();
+
+      if (hasMeaningfulAnswer(parsedAnswer)) {
+        responseCount += 1;
+      }
 
       for (const value of parsedAnswer.selected) {
         const label =
@@ -197,17 +211,17 @@ export function buildSurveyResultBlocks(
         }
       }
 
-      if (parsedAnswer.otherText.trim()) {
-        otherTextAnswers.push(parsedAnswer.otherText.trim());
+      if (otherText) {
+        otherTextAnswers.push(otherText);
       }
     }
 
     return {
       ...question,
-      responseCount: questionResponses.length,
+      responseCount,
       freeTextAnswers: [],
       otherTextAnswers,
-      distribution: buildDistribution(optionCounts, questionResponses.length),
+      distribution: buildDistribution(optionCounts, responseCount),
     };
   });
 }

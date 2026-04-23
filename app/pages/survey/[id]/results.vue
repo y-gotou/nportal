@@ -37,7 +37,7 @@ useSeoMeta({
 
       <div class="flex flex-wrap gap-2">
         <span class="rounded-full bg-slate-100 px-3 py-1.5 text-sm text-slate-600">
-          回答数: {{ responses.length }}件
+          回答者数: {{ survey.responseCount ?? 0 }}人
         </span>
         <span class="rounded-full bg-slate-100 px-3 py-1.5 text-sm text-slate-600">
           設問数: {{ survey.questions.length }}問
@@ -63,7 +63,7 @@ useSeoMeta({
       </div>
     </div>
 
-    <div v-if="responses.length" class="mt-8 space-y-4">
+    <div v-if="(survey.responseCount ?? 0) > 0" class="mt-8 space-y-4">
       <SurveyResults :survey="survey" :responses="responses" :my-answers="myAnswers" />
     </div>
 

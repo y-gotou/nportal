@@ -27,7 +27,7 @@ useSeoMeta({
         一覧へ戻る
       </NuxtLink>
       <NuxtLink
-        v-if="responses.length"
+        v-if="(survey.responseCount ?? 0) > 0"
         :to="`/survey/${survey.id}/results`"
         :class="secondaryButtonClass"
       >

@@ -55,7 +55,7 @@ function isMyOtherText(
         <h3 class="text-lg font-semibold tracking-tight text-slate-900">
           {{ block.questionText }}
         </h3>
-        <p class="text-sm text-slate-500">回答数: {{ block.responseCount }}件</p>
+        <p class="text-sm text-slate-500">回答者数: {{ block.responseCount }}人</p>
       </div>
 
       <div v-if="block.questionType === 'free_text'" class="space-y-3">
