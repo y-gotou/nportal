@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { secondaryButtonClass } from "~/utils/ui";
+import { getSurveyStatusLabel } from "~~/utils/survey";
 
 const route = useRoute();
 const surveyId = Number(route.params.id);
 const { survey, responses, myAnswers } = await useSurveyDetail(surveyId, {
   failureMessage: "Failed to load survey results",
 });
+
+const hasResponded = computed(() => Object.keys(myAnswers).length > 0);
 
 useSeoMeta({
   title: `${survey.title} の結果`,
@@ -44,21 +47,15 @@ useSeoMeta({
         </span>
         <span
           class="rounded-full px-3 py-1.5 text-sm font-medium"
-          :class="
-            Object.keys(myAnswers).length > 0
-              ? 'bg-green-50 text-green-700'
-              : survey.status === 'active'
-                ? 'bg-blue-50 text-blue-600'
-                : 'bg-slate-100 text-slate-600'
-          "
+          :class="survey.status === 'active' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-500'"
         >
-          {{
-            Object.keys(myAnswers).length > 0
-              ? "回答済み"
-              : survey.status === 'active'
-                ? "受付中"
-                : "停止中"
-          }}
+          {{ getSurveyStatusLabel(survey.status) }}
+        </span>
+        <span
+          v-if="hasResponded"
+          class="rounded-full bg-green-50 px-3 py-1.5 text-sm font-medium text-green-700"
+        >
+          回答済み
         </span>
       </div>
     </div>

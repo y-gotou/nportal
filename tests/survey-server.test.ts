@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  deleteUserResponses,
   getSurvey,
   hasSurveyResponseData,
   listSurveys,
+  touchSubmission,
 } from "../server/utils/survey.ts";
 import type { D1DatabaseLike, D1PreparedStatement } from "../types/portal.ts";
 
@@ -316,4 +318,61 @@ test("hasSurveyResponseData returns false when no submissions or responses exist
   const hasResponseData = await hasSurveyResponseData(createDb(), 2);
 
   assert.equal(hasResponseData, false);
+});
+
+interface QueryCall {
+  query: string;
+  values: unknown[];
+}
+
+function createRecordingDb(): { db: D1DatabaseLike; calls: QueryCall[] } {
+  const calls: QueryCall[] = [];
+  const db: D1DatabaseLike = {
+    prepare(query: string) {
+      let bound: unknown[] = [];
+      const stmt: D1PreparedStatement = {
+        bind(...values: unknown[]) {
+          bound = values;
+          return stmt;
+        },
+        async first() {
+          calls.push({ query, values: bound });
+          return null;
+        },
+        async all() {
+          calls.push({ query, values: bound });
+          return { results: [] };
+        },
+      };
+      return stmt;
+    },
+    async batch() {
+      return [];
+    },
+  };
+  return { db, calls };
+}
+
+test("deleteUserResponses scopes the delete by survey and user", async () => {
+  const { db, calls } = createRecordingDb();
+  await deleteUserResponses(db, 7, "member@example.com");
+
+  assert.equal(calls.length, 1);
+  assert.match(calls[0].query, /DELETE FROM responses/);
+  assert.match(
+    calls[0].query,
+    /question_id IN \(SELECT id FROM questions WHERE survey_id = \?\)/,
+  );
+  assert.deepEqual(calls[0].values, ["member@example.com", 7]);
+});
+
+test("touchSubmission updates submitted_at for the existing submission", async () => {
+  const { db, calls } = createRecordingDb();
+  await touchSubmission(db, 7, "member@example.com");
+
+  assert.equal(calls.length, 1);
+  assert.match(calls[0].query, /UPDATE submissions/);
+  assert.match(calls[0].query, /SET submitted_at = datetime\('now'\)/);
+  assert.match(calls[0].query, /WHERE survey_id = \? AND user_email = \?/);
+  assert.deepEqual(calls[0].values, [7, "member@example.com"]);
 });

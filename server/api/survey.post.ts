@@ -3,9 +3,11 @@ import {
   addResponses,
   addSubmission,
   checkSubmission,
+  deleteUserResponses,
   getDb,
   getRequiredSurvey,
   parseSurveyId,
+  touchSubmission,
 } from "~~/server/utils/survey";
 import type { SurveyAnswerInput } from "~~/types/portal";
 
@@ -50,17 +52,16 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  // 重複回答チェック
   const alreadySubmitted = await checkSubmission(db, surveyId, user.email);
-  if (alreadySubmitted) {
-    throw createError({
-      statusCode: 409,
-      statusMessage: "You have already submitted this survey.",
-    });
-  }
 
-  await addResponses(db, responses, user.email);
-  await addSubmission(db, surveyId, user.email);
+  if (alreadySubmitted) {
+    await deleteUserResponses(db, surveyId, user.email);
+    await addResponses(db, responses, user.email);
+    await touchSubmission(db, surveyId, user.email);
+  } else {
+    await addResponses(db, responses, user.email);
+    await addSubmission(db, surveyId, user.email);
+  }
 
   return { success: true };
 });

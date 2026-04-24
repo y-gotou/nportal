@@ -6,10 +6,17 @@ import type {
   SurveyQuestionType,
   SurveyResponse,
   SurveyResultBlock,
+  SurveyStatus,
 } from "../types/portal";
 
 export const SURVEY_OTHER_OPTION_VALUE = "__other__";
 export const SURVEY_OTHER_OPTION_LABEL = "その他";
+
+export function getSurveyStatusLabel(status: SurveyStatus): string {
+  if (status === "draft") return "下書き";
+  if (status === "active") return "受付中";
+  return "受付終了";
+}
 
 interface ParsedSurveySelectionAnswer {
   selected: string[];
