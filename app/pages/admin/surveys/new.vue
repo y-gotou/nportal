@@ -190,7 +190,7 @@ useSeoMeta({ title: "アンケートを作成" });
           >
             <option value="draft">下書き</option>
             <option value="active">受付中</option>
-            <option value="closed">停止中</option>
+            <option value="closed">受付終了</option>
           </select>
         </AdminFormField>
       </div>

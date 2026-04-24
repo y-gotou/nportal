@@ -5,18 +5,13 @@ import {
   secondaryButtonClass,
   surfaceCardClass,
 } from "~/utils/ui";
+import { getSurveyStatusLabel } from "~~/utils/survey";
 
 const { data, error } = await useFetch<SurveysResponse>("/api/surveys");
 
 const surveys = computed(() => data.value?.surveys ?? []);
 
-function getSurveyStatusLabel(status: SurveyStatus, hasResponded: boolean) {
-  if (hasResponded) return "回答済み";
-  return status === "active" ? "受付中" : "停止中";
-}
-
-function getSurveyStatusClass(status: SurveyStatus, hasResponded: boolean) {
-  if (hasResponded) return "bg-green-50 text-green-700";
+function getSurveyStatusClass(status: SurveyStatus) {
   return status === "active"
     ? "bg-blue-50 text-blue-600"
     : "bg-slate-100 text-slate-500";
@@ -56,9 +51,15 @@ useSeoMeta({
               </h2>
               <span
                 class="shrink-0 rounded-full px-2.5 py-1 text-xs font-medium"
-                :class="getSurveyStatusClass(survey.status, survey.hasResponded ?? false)"
+                :class="getSurveyStatusClass(survey.status)"
               >
-                {{ getSurveyStatusLabel(survey.status, survey.hasResponded ?? false) }}
+                {{ getSurveyStatusLabel(survey.status) }}
+              </span>
+              <span
+                v-if="survey.hasResponded"
+                class="shrink-0 rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700"
+              >
+                回答済み
               </span>
             </div>
             <p class="text-sm leading-6 text-slate-500">{{ survey.description }}</p>
@@ -76,6 +77,13 @@ useSeoMeta({
               :class="primaryButtonClass"
             >
               回答する
+            </NuxtLink>
+            <NuxtLink
+              v-else-if="survey.status === 'active' && survey.hasResponded"
+              :to="`/survey/${survey.id}?edit=1`"
+              :class="primaryButtonClass"
+            >
+              回答を編集
             </NuxtLink>
             <NuxtLink
               v-if="(survey.responseCount ?? 0) > 0"

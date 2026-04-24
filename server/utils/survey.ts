@@ -364,6 +364,36 @@ export async function addSubmission(
     .first();
 }
 
+export async function deleteUserResponses(
+  db: D1DatabaseLike,
+  surveyId: number,
+  userEmail: string,
+): Promise<void> {
+  await db
+    .prepare(
+      `DELETE FROM responses
+       WHERE user_email = ?
+         AND question_id IN (SELECT id FROM questions WHERE survey_id = ?)`,
+    )
+    .bind(userEmail, surveyId)
+    .first();
+}
+
+export async function touchSubmission(
+  db: D1DatabaseLike,
+  surveyId: number,
+  userEmail: string,
+): Promise<void> {
+  await db
+    .prepare(
+      `UPDATE submissions
+       SET submitted_at = datetime('now')
+       WHERE survey_id = ? AND user_email = ?`,
+    )
+    .bind(surveyId, userEmail)
+    .first();
+}
+
 export async function getUserAnswers(
   db: D1DatabaseLike,
   surveyId: number,

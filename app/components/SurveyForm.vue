@@ -6,6 +6,7 @@ import {
   surfaceCardClass,
 } from "~/utils/ui";
 import {
+  parseSurveySelectionAnswer,
   serializeSurveyAnswer,
   SURVEY_OTHER_OPTION_LABEL,
   SURVEY_OTHER_OPTION_VALUE,
@@ -13,9 +14,59 @@ import {
 
 const props = defineProps<{
   survey: Survey;
+  initialAnswers?: Record<number, string>;
+  isEditing?: boolean;
 }>();
 
-const answers = ref<Record<number, SurveyAnswerValue>>({});
+function buildInitialAnswers(
+  survey: Survey,
+  initial: Record<number, string> | undefined,
+): Record<number, SurveyAnswerValue> {
+  if (!initial) return {};
+
+  const result: Record<number, SurveyAnswerValue> = {};
+
+  for (const question of survey.questions) {
+    const raw = initial[question.id];
+    if (typeof raw !== "string") continue;
+
+    if (question.questionType === "free_text") {
+      result[question.id] = raw;
+      continue;
+    }
+
+    const parsed = parseSurveySelectionAnswer(raw, question.questionType);
+    const hasOther = parsed.selected.includes(SURVEY_OTHER_OPTION_VALUE);
+
+    if (question.questionType === "single_choice") {
+      const selected = parsed.selected[0] ?? "";
+      if (selected === SURVEY_OTHER_OPTION_VALUE) {
+        result[question.id] = {
+          selected: SURVEY_OTHER_OPTION_VALUE,
+          otherText: parsed.otherText,
+        };
+      } else {
+        result[question.id] = selected;
+      }
+      continue;
+    }
+
+    if (hasOther) {
+      result[question.id] = {
+        selected: parsed.selected,
+        otherText: parsed.otherText,
+      };
+    } else {
+      result[question.id] = [...parsed.selected];
+    }
+  }
+
+  return result;
+}
+
+const answers = ref<Record<number, SurveyAnswerValue>>(
+  buildInitialAnswers(props.survey, props.initialAnswers),
+);
 const isSubmitting = ref(false);
 const isSubmitted = ref(false);
 const errorMessage = ref("");
@@ -209,7 +260,9 @@ async function submitSurvey() {
 <template>
   <!-- スクリーンリーダー向け aria-live リージョン（常にDOMに存在） -->
   <div aria-live="polite" aria-atomic="true" class="sr-only">
-    <span v-if="isSubmitted">回答ありがとうございました。回答は保存されました。</span>
+    <span v-if="isSubmitted">
+      {{ isEditing ? "回答を更新しました。" : "回答ありがとうございました。" }}回答は保存されました。
+    </span>
     <span v-else-if="errorMessage">{{ errorMessage }}</span>
   </div>
 
@@ -219,7 +272,9 @@ async function submitSurvey() {
     tabindex="-1"
     class="space-y-4 rounded-xl border border-green-200 bg-green-50 p-6 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
   >
-    <h2 class="text-xl font-semibold tracking-tight text-slate-900">回答ありがとうございました</h2>
+    <h2 class="text-xl font-semibold tracking-tight text-slate-900">
+      {{ isEditing ? "回答を更新しました" : "回答ありがとうございました" }}
+    </h2>
     <p class="text-sm leading-6 text-slate-600">
       回答は保存されました。結果ページから集計を確認できます。
     </p>
@@ -398,7 +453,7 @@ async function submitSurvey() {
       type="submit"
       :disabled="isSubmitting"
     >
-      {{ isSubmitting ? "送信中…" : "回答を送信" }}
+      {{ isSubmitting ? "送信中…" : isEditing ? "回答を更新" : "回答を送信" }}
     </button>
   </form>
 </template>

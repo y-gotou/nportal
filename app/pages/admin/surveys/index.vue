@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { SurveyStatus, SurveysResponse } from "~~/types/portal";
+import { getSurveyStatusLabel } from "~~/utils/survey";
 
 definePageMeta({ layout: "admin" });
 await useAdminGuard();
@@ -9,12 +10,6 @@ const { data } = await useFetch<SurveysResponse>("/api/surveys", {
 });
 
 const surveys = computed(() => data.value?.surveys ?? []);
-
-function getStatusLabel(status: SurveyStatus) {
-  if (status === "draft") return "下書き";
-  if (status === "active") return "受付中";
-  return "停止中";
-}
 
 function getStatusClass(status: SurveyStatus) {
   if (status === "draft") return "bg-amber-50 text-amber-700";
@@ -64,7 +59,7 @@ useSeoMeta({ title: "アンケート管理" });
                 class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium"
                 :class="getStatusClass(survey.status)"
               >
-                {{ getStatusLabel(survey.status) }}
+                {{ getSurveyStatusLabel(survey.status) }}
               </span>
             </td>
             <td class="px-4 py-3 text-right">

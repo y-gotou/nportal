@@ -92,7 +92,7 @@ useSeoMeta({
 
     <section v-if="activeSurveys.length" class="space-y-4">
       <SectionHeader
-        title="回答受付中のアンケート"
+        title="受付中のアンケート"
       />
 
       <div class="space-y-3">
