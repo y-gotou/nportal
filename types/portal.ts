@@ -33,6 +33,14 @@ export interface Minutes extends MinutesMeta {
   contentHtml: string;
 }
 
+export interface MinutesPayload {
+  title: string;
+  date: string;
+  attendees: string[];
+  topics: string[];
+  contentMd: string;
+}
+
 export type SurveyQuestionType =
   | "single_choice"
   | "multiple_choice"

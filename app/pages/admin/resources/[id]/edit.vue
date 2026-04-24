@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ResourcesListResponse } from "~~/types/portal";
+import type { MinutesListResponse, ResourcesListResponse } from "~~/types/portal";
 
 definePageMeta({ layout: "admin" });
 await useAdminGuard();
@@ -12,6 +12,10 @@ const { data, error } = await useFetch<ResourcesListResponse>("/api/resources");
 if (error.value) {
   throw createError({ statusCode: 500, statusMessage: "Failed to load resources" });
 }
+
+const { data: minutesData } = await useFetch<MinutesListResponse>("/api/minutes", {
+  default: () => ({ minutes: [] }),
+});
 
 const item = data.value?.resources.find((r) => r.id === id);
 if (!item) {
@@ -28,6 +32,8 @@ const form = reactive({
   relatedMinutesSlug: item.relatedMinutesSlug ?? "",
 });
 
+const minutesOptions = computed(() => minutesData.value?.minutes ?? []);
+
 const errors = reactive<Record<string, string>>({});
 const isSubmitting = ref(false);
 const serverError = ref<string | null>(null);
@@ -38,6 +44,7 @@ function validate() {
   if (!form.url.trim()) e.url = "URLは必須です。";
   if (!form.type.trim()) e.type = "種類は必須です。";
   if (!form.date) e.date = "日付は必須です。";
+  Object.keys(errors).forEach((key) => delete errors[key]);
   Object.assign(errors, e);
   return Object.keys(e).length === 0;
 }
@@ -151,13 +158,21 @@ useSeoMeta({ title: `${item.title} を編集` });
           >
         </AdminFormField>
 
-        <AdminFormField label="関連議事録スラッグ" field-id="relatedMinutesSlug" hint="任意">
-          <input
+        <AdminFormField label="関連議事録" field-id="relatedMinutesSlug" hint="任意">
+          <select
             id="relatedMinutesSlug"
             v-model="form.relatedMinutesSlug"
-            type="text"
             class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           >
+            <option value="">未選択</option>
+            <option
+              v-for="minutes in minutesOptions"
+              :key="minutes.slug"
+              :value="minutes.slug"
+            >
+              {{ minutes.date }} {{ minutes.title }}
+            </option>
+          </select>
         </AdminFormField>
       </div>
 

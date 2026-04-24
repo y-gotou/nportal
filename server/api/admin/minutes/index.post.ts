@@ -1,19 +1,19 @@
 import { readBody } from "h3";
 import { getDb } from "~~/server/utils/survey";
 import { assertAdmin } from "~~/server/utils/admin";
-import { createMinutes, type MinutesPayload } from "~~/server/utils/minutes";
+import { createMinutes } from "~~/server/utils/minutes";
+import type { MinutesPayload } from "~~/types/portal";
 
 export default defineEventHandler(async (event) => {
   assertAdmin(event);
 
   const body = await readBody<Partial<MinutesPayload>>(event);
 
-  if (!body.slug || !body.title || !body.date) {
-    throw createError({ statusCode: 400, statusMessage: "slug, title, date are required" });
+  if (!body.title || !body.date) {
+    throw createError({ statusCode: 400, statusMessage: "title, date are required" });
   }
 
   const payload: MinutesPayload = {
-    slug: body.slug,
     title: body.title,
     date: body.date,
     attendees: Array.isArray(body.attendees) ? body.attendees : [],

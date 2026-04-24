@@ -24,7 +24,6 @@ const form = reactive({
   title: item.title,
   location: item.location ?? "",
   meetingUrl: item.meetingUrl ?? "",
-  minutesSlug: item.minutesSlug ?? "",
   topics: item.topics.join(", "),
 });
 
@@ -37,6 +36,7 @@ function validate() {
   if (!form.date) e.date = "開催日は必須です。";
   if (!form.time) e.time = "開催時間は必須です。";
   if (!form.title.trim()) e.title = "タイトルは必須です。";
+  Object.keys(errors).forEach((key) => delete errors[key]);
   Object.assign(errors, e);
   return Object.keys(e).length === 0;
 }
@@ -54,7 +54,6 @@ async function submit() {
         title: form.title.trim(),
         location: form.location.trim() || null,
         meetingUrl: form.meetingUrl.trim() || null,
-        minutesSlug: form.minutesSlug.trim() || null,
         topics: form.topics.split(",").map((s) => s.trim()).filter(Boolean),
       },
     });
@@ -130,26 +129,15 @@ useSeoMeta({ title: `${item.title} を編集` });
         >
       </AdminFormField>
 
-      <div class="grid gap-5 sm:grid-cols-2">
-        <AdminFormField label="開催場所" field-id="location" hint="任意">
-          <input
-            id="location"
-            v-model="form.location"
-            type="text"
-            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-            placeholder="会議室A / オンライン"
-          >
-        </AdminFormField>
-
-        <AdminFormField label="議事録スラッグ" field-id="minutesSlug" hint="任意">
-          <input
-            id="minutesSlug"
-            v-model="form.minutesSlug"
-            type="text"
-            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-          >
-        </AdminFormField>
-      </div>
+      <AdminFormField label="開催場所" field-id="location" hint="任意">
+        <input
+          id="location"
+          v-model="form.location"
+          type="text"
+          class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          placeholder="会議室A / オンライン"
+        >
+      </AdminFormField>
 
       <AdminFormField label="会議URL" field-id="meetingUrl" hint="任意">
         <input

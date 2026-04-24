@@ -20,7 +20,6 @@ export default defineEventHandler(async (event) => {
     time: body.time,
     title: body.title,
     meetingUrl: body.meetingUrl ?? null,
-    minutesSlug: body.minutesSlug ?? null,
     topics: Array.isArray(body.topics) ? body.topics : [],
     location: body.location ?? null,
   };

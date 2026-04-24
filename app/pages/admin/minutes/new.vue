@@ -5,7 +5,6 @@ await useAdminGuard();
 const router = useRouter();
 
 const form = reactive({
-  slug: "",
   title: "",
   date: "",
   attendees: "",
@@ -19,12 +18,11 @@ const serverError = ref<string | null>(null);
 
 function validate() {
   const e: Record<string, string> = {};
-  if (!form.slug.trim()) e.slug = "スラッグは必須です。";
-  else if (!/^[a-z0-9-]+$/.test(form.slug.trim())) e.slug = "スラッグは英小文字・数字・ハイフンのみ使用できます。";
   if (!form.title.trim()) e.title = "タイトルは必須です。";
   if (!form.date) e.date = "開催日は必須です。";
   if (!form.attendees.trim()) e.attendees = "発表者は必須です。";
   if (!form.topics.trim()) e.topics = "トピックは必須です。";
+  Object.keys(errors).forEach((key) => delete errors[key]);
   Object.assign(errors, e);
   return Object.keys(e).length === 0;
 }
@@ -37,7 +35,6 @@ async function submit() {
     await $fetch("/api/admin/minutes", {
       method: "POST",
       body: {
-        slug: form.slug.trim(),
         title: form.title.trim(),
         date: form.date,
         attendees: form.attendees.split(",").map((s) => s.trim()).filter(Boolean),
@@ -70,18 +67,6 @@ useSeoMeta({ title: "議事録を作成" });
       <p v-if="serverError" class="rounded-lg bg-red-50 p-3 text-sm text-red-600" role="alert">{{ serverError }}</p>
 
       <div class="grid gap-5 sm:grid-cols-2">
-        <AdminFormField label="スラッグ" field-id="slug" :error="errors.slug" required hint="URLに使用されます（例: 2024-01-15）">
-          <input
-            id="slug"
-            v-model="form.slug"
-            type="text"
-            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-            :class="errors.slug ? 'border-red-300' : ''"
-            placeholder="2024-01-15"
-            :aria-describedby="errors.slug ? 'slug-error' : undefined"
-          >
-        </AdminFormField>
-
         <AdminFormField label="開催日" field-id="date" :error="errors.date" required>
           <input
             id="date"

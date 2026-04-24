@@ -9,7 +9,9 @@ const { data } = await useFetch<ScheduleListResponse>("/api/schedule", {
   default: () => ({ schedule: [] }),
 });
 
-const schedule = computed(() => data.value?.schedule ?? []);
+const schedule = computed(() =>
+  [...(data.value?.schedule ?? [])].sort((a, b) => b.date.localeCompare(a.date)),
+);
 
 useSeoMeta({ title: "スケジュール管理" });
 </script>

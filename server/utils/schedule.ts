@@ -8,6 +8,7 @@ interface ScheduleRow {
   title: string;
   meeting_url: string | null;
   minutes_slug: string | null;
+  resolved_minutes_slug?: string | null;
   topics: string;
   location: string | null;
 }
@@ -19,7 +20,7 @@ function toScheduleItem(row: ScheduleRow): ScheduleItem {
     time: row.time,
     title: row.title,
     meetingUrl: row.meeting_url,
-    minutesSlug: row.minutes_slug,
+    minutesSlug: row.resolved_minutes_slug ?? null,
     topics: JSON.parse(row.topics) as string[],
     location: row.location,
   };
@@ -27,7 +28,12 @@ function toScheduleItem(row: ScheduleRow): ScheduleItem {
 
 export async function listSchedule(db: D1DatabaseLike): Promise<ScheduleItem[]> {
   const { results } = await db
-    .prepare("SELECT * FROM schedule ORDER BY date ASC")
+    .prepare(
+      `SELECT schedule.*,
+        (SELECT minutes.slug FROM minutes WHERE minutes.date = schedule.date LIMIT 1) AS resolved_minutes_slug
+       FROM schedule
+       ORDER BY schedule.date ASC`,
+    )
     .all<ScheduleRow>();
   return results.map(toScheduleItem);
 }
@@ -37,7 +43,12 @@ export async function getScheduleItem(
   id: number,
 ): Promise<ScheduleItem | null> {
   const row = await db
-    .prepare("SELECT * FROM schedule WHERE id = ?")
+    .prepare(
+      `SELECT schedule.*,
+        (SELECT minutes.slug FROM minutes WHERE minutes.date = schedule.date LIMIT 1) AS resolved_minutes_slug
+       FROM schedule
+       WHERE schedule.id = ?`,
+    )
     .bind(id)
     .first<ScheduleRow>();
   return row ? toScheduleItem(row) : null;
@@ -48,7 +59,6 @@ export interface SchedulePayload {
   time: string;
   title: string;
   meetingUrl?: string | null;
-  minutesSlug?: string | null;
   topics: string[];
   location?: string | null;
 }
@@ -68,7 +78,7 @@ export async function createScheduleItem(
       payload.time,
       payload.title,
       payload.meetingUrl ?? null,
-      payload.minutesSlug ?? null,
+      null,
       JSON.stringify(payload.topics),
       payload.location ?? null,
     )
@@ -96,7 +106,7 @@ export async function updateScheduleItem(
       payload.time,
       payload.title,
       payload.meetingUrl ?? null,
-      payload.minutesSlug ?? null,
+      null,
       JSON.stringify(payload.topics),
       payload.location ?? null,
       id,
