@@ -53,13 +53,12 @@ useSeoMeta({
 <template>
   <PageContainer size="wide">
     <PageHero
-      :eyebrow="nextEvent ? '次回の会議' : undefined"
-      :title="nextEvent ? nextEvent.title : '社内AI勉強会の情報をひとつに集約'"
-      :description="nextEvent ? undefined : portalDescription"
+      v-if="nextEvent"
+      eyebrow="次回の会議"
+      :title="nextEvent.title"
     >
       <template #meta>
         <dl
-          v-if="nextEvent"
           class="grid grid-cols-[auto_1fr] items-baseline gap-x-4 gap-y-1.5 text-sm text-slate-200"
         >
           <dt class="text-xs font-semibold tracking-[0.14em] text-white/50">開催日時</dt>
