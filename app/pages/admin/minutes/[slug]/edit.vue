@@ -34,6 +34,7 @@ function validate() {
   if (!form.date) e.date = "開催日は必須です。";
   if (!form.attendees.trim()) e.attendees = "発表者は必須です。";
   if (!form.topics.trim()) e.topics = "トピックは必須です。";
+  Object.keys(errors).forEach((key) => delete errors[key]);
   Object.assign(errors, e);
   return Object.keys(e).length === 0;
 }
@@ -100,8 +101,9 @@ useSeoMeta({ title: `${minutes.title} を編集` });
             id="date"
             v-model="form.date"
             type="date"
-            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            class="w-full rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-500"
             :class="errors.date ? 'border-red-300' : ''"
+            disabled
           >
         </AdminFormField>
       </div>

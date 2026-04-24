@@ -1,8 +1,16 @@
 <script setup lang="ts">
+import type { MinutesListResponse } from "~~/types/portal";
+
 definePageMeta({ layout: "admin" });
 await useAdminGuard();
 
 const router = useRouter();
+
+const { data: minutesData } = await useFetch<MinutesListResponse>("/api/minutes", {
+  default: () => ({ minutes: [] }),
+});
+
+const minutesOptions = computed(() => minutesData.value?.minutes ?? []);
 
 const form = reactive({
   title: "",
@@ -24,6 +32,7 @@ function validate() {
   if (!form.url.trim()) e.url = "URLは必須です。";
   if (!form.type.trim()) e.type = "種類は必須です。";
   if (!form.date) e.date = "日付は必須です。";
+  Object.keys(errors).forEach((key) => delete errors[key]);
   Object.assign(errors, e);
   return Object.keys(e).length === 0;
 }
@@ -135,14 +144,21 @@ useSeoMeta({ title: "資料を作成" });
           >
         </AdminFormField>
 
-        <AdminFormField label="関連議事録スラッグ" field-id="relatedMinutesSlug" hint="任意">
-          <input
+        <AdminFormField label="関連議事録" field-id="relatedMinutesSlug" hint="任意">
+          <select
             id="relatedMinutesSlug"
             v-model="form.relatedMinutesSlug"
-            type="text"
             class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-            placeholder="2024-01-15"
           >
+            <option value="">未選択</option>
+            <option
+              v-for="minutes in minutesOptions"
+              :key="minutes.slug"
+              :value="minutes.slug"
+            >
+              {{ minutes.date }} {{ minutes.title }}
+            </option>
+          </select>
         </AdminFormField>
       </div>
 

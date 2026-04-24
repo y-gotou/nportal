@@ -1,5 +1,5 @@
 import { createError } from "h3";
-import type { D1DatabaseLike, Minutes, MinutesMeta } from "../../types/portal.ts";
+import type { D1DatabaseLike, Minutes, MinutesMeta, MinutesPayload } from "../../types/portal.ts";
 
 interface MinutesRow {
   id: number;
@@ -39,6 +39,14 @@ async function renderMarkdown(markdown: string): Promise<string> {
   return result.toString();
 }
 
+export function getMinutesSlugFromDate(date: string): string {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    throw createError({ statusCode: 400, statusMessage: "date must be YYYY-MM-DD" });
+  }
+
+  return date;
+}
+
 export async function listMinutes(db: D1DatabaseLike): Promise<MinutesMeta[]> {
   const { results } = await db
     .prepare("SELECT id, slug, title, date, attendees, topics FROM minutes ORDER BY date DESC")
@@ -68,19 +76,27 @@ export async function getMinutesDetailById(
   return row ? toMinutes(row) : null;
 }
 
-export interface MinutesPayload {
-  slug: string;
-  title: string;
-  date: string;
-  attendees: string[];
-  topics: string[];
-  contentMd: string;
+export async function getMinutesDetailByDate(
+  db: D1DatabaseLike,
+  date: string,
+): Promise<Minutes | null> {
+  const row = await db
+    .prepare("SELECT * FROM minutes WHERE date = ? LIMIT 1")
+    .bind(date)
+    .first<MinutesRow>();
+  return row ? toMinutes(row) : null;
 }
 
 export async function createMinutes(
   db: D1DatabaseLike,
   payload: MinutesPayload,
 ): Promise<Minutes> {
+  const slug = getMinutesSlugFromDate(payload.date);
+  const existing = await getMinutesDetailByDate(db, payload.date);
+  if (existing) {
+    throw createError({ statusCode: 409, statusMessage: "Minutes already exists for this date" });
+  }
+
   const contentHtml = await renderMarkdown(payload.contentMd);
   await db
     .prepare(
@@ -88,7 +104,7 @@ export async function createMinutes(
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
-      payload.slug,
+      slug,
       payload.title,
       payload.date,
       JSON.stringify(payload.attendees),
@@ -98,7 +114,7 @@ export async function createMinutes(
     )
     .first();
 
-  const created = await getMinutesDetail(db, payload.slug);
+  const created = await getMinutesDetail(db, slug);
   if (!created) throw createError({ statusCode: 500, statusMessage: "Failed to create minutes" });
   return created;
 }
@@ -106,18 +122,24 @@ export async function createMinutes(
 export async function updateMinutes(
   db: D1DatabaseLike,
   slug: string,
-  payload: Omit<MinutesPayload, "slug">,
+  payload: MinutesPayload,
 ): Promise<Minutes> {
+  const current = await getMinutesDetail(db, slug);
+  if (!current) throw createError({ statusCode: 404, statusMessage: "Minutes not found" });
+
+  if (payload.date !== current.date) {
+    throw createError({ statusCode: 400, statusMessage: "Minutes date cannot be changed" });
+  }
+
   const contentHtml = await renderMarkdown(payload.contentMd);
   await db
     .prepare(
       `UPDATE minutes
-       SET title = ?, date = ?, attendees = ?, topics = ?, content_md = ?, content_html = ?, updated_at = datetime('now')
+       SET title = ?, attendees = ?, topics = ?, content_md = ?, content_html = ?, updated_at = datetime('now')
        WHERE slug = ?`,
     )
     .bind(
       payload.title,
-      payload.date,
       JSON.stringify(payload.attendees),
       JSON.stringify(payload.topics),
       payload.contentMd,
