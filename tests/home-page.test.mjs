@@ -7,6 +7,6 @@ test("home page prioritizes action sections over legacy service cards", async ()
 
   assert.match(page, /title="回答受付中のアンケート"/);
   assert.match(page, /title="最近の資料"/);
-  assert.match(page, /PageHero/);
+  assert.match(page, /<PageHero\s+v-if="nextEvent"/);
   assert.doesNotMatch(page, /service cards/i);
 });
