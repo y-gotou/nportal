@@ -1,13 +1,18 @@
 import { readBody } from "h3";
 import { getDb } from "~~/server/utils/survey";
 import { assertAdmin } from "~~/server/utils/admin";
-import { updateResourceItem, type ResourcePayload } from "~~/server/utils/resources";
+import {
+  getResourceRow,
+  getResourcesBucket,
+  parseResourceId,
+  updateResourceItem,
+  type ResourcePayload,
+} from "~~/server/utils/resources";
 
 export default defineEventHandler(async (event) => {
   assertAdmin(event);
 
-  const id = Number(event.context.params?.id);
-  if (!Number.isInteger(id) || id < 1) throw createError({ statusCode: 400, statusMessage: "Invalid id" });
+  const id = parseResourceId(event.context.params?.id);
 
   const body = await readBody<Partial<ResourcePayload>>(event);
 
@@ -26,6 +31,10 @@ export default defineEventHandler(async (event) => {
   };
 
   const db = getDb(event);
+  const existing = await getResourceRow(db, id);
   const resource = await updateResourceItem(db, id, payload);
+  if (existing?.file_key) {
+    await getResourcesBucket(event).delete(existing.file_key).catch(() => undefined);
+  }
   return { resource };
 });

@@ -35,6 +35,7 @@ export default defineNuxtConfig({
     "/minutes/**": { prerender: false },
     "/schedule": { prerender: false },
     "/resources": { prerender: false },
+    "/resources/**": { prerender: false },
     "/admin/**": { prerender: false },
     "/": { prerender: false },
     "/login": { prerender: false },

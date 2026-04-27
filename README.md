@@ -63,6 +63,8 @@ wrangler.jsonc  Pages/D1 設定
 - Pages project: `nportal`
 - Production D1: `nportal-db`
 - Preview D1: `nportal-preview-db`
+- R2 bucket: `nportal-resources`
+- R2 binding: `RESOURCES_BUCKET`
 - Build command: `npm run build`
 - Build output directory: `dist`
 
@@ -71,7 +73,7 @@ wrangler.jsonc  Pages/D1 設定
 1. GitHub に `nportal` リポジトリを作成する
 2. `main` ブランチを push する
 3. Cloudflare Pages で GitHub リポジトリ `y-gotou/nportal` を import する
-4. Preview / Production の D1 binding `DB` を紐付ける
+4. Preview / Production の D1 binding `DB` と R2 binding `RESOURCES_BUCKET` を紐付ける
 5. `main` push で本番、PR/branch push で Preview が自動デプロイされる
 
 ## メモ

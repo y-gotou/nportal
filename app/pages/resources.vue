@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { formatDisplayDate } from "~~/utils/content";
-import { interactiveCardClass, secondaryButtonClass, topicTagClass } from "~/utils/ui";
-import type { ResourceItem, ResourcesListResponse } from "~~/types/portal";
+import { interactiveCardClass, primaryButtonClass, secondaryButtonClass, topicTagClass } from "~/utils/ui";
+import type { MinutesListResponse, ResourceItem, ResourcesListResponse } from "~~/types/portal";
 
-const { data } = await useFetch<ResourcesListResponse>("/api/resources", {
+const { data, refresh } = await useFetch<ResourcesListResponse>("/api/resources", {
   default: () => ({ resources: [] }),
+});
+
+const { data: minutesData } = await useFetch<MinutesListResponse>("/api/minutes", {
+  default: () => ({ minutes: [] }),
 });
 
 const route = useRoute();
@@ -19,8 +23,12 @@ const selectedType = ref<string | null>(
 );
 
 const resources = computed(() => data.value?.resources ?? []);
+const minutesOptions = computed(() => minutesData.value?.minutes ?? []);
 const allTags = computed(() => [...new Set(resources.value.flatMap((r) => r.tags))]);
 const allTypes = computed(() => [...new Set(resources.value.map((r) => r.type))]);
+const showForm = ref(false);
+const editingResource = ref<ResourceItem | null>(null);
+const isFormDirty = ref(false);
 
 function matchesSelectedFilters(resource: ResourceItem) {
   if (selectedTag.value && !resource.tags.includes(selectedTag.value)) {
@@ -39,6 +47,9 @@ function matchesSelectedFilters(resource: ResourceItem) {
 
   return (
     resource.title.toLowerCase().includes(keyword) ||
+    (resource.presenter?.toLowerCase().includes(keyword) ?? false) ||
+    (resource.fileName?.toLowerCase().includes(keyword) ?? false) ||
+    (resource.submittedBy?.toLowerCase().includes(keyword) ?? false) ||
     resource.tags.some((tag) => tag.toLowerCase().includes(keyword))
   );
 }
@@ -71,6 +82,49 @@ watch(
   { deep: true },
 );
 
+function openCreateForm() {
+  editingResource.value = null;
+  isFormDirty.value = false;
+  showForm.value = true;
+}
+
+function openEditForm(resource: ResourceItem) {
+  editingResource.value = resource;
+  isFormDirty.value = false;
+  showForm.value = true;
+}
+
+function closeForm() {
+  showForm.value = false;
+  editingResource.value = null;
+  isFormDirty.value = false;
+}
+
+function requestCloseForm() {
+  if (isFormDirty.value && !confirm("入力中の内容は保存されていません。閉じてもよろしいですか？")) {
+    return;
+  }
+
+  closeForm();
+}
+
+async function handleSaved() {
+  await refresh();
+  closeForm();
+}
+
+async function deleteResource(resource: ResourceItem) {
+  if (!confirm("この資料を削除しますか？この操作は取り消せません。")) return;
+  await $fetch(`/api/resources/${resource.id}`, { method: "DELETE" });
+  await refresh();
+}
+
+function formatFileSize(value?: number | null) {
+  if (!value) return "";
+  if (value < 1024 * 1024) return `${Math.ceil(value / 1024)}KB`;
+  return `${(value / (1024 * 1024)).toFixed(1)}MB`;
+}
+
 useSeoMeta({
   title: "資料共有",
   description: "発表資料と参考リンクを絞り込みながら確認できます。",
@@ -79,7 +133,45 @@ useSeoMeta({
 
 <template>
   <PageContainer size="wide">
-    <SectionHeader title="資料共有" />
+    <SectionHeader title="資料共有">
+      <template #action>
+        <button type="button" :class="primaryButtonClass" @click="openCreateForm">
+          資料を投稿
+        </button>
+      </template>
+    </SectionHeader>
+
+    <Teleport to="body">
+      <div
+        v-if="showForm"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4"
+        role="presentation"
+        @click.self="requestCloseForm"
+      >
+        <div
+          class="max-h-[calc(100vh-2rem)] w-full max-w-3xl overflow-y-auto"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="resource-form-title"
+        >
+          <div class="rounded-xl border border-slate-200 bg-white shadow-xl">
+            <div class="border-b border-slate-100 px-5 py-4">
+              <h2 id="resource-form-title" class="text-lg font-semibold tracking-tight text-slate-900">
+                {{ editingResource ? "資料を編集" : "資料を投稿" }}
+              </h2>
+            </div>
+            <ResourceSubmissionForm
+              class="!rounded-t-none !border-0 !shadow-none"
+              :resource="editingResource"
+              :minutes-options="minutesOptions"
+              @saved="handleSaved"
+              @cancel="requestCloseForm"
+              @dirty-change="isFormDirty = $event"
+            />
+          </div>
+        </div>
+      </div>
+    </Teleport>
 
     <div class="space-y-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <div class="space-y-2">
@@ -171,6 +263,12 @@ useSeoMeta({
                   {{ tag }}
                 </span>
               </div>
+              <p v-if="resource.fileName" class="text-sm text-slate-500">
+                {{ resource.fileName }} <span v-if="resource.fileSize">({{ formatFileSize(resource.fileSize) }})</span>
+              </p>
+              <p v-if="resource.submittedBy" class="text-xs text-slate-400">
+                投稿者: {{ resource.submittedBy }}
+              </p>
             </div>
             <div class="flex shrink-0 flex-wrap gap-3">
               <a
@@ -188,6 +286,22 @@ useSeoMeta({
               >
                 関連議事録
               </NuxtLink>
+              <button
+                v-if="resource.canEdit"
+                type="button"
+                :class="secondaryButtonClass"
+                @click="openEditForm(resource)"
+              >
+                編集
+              </button>
+              <button
+                v-if="resource.canEdit"
+                type="button"
+                class="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-white px-4 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+                @click="deleteResource(resource)"
+              >
+                削除
+              </button>
             </div>
           </div>
         </article>

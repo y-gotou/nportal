@@ -18,6 +18,12 @@ export interface ResourceItem {
   date: string;
   presenter: string | null;
   relatedMinutesSlug?: string | null;
+  sourceType: "url" | "file";
+  fileName?: string | null;
+  fileSize?: number | null;
+  mimeType?: string | null;
+  submittedBy?: string | null;
+  canEdit?: boolean;
 }
 
 export interface MinutesMeta {
