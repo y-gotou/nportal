@@ -173,14 +173,36 @@ export function validateResourceUrl(value: unknown): string {
 
 export function sanitizeFileName(value: string | undefined): string {
   const name = (value ?? "resource")
+    .normalize("NFC")
     .split(/[\\/]/)
     .pop()
     ?.replace(/[\u0000-\u001f\u007f]/g, "")
-    .replace(/[^\w .()+,@-]/g, "_")
+    .replace(/[^\p{L}\p{N} .()+,@_-]/gu, "_")
     .replace(/\s+/g, " ")
     .trim();
 
   return (name || "resource").slice(0, 180);
+}
+
+function encodeContentDispositionValue(value: string): string {
+  return encodeURIComponent(value)
+    .replace(/['()*]/g, (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`);
+}
+
+function buildAsciiFileNameFallback(fileName: string): string {
+  const fallback = fileName
+    .replace(/[^\x20-\x7e]/g, "_")
+    .replace(/["\\]/g, "")
+    .replace(/[^\w .()+,@-]/g, "_")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return (fallback || "resource").slice(0, 180);
+}
+
+export function buildResourceContentDisposition(fileName: string | null | undefined): string {
+  const safeName = sanitizeFileName(fileName ?? "resource");
+  return `inline; filename="${buildAsciiFileNameFallback(safeName)}"; filename*=UTF-8''${encodeContentDispositionValue(safeName)}`;
 }
 
 export function getFileExtension(fileName: string): string {
