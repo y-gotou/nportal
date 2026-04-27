@@ -1,15 +1,11 @@
 import { createError } from "h3";
 import { getDb } from "~~/server/utils/survey";
 import {
+  buildResourceContentDisposition,
   getResourceRow,
   getResourcesBucket,
   parseResourceId,
 } from "~~/server/utils/resources";
-
-function buildContentDisposition(fileName: string | null): string {
-  const safeName = (fileName || "resource").replace(/"/g, "");
-  return `inline; filename="${safeName}"`;
-}
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user as { email: string } | undefined;
@@ -32,7 +28,7 @@ export default defineEventHandler(async (event) => {
   const headers = new Headers();
   object.writeHttpMetadata?.(headers);
   headers.set("Content-Type", resource.mime_type || headers.get("Content-Type") || "application/octet-stream");
-  headers.set("Content-Disposition", buildContentDisposition(resource.file_name));
+  headers.set("Content-Disposition", buildResourceContentDisposition(resource.file_name));
   headers.set("X-Content-Type-Options", "nosniff");
 
   return new Response(object.body, { headers });

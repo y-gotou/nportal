@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
   MAX_RESOURCE_FILE_SIZE,
+  buildResourceContentDisposition,
   inferResourceType,
   sanitizeFileName,
   validateResourceFile,
@@ -14,6 +15,11 @@ test("resource file helpers validate allowed files and infer resource types", ()
   assert.equal(inferResourceType({ fileName: "deck.pptx" }), "PowerPoint");
   assert.equal(inferResourceType({ fileName: "notes.md" }), "Markdown");
   assert.equal(sanitizeFileName("../demo deck.pdf"), "demo deck.pdf");
+  assert.equal(sanitizeFileName("../営業資料.pptx"), "営業資料.pptx");
+  assert.equal(
+    buildResourceContentDisposition("営業資料.pptx"),
+    `inline; filename="____.pptx"; filename*=UTF-8''%E5%96%B6%E6%A5%AD%E8%B3%87%E6%96%99.pptx`,
+  );
 
   assert.doesNotThrow(() =>
     validateResourceFile({

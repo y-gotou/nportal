@@ -1,6 +1,7 @@
 import { createError, readMultipartFormData } from "h3";
 import { getDb } from "~~/server/utils/survey";
 import {
+  buildResourceContentDisposition,
   createResourceObjectKey,
   getEditableResourceRow,
   getResourcesBucket,
@@ -83,7 +84,7 @@ export default defineEventHandler(async (event) => {
       await bucket.put(fileKey, file.data, {
         httpMetadata: {
           contentType: mimeType,
-          contentDisposition: `inline; filename="${fileName.replace(/"/g, "")}"`,
+          contentDisposition: buildResourceContentDisposition(fileName),
         },
         customMetadata: {
           submittedBy: existing.submitted_by ?? user.email,
