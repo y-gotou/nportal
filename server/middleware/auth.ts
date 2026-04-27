@@ -66,7 +66,7 @@ export default defineEventHandler((event) => {
   }
 
   // APIルートと動的ページは認証必須
-  if (path.startsWith("/api/") || path.startsWith("/survey") || path.startsWith("/reports") || path.startsWith("/admin")) {
+  if (path.startsWith("/api/") || path.startsWith("/survey") || path.startsWith("/reports") || path.startsWith("/resources") || path.startsWith("/admin")) {
     if (!event.context.user) {
       throw createError({
         statusCode: 401,

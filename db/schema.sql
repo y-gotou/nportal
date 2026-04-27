@@ -71,6 +71,12 @@ CREATE TABLE IF NOT EXISTS resources (
   date                 TEXT NOT NULL,
   presenter            TEXT,
   related_minutes_slug TEXT,
+  source_type          TEXT NOT NULL DEFAULT 'url',
+  file_key             TEXT,
+  file_name            TEXT,
+  file_size            INTEGER,
+  mime_type            TEXT,
+  submitted_by         TEXT,
   created_at           TEXT DEFAULT (datetime('now')),
   updated_at           TEXT DEFAULT (datetime('now'))
 );

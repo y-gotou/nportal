@@ -6,8 +6,15 @@
   "compatibility_flags": ["nodejs_compat"],
   "vars": {
     "CF_ACCESS_TEAM_DOMAIN": "d2sol-nsp.cloudflareaccess.com",
-    "CF_ACCESS_AUD": "13e0a1448713f09f0f61639765930aff48dbba382e7775d2f3d104851064a7e4"
+    "CF_ACCESS_AUD": "13e0a1448713f09f0f61639765930aff48dbba382e7775d2f3d104851064a7e4",
+    "RESOURCE_OBJECT_PREFIX": "production"
   },
+  "r2_buckets": [
+    {
+      "binding": "RESOURCES_BUCKET",
+      "bucket_name": "nportal-resources"
+    }
+  ],
   "d1_databases": [
     {
       "binding": "DB",
@@ -19,8 +26,15 @@
     "preview": {
       "vars": {
         "CF_ACCESS_TEAM_DOMAIN": "d2sol-nsp.cloudflareaccess.com",
-        "CF_ACCESS_AUD": "13e0a1448713f09f0f61639765930aff48dbba382e7775d2f3d104851064a7e4"
+        "CF_ACCESS_AUD": "13e0a1448713f09f0f61639765930aff48dbba382e7775d2f3d104851064a7e4",
+        "RESOURCE_OBJECT_PREFIX": "preview"
       },
+      "r2_buckets": [
+        {
+          "binding": "RESOURCES_BUCKET",
+          "bucket_name": "nportal-resources"
+        }
+      ],
       "d1_databases": [
         {
           "binding": "DB",

@@ -72,3 +72,11 @@ CREATE TABLE IF NOT EXISTS reports (
 
 CREATE INDEX IF NOT EXISTS idx_reports_created_at ON reports(created_at);
 CREATE INDEX IF NOT EXISTS idx_reports_report_type ON reports(report_type);
+
+-- Migration: Add user-submitted resource file metadata
+ALTER TABLE resources ADD COLUMN source_type TEXT NOT NULL DEFAULT 'url';
+ALTER TABLE resources ADD COLUMN file_key TEXT;
+ALTER TABLE resources ADD COLUMN file_name TEXT;
+ALTER TABLE resources ADD COLUMN file_size INTEGER;
+ALTER TABLE resources ADD COLUMN mime_type TEXT;
+ALTER TABLE resources ADD COLUMN submitted_by TEXT;

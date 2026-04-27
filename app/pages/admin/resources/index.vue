@@ -40,6 +40,9 @@ useSeoMeta({ title: "資料管理" });
           <tr v-for="resource in resources" :key="resource.id" class="hover:bg-slate-50">
             <td class="px-4 py-3">
               <p class="font-medium text-slate-900">{{ resource.title }}</p>
+              <p class="mt-0.5 text-xs text-slate-500">
+                {{ resource.sourceType === "file" ? resource.fileName : resource.url }}
+              </p>
               <p class="mt-0.5 text-xs text-slate-500 sm:hidden">{{ formatDisplayDate(resource.date) }}</p>
             </td>
             <td class="hidden px-4 py-3 text-sm text-slate-600 sm:table-cell">
