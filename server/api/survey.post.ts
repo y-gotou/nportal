@@ -6,6 +6,7 @@ import {
   deleteUserResponses,
   getDb,
   getRequiredSurvey,
+  isSurveyAcceptingResponses,
   parseSurveyId,
   touchSubmission,
 } from "~~/server/utils/survey";
@@ -45,7 +46,7 @@ export default defineEventHandler(async (event) => {
   const db = getDb(event);
   const survey = await getRequiredSurvey(db, surveyId);
 
-  if (survey.status !== "active") {
+  if (!isSurveyAcceptingResponses(survey)) {
     throw createError({
       statusCode: 409,
       statusMessage: "Survey is not accepting responses.",

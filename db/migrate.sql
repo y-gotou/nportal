@@ -20,6 +20,11 @@ ALTER TABLE surveys ADD COLUMN status TEXT NOT NULL DEFAULT 'draft';
 UPDATE surveys
 SET status = CASE WHEN is_active = 1 THEN 'active' ELSE 'closed' END;
 
+ALTER TABLE surveys ADD COLUMN publish_starts_at TEXT;
+ALTER TABLE surveys ADD COLUMN response_deadline_at TEXT;
+CREATE INDEX IF NOT EXISTS idx_surveys_status_publish ON surveys(status, publish_starts_at);
+CREATE INDEX IF NOT EXISTS idx_surveys_status_deadline ON surveys(status, response_deadline_at);
+
 PRAGMA foreign_keys = OFF;
 
 CREATE TABLE schedule_new (

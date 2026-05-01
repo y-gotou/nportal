@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import { secondaryButtonClass } from "~/utils/ui";
-import { getSurveyStatusLabel } from "~~/utils/survey";
+import {
+  buildSurveyAvailabilityText,
+  getSurveyStatusLabel,
+} from "~~/utils/survey";
 
 const route = useRoute();
 const surveyId = Number(route.params.id);
 const { survey, responses, myAnswers } = await useSurveyDetail(surveyId, {
-  requireActive: true,
   failureMessage: "Failed to load survey",
 });
 
 const hasResponded = computed(() => Object.keys(myAnswers).length > 0);
 const canEdit = computed(() => survey.status === "active");
+const availabilityText = computed(() => buildSurveyAvailabilityText(survey));
 const isEditing = ref(
   hasResponded.value && canEdit.value && route.query.edit === "1",
 );
@@ -62,6 +65,12 @@ useSeoMeta({
         >
           回答済み
         </span>
+        <span
+          v-if="availabilityText"
+          class="rounded-full bg-slate-100 px-3 py-1.5 text-sm text-slate-600"
+        >
+          {{ availabilityText }}
+        </span>
       </div>
     </div>
 
@@ -106,12 +115,20 @@ useSeoMeta({
     </div>
 
     <!-- 未回答 or 編集モード -->
-    <div v-else class="mt-8 space-y-4">
+    <div v-else-if="canEdit" class="mt-8 space-y-4">
       <SurveyForm
         :survey="survey"
         :initial-answers="isEditing ? myAnswers : undefined"
         :is-editing="isEditing"
       />
+    </div>
+
+    <div
+      v-else
+      class="mt-8 rounded-xl border border-slate-200 bg-slate-50 p-6"
+    >
+      <p class="font-medium text-slate-800">このアンケートは受付を終了しています</p>
+      <p class="mt-1 text-sm leading-6 text-slate-500">回答の集計結果は結果ページで確認できます。</p>
     </div>
   </PageContainer>
 </template>

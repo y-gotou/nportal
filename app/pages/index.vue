@@ -18,6 +18,7 @@ import {
   surfaceCardClass,
   topicTagClass,
 } from "~/utils/ui";
+import { buildSurveyAvailabilityText } from "~~/utils/survey";
 
 const today = getTodayDate();
 
@@ -41,7 +42,11 @@ const recentResources = computed(() => (resourcesData.value?.resources ?? []).sl
 const activeSurveys = computed(() =>
   (surveysData.value?.surveys ?? [])
     .filter((survey) => survey.status === "active" && !survey.hasResponded)
-    .slice(0, 2),
+    .slice(0, 2)
+    .map((survey) => ({
+      survey,
+      availabilityText: buildSurveyAvailabilityText(survey),
+    })),
 );
 
 useSeoMeta({
@@ -97,7 +102,7 @@ useSeoMeta({
 
       <div class="space-y-3">
         <article
-          v-for="survey in activeSurveys"
+          v-for="{ survey, availabilityText } in activeSurveys"
           :key="survey.id"
           :class="surfaceCardClass"
         >
@@ -116,6 +121,9 @@ useSeoMeta({
                 <span class="rounded-full bg-slate-100 px-3 py-1">設問数 {{ survey.questions.length }}問</span>
                 <span class="rounded-full bg-slate-100 px-3 py-1">
                   回答者 {{ survey.responseCount ?? 0 }}人
+                </span>
+                <span v-if="availabilityText" class="rounded-full bg-slate-100 px-3 py-1">
+                  {{ availabilityText }}
                 </span>
               </div>
             </div>

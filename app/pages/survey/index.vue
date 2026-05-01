@@ -5,11 +5,19 @@ import {
   secondaryButtonClass,
   surfaceCardClass,
 } from "~/utils/ui";
-import { getSurveyStatusLabel } from "~~/utils/survey";
+import {
+  buildSurveyAvailabilityText,
+  getSurveyStatusLabel,
+} from "~~/utils/survey";
 
 const { data, error } = await useFetch<SurveysResponse>("/api/surveys");
 
-const surveys = computed(() => data.value?.surveys ?? []);
+const surveys = computed(() =>
+  (data.value?.surveys ?? []).map((survey) => ({
+    survey,
+    availabilityText: buildSurveyAvailabilityText(survey),
+  })),
+);
 
 function getSurveyStatusClass(status: SurveyStatus) {
   return status === "active"
@@ -39,7 +47,7 @@ useSeoMeta({
 
     <div v-else-if="surveys.length" class="space-y-3">
       <article
-        v-for="survey in surveys"
+        v-for="{ survey, availabilityText } in surveys"
         :key="survey.id"
         :class="surfaceCardClass"
       >
@@ -67,6 +75,9 @@ useSeoMeta({
               <span class="rounded-full bg-slate-100 px-3 py-1">設問数 {{ survey.questions.length }}問</span>
               <span class="rounded-full bg-slate-100 px-3 py-1">
                 回答者 {{ survey.responseCount ?? 0 }}人
+              </span>
+              <span v-if="availabilityText" class="rounded-full bg-slate-100 px-3 py-1">
+                {{ availabilityText }}
               </span>
             </div>
           </div>

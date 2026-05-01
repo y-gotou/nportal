@@ -1,7 +1,6 @@
 import type { SurveyGetResponse, SurveyResponse } from "~~/types/portal";
 
 interface UseSurveyDetailOptions {
-  requireActive?: boolean;
   failureMessage: string;
 }
 
@@ -31,7 +30,7 @@ export async function useSurveyDetail(
   const responses: SurveyResponse[] = data.value?.responses ?? [];
   const myAnswers: Record<number, string> = data.value?.myAnswers ?? {};
 
-  if (!survey || (options.requireActive && survey.status !== "active")) {
+  if (!survey) {
     throw createError({
       statusCode: 404,
       statusMessage: "Survey not found",

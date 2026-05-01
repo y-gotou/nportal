@@ -4,8 +4,11 @@ import {
   deleteUserResponses,
   getSurvey,
   hasSurveyResponseData,
+  isSurveyAcceptingResponses,
   listSurveys,
+  parseSurveyDateTime,
   touchSubmission,
+  updateSurveyPublicationStatuses,
 } from "../server/utils/survey.ts";
 import type { D1DatabaseLike, D1PreparedStatement } from "../types/portal.ts";
 
@@ -16,6 +19,8 @@ interface MockDbOptions {
     description: string;
     created_at: string;
     status: string;
+    publish_starts_at?: string | null;
+    response_deadline_at?: string | null;
   }>;
   questionRows?: Array<{
     id: number;
@@ -282,6 +287,117 @@ test("listSurveys includes draft surveys for admin views when requested", async 
   );
 });
 
+test("listSurveys hides scheduled active surveys until publish start", async () => {
+  const surveys = await listSurveys(
+    createDb({
+      surveyRows: [
+        {
+          id: 1,
+          title: "受付中",
+          description: "公開済み",
+          created_at: "2026-04-01",
+          status: "active",
+          publish_starts_at: "2026-04-01T00:00:00.000Z",
+        },
+        {
+          id: 2,
+          title: "予約中",
+          description: "開始前",
+          created_at: "2026-04-02",
+          status: "active",
+          publish_starts_at: "2026-05-01T00:00:00.000Z",
+        },
+      ],
+    }),
+    undefined,
+    { now: new Date("2026-04-15T00:00:00.000Z") },
+  );
+
+  assert.deepEqual(surveys.map((survey) => survey.id), [1]);
+});
+
+test("listSurveys returns expired active surveys as closed", async () => {
+  const surveys = await listSurveys(
+    createDb({
+      surveyRows: [
+        {
+          id: 1,
+          title: "期限切れ",
+          description: "期限切れ",
+          created_at: "2026-04-01",
+          status: "active",
+          response_deadline_at: "2026-04-10T00:00:00.000Z",
+        },
+      ],
+    }),
+    undefined,
+    { now: new Date("2026-04-15T00:00:00.000Z") },
+  );
+
+  assert.equal(surveys.length, 1);
+  assert.equal(surveys[0].status, "closed");
+});
+
+test("listSurveys promotes scheduled drafts to active once publish start has passed", async () => {
+  const surveys = await listSurveys(
+    createDb({
+      surveyRows: [
+        {
+          id: 1,
+          title: "予約公開済み",
+          description: "公開時刻到達",
+          created_at: "2026-04-01",
+          status: "draft",
+          publish_starts_at: "2026-04-10T00:00:00.000Z",
+        },
+        {
+          id: 2,
+          title: "予約待ち",
+          description: "公開時刻未到達",
+          created_at: "2026-04-02",
+          status: "draft",
+          publish_starts_at: "2026-05-01T00:00:00.000Z",
+        },
+        {
+          id: 3,
+          title: "通常下書き",
+          description: "予約なし",
+          created_at: "2026-04-03",
+          status: "draft",
+        },
+      ],
+    }),
+    undefined,
+    { now: new Date("2026-04-15T00:00:00.000Z") },
+  );
+
+  assert.deepEqual(
+    surveys.map((survey) => ({ id: survey.id, status: survey.status })),
+    [{ id: 1, status: "active" }],
+  );
+});
+
+test("getSurvey returns null for scheduled active surveys before publish start", async () => {
+  const survey = await getSurvey(
+    createDb({
+      surveyRows: [
+        {
+          id: 1,
+          title: "予約中",
+          description: "開始前",
+          created_at: "2026-04-01",
+          status: "active",
+          publish_starts_at: "2026-05-01T00:00:00.000Z",
+        },
+      ],
+    }),
+    1,
+    { now: new Date("2026-04-15T00:00:00.000Z") },
+  );
+
+  assert.equal(survey, null);
+});
+
 test("getSurvey includes respondent counts for detail views", async () => {
   const survey = await getSurvey(
     createDb({
@@ -375,4 +491,100 @@ test("touchSubmission updates submitted_at for the existing submission", async (
   assert.match(calls[0].query, /SET submitted_at = datetime\('now'\)/);
   assert.match(calls[0].query, /WHERE survey_id = \? AND user_email = \?/);
   assert.deepEqual(calls[0].values, [7, "member@example.com"]);
+});
+
+test("parseSurveyDateTime accepts quarter-hour ISO datetimes", () => {
+  assert.equal(
+    parseSurveyDateTime("2026-05-01T01:00:00.000Z"),
+    "2026-05-01T01:00:00.000Z",
+  );
+  assert.equal(
+    parseSurveyDateTime("2026-05-01T01:15:00.000Z"),
+    "2026-05-01T01:15:00.000Z",
+  );
+  assert.equal(
+    parseSurveyDateTime("2026-05-01T01:30:00.000Z"),
+    "2026-05-01T01:30:00.000Z",
+  );
+  assert.equal(
+    parseSurveyDateTime("2026-05-01T01:45:00.000Z"),
+    "2026-05-01T01:45:00.000Z",
+  );
+});
+
+test("parseSurveyDateTime rejects non-quarter-hour ISO datetimes", () => {
+  for (const value of [
+    "2026-05-01T01:01:00.000Z",
+    "2026-05-01T01:10:00.000Z",
+    "2026-05-01T01:59:00.000Z",
+    "2026-05-01T01:15:01.000Z",
+    "not-a-date",
+  ]) {
+    assert.throws(
+      () => parseSurveyDateTime(value, "Invalid survey payload."),
+      (error) => {
+        assert.equal((error as { statusCode?: number }).statusCode, 400);
+        assert.equal((error as { statusMessage?: string }).statusMessage, "Invalid survey payload.");
+        return true;
+      },
+    );
+  }
+});
+
+test("isSurveyAcceptingResponses rejects expired surveys", () => {
+  assert.equal(
+    isSurveyAcceptingResponses(
+      {
+        id: 1,
+        title: "期限切れ",
+        description: "",
+        createdAt: "2026-04-01",
+        status: "active",
+        publishStartsAt: null,
+        responseDeadlineAt: "2026-04-10T00:00:00.000Z",
+        questions: [],
+      },
+      new Date("2026-04-15T00:00:00.000Z"),
+    ),
+    false,
+  );
+});
+
+test("isSurveyAcceptingResponses accepts active surveys within schedule", () => {
+  assert.equal(
+    isSurveyAcceptingResponses(
+      {
+        id: 1,
+        title: "受付中",
+        description: "",
+        createdAt: "2026-04-01",
+        status: "active",
+        publishStartsAt: "2026-04-01T00:00:00.000Z",
+        responseDeadlineAt: "2026-04-30T00:00:00.000Z",
+        questions: [],
+      },
+      new Date("2026-04-15T00:00:00.000Z"),
+    ),
+    true,
+  );
+});
+
+test("updateSurveyPublicationStatuses closes expired surveys and activates scheduled drafts", async () => {
+  const { db, calls } = createRecordingDb();
+  await updateSurveyPublicationStatuses(db, new Date("2026-04-15T00:00:00.000Z"));
+
+  assert.equal(calls.length, 2);
+  assert.match(calls[0].query, /UPDATE surveys/);
+  assert.match(calls[0].query, /SET status = 'closed'/);
+  assert.match(calls[0].query, /response_deadline_at <= \?/);
+  assert.match(calls[0].query, /status = 'active'/);
+  assert.match(calls[0].query, /status = 'draft' AND publish_starts_at IS NOT NULL/);
+  assert.deepEqual(calls[0].values, ["2026-04-15T00:00:00.000Z"]);
+
+  assert.match(calls[1].query, /SET status = 'active'/);
+  assert.match(calls[1].query, /publish_starts_at <= \?/);
+  assert.deepEqual(calls[1].values, [
+    "2026-04-15T00:00:00.000Z",
+    "2026-04-15T00:00:00.000Z",
+  ]);
 });

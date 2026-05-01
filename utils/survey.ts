@@ -11,11 +11,126 @@ import type {
 
 export const SURVEY_OTHER_OPTION_VALUE = "__other__";
 export const SURVEY_OTHER_OPTION_LABEL = "その他";
+const SURVEY_TIME_ZONE = "Asia/Tokyo";
+
+// 公開開始/回答期限の入力刻み (分)。
+// wrangler.jsonc / nuxt.config.ts の cron (*/15) と同期させること。
+export const SURVEY_SCHEDULE_GRANULARITY_MINUTES = 15;
 
 export function getSurveyStatusLabel(status: SurveyStatus): string {
   if (status === "draft") return "下書き";
   if (status === "active") return "受付中";
   return "受付終了";
+}
+
+function getJstDateParts(value: Date | string) {
+  const date = typeof value === "string" ? new Date(value) : value;
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  const parts = new Intl.DateTimeFormat("ja-JP", {
+    timeZone: SURVEY_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+
+  const entries = Object.fromEntries(
+    parts
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value]),
+  );
+
+  return {
+    year: entries.year ?? "",
+    month: entries.month ?? "",
+    day: entries.day ?? "",
+    hour: entries.hour ?? "",
+    minute: entries.minute ?? "",
+  };
+}
+
+function addDaysToJstDateTimeInputValue(value: string, days: number) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(value);
+  if (!match) {
+    return "";
+  }
+
+  const [, year, month, day, hour, minute] = match;
+  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+  date.setUTCDate(date.getUTCDate() + days);
+
+  const yyyy = date.getUTCFullYear();
+  const mm = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(date.getUTCDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}T${hour}:${minute}`;
+}
+
+export function toJstDateTimeInputValue(value: string | null | undefined) {
+  if (!value) {
+    return "";
+  }
+
+  const parts = getJstDateParts(value);
+  if (!parts) {
+    return "";
+  }
+
+  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`;
+}
+
+export function getDefaultSurveyPublishStartsAt(now = new Date()) {
+  const parts = getJstDateParts(now);
+  if (!parts) {
+    return "";
+  }
+
+  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:00`;
+}
+
+export function getDefaultSurveyResponseDeadlineAt(
+  publishStartsAt?: string | null,
+  now = new Date(),
+) {
+  const base = publishStartsAt?.trim() || getDefaultSurveyPublishStartsAt(now);
+  return addDaysToJstDateTimeInputValue(base, 1);
+}
+
+export function fromJstDateTimeInputValue(value: string | null | undefined) {
+  const trimmed = value?.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(trimmed);
+  if (!match) {
+    return null;
+  }
+
+  const [, year, month, day, hour, minute] = match;
+  return new Date(`${year}-${month}-${day}T${hour}:${minute}:00+09:00`).toISOString();
+}
+
+export function formatSurveyDateTime(value: string | null | undefined) {
+  const parts = value ? getJstDateParts(value) : null;
+  if (!parts) {
+    return "";
+  }
+
+  return `${parts.year}/${parts.month}/${parts.day} ${parts.hour}:${parts.minute}`;
+}
+
+export function buildSurveyAvailabilityText(survey: Pick<Survey, "publishStartsAt" | "responseDeadlineAt">) {
+  const labels = [
+    survey.publishStartsAt ? `開始 ${formatSurveyDateTime(survey.publishStartsAt)}` : "",
+    survey.responseDeadlineAt ? `期限 ${formatSurveyDateTime(survey.responseDeadlineAt)}` : "",
+  ].filter(Boolean);
+
+  return labels.join(" / ");
 }
 
 interface ParsedSurveySelectionAnswer {

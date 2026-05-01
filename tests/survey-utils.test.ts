@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   buildSurveyResultBlocks,
+  getDefaultSurveyPublishStartsAt,
+  getDefaultSurveyResponseDeadlineAt,
   parseMultipleChoiceAnswer,
   parseSurveyOptions,
   parseSurveySelectionAnswer,
@@ -63,6 +65,25 @@ const responses: SurveyResponse[] = [
   { questionId: 102, answer: " 参考になりました ", submittedAt: "2026-04-01T10:04:00Z" },
   { questionId: 102, answer: " ", submittedAt: "2026-04-01T10:05:00Z" },
 ];
+
+test("survey schedule defaults use JST and floor the publish time by hour", () => {
+  const publishStartsAt = getDefaultSurveyPublishStartsAt(
+    new Date("2026-05-01T07:23:45.000Z"),
+  );
+
+  assert.equal(publishStartsAt, "2026-05-01T16:00");
+  assert.equal(
+    getDefaultSurveyResponseDeadlineAt(publishStartsAt),
+    "2026-05-02T16:00",
+  );
+});
+
+test("survey response deadline default falls back to the default publish start", () => {
+  assert.equal(
+    getDefaultSurveyResponseDeadlineAt("", new Date("2026-05-01T07:23:45.000Z")),
+    "2026-05-02T16:00",
+  );
+});
 
 test("survey answer helpers normalize option values", () => {
   assert.deepEqual(parseSurveyOptions("[\"RAG\",\"評価\"]"), ["RAG", "評価"]);

@@ -14,6 +14,8 @@ interface SurveyRow {
   description: string | null;
   created_at: string;
   status: string;
+  publish_starts_at?: string | null;
+  response_deadline_at?: string | null;
 }
 
 interface SurveyCountRow {
@@ -83,6 +85,101 @@ export function parseSurveyStatus(
   });
 }
 
+function getTime(value: string | null | undefined): number | null {
+  if (!value) {
+    return null;
+  }
+
+  const time = Date.parse(value);
+  return Number.isFinite(time) ? time : null;
+}
+
+function isAtOrBefore(value: string | null | undefined, now: Date) {
+  const time = getTime(value);
+  return time !== null && time <= now.getTime();
+}
+
+function isAfter(value: string | null | undefined, now: Date) {
+  const time = getTime(value);
+  return time !== null && time > now.getTime();
+}
+
+// 入力刻みは utils/survey.ts の SURVEY_SCHEDULE_GRANULARITY_MINUTES と一致させること。
+function isQuarterHourDateTime(date: Date) {
+  return date.getUTCMinutes() % 15 === 0
+    && date.getUTCSeconds() === 0
+    && date.getUTCMilliseconds() === 0;
+}
+
+export function getEffectiveSurveyStatus(
+  row: Pick<SurveyRow, "status" | "publish_starts_at" | "response_deadline_at">,
+  now = new Date(),
+): SurveyStatus {
+  const status = parseSurveyStatus(row.status, "Invalid survey status in database.");
+
+  if (status !== "closed" && isAtOrBefore(row.response_deadline_at, now)) {
+    return "closed";
+  }
+
+  if (status === "draft" && isAtOrBefore(row.publish_starts_at, now)) {
+    return "active";
+  }
+
+  return status;
+}
+
+function isSurveyVisibleToUser(row: SurveyRow, now: Date) {
+  const status = getEffectiveSurveyStatus(row, now);
+
+  if (status === "draft") {
+    return false;
+  }
+
+  if (status === "active" && isAfter(row.publish_starts_at, now)) {
+    return false;
+  }
+
+  return true;
+}
+
+export function parseSurveyDateTime(
+  value: unknown,
+  message = "Invalid survey datetime.",
+): string | null {
+  if (value === undefined || value === null || value === "") {
+    return null;
+  }
+
+  if (typeof value !== "string") {
+    throw createError({ statusCode: 400, statusMessage: message });
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  const date = new Date(trimmed);
+  if (Number.isNaN(date.getTime()) || !isQuarterHourDateTime(date)) {
+    throw createError({ statusCode: 400, statusMessage: message });
+  }
+
+  return date.toISOString();
+}
+
+export function validateSurveyDateRange(
+  publishStartsAt: string | null,
+  responseDeadlineAt: string | null,
+  message = "Invalid survey datetime range.",
+): void {
+  const publishTime = getTime(publishStartsAt);
+  const deadlineTime = getTime(responseDeadlineAt);
+
+  if (publishTime !== null && deadlineTime !== null && deadlineTime <= publishTime) {
+    throw createError({ statusCode: 400, statusMessage: message });
+  }
+}
+
 function groupQuestionsBySurveyId(questionRows: QuestionRow[]) {
   const grouped = new Map<number, QuestionRow[]>();
 
@@ -124,13 +221,16 @@ function toSurvey(
   row: SurveyRow,
   questions: QuestionRow[],
   responseCount?: number,
+  now = new Date(),
 ): Survey {
   return {
     id: row.id,
     title: row.title,
     description: row.description ?? "",
     createdAt: row.created_at,
-    status: parseSurveyStatus(row.status, "Invalid survey status in database."),
+    status: getEffectiveSurveyStatus(row, now),
+    publishStartsAt: row.publish_starts_at ?? null,
+    responseDeadlineAt: row.response_deadline_at ?? null,
     responseCount,
     questions: [...questions]
       .sort((left, right) => left.sort_order - right.sort_order)
@@ -194,8 +294,9 @@ async function getSurveyResponseCounts(db: D1DatabaseLike) {
 export async function listSurveys(
   db: D1DatabaseLike,
   userEmail?: string,
-  options: { includeDraft?: boolean } = {},
+  options: { includeDraft?: boolean; now?: Date } = {},
 ): Promise<Survey[]> {
+  const now = options.now ?? new Date();
   const { results: surveyRows } = await db
     .prepare("SELECT * FROM surveys ORDER BY created_at DESC")
     .all<SurveyRow>();
@@ -220,12 +321,13 @@ export async function listSurveys(
   }
 
   return surveyRows
-    .filter((row) => options.includeDraft || row.status !== "draft")
+    .filter((row) => options.includeDraft || isSurveyVisibleToUser(row, now))
     .map((row) => ({
       ...toSurvey(
         row,
         questionsBySurveyId.get(row.id) ?? [],
         responseCountBySurveyId.get(row.id) ?? 0,
+        now,
       ),
       hasResponded: respondedSurveyIds.has(row.id),
     }));
@@ -234,14 +336,15 @@ export async function listSurveys(
 export async function getSurvey(
   db: D1DatabaseLike,
   id: number,
-  options: { includeDraft?: boolean } = {},
+  options: { includeDraft?: boolean; now?: Date } = {},
 ): Promise<Survey | null> {
+  const now = options.now ?? new Date();
   const surveyRow = await db
     .prepare("SELECT * FROM surveys WHERE id = ?")
     .bind(id)
     .first<SurveyRow>();
 
-  if (!surveyRow || (!options.includeDraft && surveyRow.status === "draft")) {
+  if (!surveyRow || (!options.includeDraft && !isSurveyVisibleToUser(surveyRow, now))) {
     return null;
   }
 
@@ -252,13 +355,13 @@ export async function getSurvey(
 
   const responseCountBySurveyId = await getSurveyResponseCounts(db);
 
-  return toSurvey(surveyRow, questionRows, responseCountBySurveyId.get(id) ?? 0);
+  return toSurvey(surveyRow, questionRows, responseCountBySurveyId.get(id) ?? 0, now);
 }
 
 export async function getRequiredSurvey(
   db: D1DatabaseLike,
   id: number,
-  options: { includeDraft?: boolean } = {},
+  options: { includeDraft?: boolean; now?: Date } = {},
 ): Promise<Survey> {
   const survey = await getSurvey(db, id, options);
 
@@ -270,6 +373,53 @@ export async function getRequiredSurvey(
   }
 
   return survey;
+}
+
+export function isSurveyAcceptingResponses(survey: Survey, now = new Date()) {
+  if (survey.status !== "active") {
+    return false;
+  }
+
+  if (isAfter(survey.publishStartsAt, now)) {
+    return false;
+  }
+
+  if (isAtOrBefore(survey.responseDeadlineAt, now)) {
+    return false;
+  }
+
+  return true;
+}
+
+export async function updateSurveyPublicationStatuses(
+  db: D1DatabaseLike,
+  now = new Date(),
+): Promise<void> {
+  const nowText = now.toISOString();
+
+  await db
+    .prepare(
+      `UPDATE surveys
+       SET status = 'closed'
+       WHERE status != 'closed'
+         AND response_deadline_at IS NOT NULL
+         AND response_deadline_at <= ?
+         AND (status = 'active' OR (status = 'draft' AND publish_starts_at IS NOT NULL))`,
+    )
+    .bind(nowText)
+    .first();
+
+  await db
+    .prepare(
+      `UPDATE surveys
+       SET status = 'active'
+       WHERE status = 'draft'
+         AND publish_starts_at IS NOT NULL
+         AND publish_starts_at <= ?
+         AND (response_deadline_at IS NULL OR response_deadline_at > ?)`,
+    )
+    .bind(nowText, nowText)
+    .first();
 }
 
 export async function getResponses(

@@ -15,6 +15,9 @@
     "db:migrate:local": "wrangler d1 execute nportal-db --local --file db/migrate.sql",
     "db:migrate:prod": "wrangler d1 execute nportal-db --remote --file db/migrate.sql",
     "db:migrate:preview": "wrangler d1 execute nportal-preview-db --remote --file db/migrate.sql",
+    "db:migrate:survey-schedule:local": "wrangler d1 execute nportal-db --local --file db/migrate-survey-schedule.sql",
+    "db:migrate:survey-schedule:prod": "wrangler d1 execute nportal-db --remote --file db/migrate-survey-schedule.sql",
+    "db:migrate:survey-schedule:preview": "wrangler d1 execute nportal-preview-db --remote --file db/migrate-survey-schedule.sql",
     "postinstall": "nuxt prepare"
   },
   "dependencies": {

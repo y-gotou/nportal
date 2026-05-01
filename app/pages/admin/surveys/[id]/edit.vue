@@ -1,5 +1,11 @@
 <script setup lang="ts">
 import type { SurveyGetResponse, SurveyQuestionType, SurveyStatus } from "~~/types/portal";
+import {
+  fromJstDateTimeInputValue,
+  getDefaultSurveyPublishStartsAt,
+  getDefaultSurveyResponseDeadlineAt,
+  toJstDateTimeInputValue,
+} from "~~/utils/survey";
 
 definePageMeta({ layout: "admin" });
 await useAdminGuard();
@@ -15,12 +21,23 @@ if (error.value || !data.value?.survey) {
 
 const survey = data.value.survey;
 const isQuestionEditingLocked = computed(() => (survey.responseCount ?? 0) > 0);
+const defaultPublishStartsAt = getDefaultSurveyPublishStartsAt();
 
 const form = reactive({
   title: survey.title,
   description: survey.description,
   status: survey.status as SurveyStatus,
+  publishStartsAt: toJstDateTimeInputValue(survey.publishStartsAt),
+  responseDeadlineAt: toJstDateTimeInputValue(survey.responseDeadlineAt),
 });
+
+const shouldShowPublishStartsAt = computed(() => form.status === "draft");
+const shouldShowResponseDeadlineAt = computed(() =>
+  form.status === "draft" || form.status === "active",
+);
+const defaultResponseDeadlineAt = computed(() =>
+  getDefaultSurveyResponseDeadlineAt(form.publishStartsAt || defaultPublishStartsAt),
+);
 
 interface QuestionDraft {
   questionText: string;
@@ -119,9 +136,32 @@ const errors = reactive<Record<string, string>>({});
 const isSubmitting = ref(false);
 const serverError = ref<string | null>(null);
 
+function getPublishStartsAtPayload() {
+  return shouldShowPublishStartsAt.value
+    ? fromJstDateTimeInputValue(form.publishStartsAt)
+    : null;
+}
+
+function getResponseDeadlineAtPayload() {
+  return shouldShowResponseDeadlineAt.value
+    ? fromJstDateTimeInputValue(form.responseDeadlineAt)
+    : null;
+}
+
 function validate() {
   const e: Record<string, string> = {};
   if (!form.title.trim()) e.title = "タイトルは必須です。";
+  const publishStartsAt = getPublishStartsAtPayload();
+  const responseDeadlineAt = getResponseDeadlineAtPayload();
+  if (shouldShowPublishStartsAt.value && form.publishStartsAt && !publishStartsAt) {
+    e.publishStartsAt = "公開開始日時の形式が正しくありません。";
+  }
+  if (shouldShowResponseDeadlineAt.value && form.responseDeadlineAt && !responseDeadlineAt) {
+    e.responseDeadlineAt = "回答期限の形式が正しくありません。";
+  }
+  if (publishStartsAt && responseDeadlineAt && responseDeadlineAt <= publishStartsAt) {
+    e.responseDeadlineAt = "回答期限は公開開始日時より後にしてください。";
+  }
   if (!isQuestionEditingLocked.value) {
     if (questions.value.length === 0) e.questions = "設問を1つ以上追加してください。";
     questions.value.forEach((q, i) => {
@@ -155,6 +195,8 @@ async function submit() {
         title: form.title.trim(),
         description: form.description.trim(),
         status: form.status,
+        publishStartsAt: getPublishStartsAtPayload(),
+        responseDeadlineAt: getResponseDeadlineAtPayload(),
       },
     });
 
@@ -226,7 +268,7 @@ useSeoMeta({ title: `${survey.title} を編集` });
           />
         </AdminFormField>
 
-        <AdminFormField label="状態" field-id="status">
+        <AdminFormField label="公開設定" field-id="status">
           <select
             id="status"
             v-model="form.status"
@@ -236,6 +278,38 @@ useSeoMeta({ title: `${survey.title} を編集` });
             <option value="active">受付中</option>
             <option value="closed">受付終了</option>
           </select>
+        </AdminFormField>
+
+        <AdminFormField
+          v-if="shouldShowPublishStartsAt"
+          label="公開開始日時"
+          field-id="publishStartsAt"
+          :error="errors.publishStartsAt"
+          inline
+          inline-label-class="w-28"
+        >
+          <AdminQuarterHourDateTimeInput
+            id="publishStartsAt"
+            v-model="form.publishStartsAt"
+            :default-value="defaultPublishStartsAt"
+            :invalid="Boolean(errors.publishStartsAt)"
+          />
+        </AdminFormField>
+
+        <AdminFormField
+          v-if="shouldShowResponseDeadlineAt"
+          label="回答期限"
+          field-id="responseDeadlineAt"
+          :error="errors.responseDeadlineAt"
+          inline
+          inline-label-class="w-28"
+        >
+          <AdminQuarterHourDateTimeInput
+            id="responseDeadlineAt"
+            v-model="form.responseDeadlineAt"
+            :default-value="defaultResponseDeadlineAt"
+            :invalid="Boolean(errors.responseDeadlineAt)"
+          />
         </AdminFormField>
       </div>
 

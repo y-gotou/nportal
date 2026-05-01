@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { secondaryButtonClass } from "~/utils/ui";
-import { getSurveyStatusLabel } from "~~/utils/survey";
+import {
+  buildSurveyAvailabilityText,
+  getSurveyStatusLabel,
+} from "~~/utils/survey";
 
 const route = useRoute();
 const surveyId = Number(route.params.id);
@@ -9,6 +12,7 @@ const { survey, responses, myAnswers } = await useSurveyDetail(surveyId, {
 });
 
 const hasResponded = computed(() => Object.keys(myAnswers).length > 0);
+const availabilityText = computed(() => buildSurveyAvailabilityText(survey));
 
 useSeoMeta({
   title: `${survey.title} の結果`,
@@ -56,6 +60,12 @@ useSeoMeta({
           class="rounded-full bg-green-50 px-3 py-1.5 text-sm font-medium text-green-700"
         >
           回答済み
+        </span>
+        <span
+          v-if="availabilityText"
+          class="rounded-full bg-slate-100 px-3 py-1.5 text-sm text-slate-600"
+        >
+          {{ availabilityText }}
         </span>
       </div>
     </div>

@@ -3,7 +3,9 @@ CREATE TABLE IF NOT EXISTS surveys (
   title TEXT NOT NULL,
   description TEXT,
   created_at TEXT DEFAULT (datetime('now')),
-  status TEXT NOT NULL DEFAULT 'draft'
+  status TEXT NOT NULL DEFAULT 'draft',
+  publish_starts_at TEXT,
+  response_deadline_at TEXT
 );
 
 CREATE TABLE IF NOT EXISTS questions (
@@ -35,6 +37,8 @@ CREATE TABLE IF NOT EXISTS submissions (
 CREATE INDEX IF NOT EXISTS idx_questions_survey_id ON questions(survey_id);
 CREATE INDEX IF NOT EXISTS idx_responses_question_id ON responses(question_id);
 CREATE INDEX IF NOT EXISTS idx_submissions_survey_user ON submissions(survey_id, user_email);
+CREATE INDEX IF NOT EXISTS idx_surveys_status_publish ON surveys(status, publish_starts_at);
+CREATE INDEX IF NOT EXISTS idx_surveys_status_deadline ON surveys(status, response_deadline_at);
 
 CREATE TABLE IF NOT EXISTS minutes (
   id           INTEGER PRIMARY KEY AUTOINCREMENT,

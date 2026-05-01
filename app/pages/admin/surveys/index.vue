@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import type { SurveyStatus, SurveysResponse } from "~~/types/portal";
-import { getSurveyStatusLabel } from "~~/utils/survey";
+import type { SurveysResponse } from "~~/types/portal";
+import {
+  buildSurveyAvailabilityText,
+  getSurveyStatusLabel,
+} from "~~/utils/survey";
 
 definePageMeta({ layout: "admin" });
 await useAdminGuard();
@@ -11,10 +14,21 @@ const { data } = await useFetch<SurveysResponse>("/api/surveys", {
 
 const surveys = computed(() => data.value?.surveys ?? []);
 
-function getStatusClass(status: SurveyStatus) {
-  if (status === "draft") return "bg-amber-50 text-amber-700";
-  if (status === "active") return "bg-green-50 text-green-700";
+function getAdminSurveyStatusClass(survey: SurveysResponse["surveys"][number]) {
+  if (survey.status === "draft" && survey.publishStartsAt) {
+    return "bg-amber-50 text-amber-700";
+  }
+  if (survey.status === "draft") return "bg-yellow-50 text-yellow-700";
+  if (survey.status === "active") return "bg-green-50 text-green-700";
   return "bg-slate-100 text-slate-500";
+}
+
+function getAdminSurveyStatusLabel(survey: SurveysResponse["surveys"][number]) {
+  if (survey.status === "draft" && survey.publishStartsAt) {
+    return "予約中";
+  }
+
+  return getSurveyStatusLabel(survey.status);
 }
 
 useSeoMeta({ title: "アンケート管理" });
@@ -39,6 +53,7 @@ useSeoMeta({ title: "アンケート管理" });
             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">タイトル</th>
             <th class="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 sm:table-cell">設問数</th>
             <th class="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 sm:table-cell">回答者数</th>
+            <th class="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 lg:table-cell">公開・期限</th>
             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">状態</th>
             <th class="px-4 py-3" />
           </tr>
@@ -54,12 +69,15 @@ useSeoMeta({ title: "アンケート管理" });
             <td class="hidden px-4 py-3 text-sm text-slate-600 sm:table-cell">
               {{ survey.responseCount ?? 0 }}人
             </td>
+            <td class="hidden px-4 py-3 text-sm text-slate-600 lg:table-cell">
+              {{ buildSurveyAvailabilityText(survey) || "未設定" }}
+            </td>
             <td class="px-4 py-3">
               <span
                 class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium"
-                :class="getStatusClass(survey.status)"
+                :class="getAdminSurveyStatusClass(survey)"
               >
-                {{ getSurveyStatusLabel(survey.status) }}
+                {{ getAdminSurveyStatusLabel(survey) }}
               </span>
             </td>
             <td class="px-4 py-3 text-right">

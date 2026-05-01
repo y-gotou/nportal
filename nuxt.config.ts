@@ -26,6 +26,13 @@ export default defineNuxtConfig({
   },
   nitro: {
     preset: "cloudflare_pages",
+    experimental: {
+      tasks: true,
+    },
+    // 周期は utils/survey.ts の SURVEY_SCHEDULE_GRANULARITY_MINUTES と同期させること。
+    scheduledTasks: {
+      "*/15 * * * *": ["surveys:update-status"],
+    },
   },
   routeRules: {
     "/api/**": { prerender: false },

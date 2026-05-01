@@ -71,6 +71,8 @@ export interface Survey {
   description: string;
   createdAt: string;
   status: SurveyStatus;
+  publishStartsAt?: string | null;
+  responseDeadlineAt?: string | null;
   responseCount?: number;
   hasResponded?: boolean;
   questions: SurveyQuestion[];

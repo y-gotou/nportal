@@ -1,5 +1,10 @@
 import { readBody } from "h3";
-import { getDb, parseSurveyStatus } from "~~/server/utils/survey";
+import {
+  getDb,
+  parseSurveyDateTime,
+  parseSurveyStatus,
+  validateSurveyDateRange,
+} from "~~/server/utils/survey";
 import { assertAdmin } from "~~/server/utils/admin";
 import type { SurveyQuestionType, SurveyStatus } from "~~/types/portal";
 
@@ -14,6 +19,8 @@ interface CreateSurveyBody {
   title?: string;
   description?: string;
   status?: SurveyStatus;
+  publishStartsAt?: string | null;
+  responseDeadlineAt?: string | null;
   questions?: QuestionInput[];
 }
 
@@ -30,18 +37,33 @@ export default defineEventHandler(async (event) => {
   const status = body.status
     ? parseSurveyStatus(body.status, "Invalid survey payload.")
     : "draft";
+  const publishStartsAt = parseSurveyDateTime(
+    body.publishStartsAt,
+    "Invalid survey payload.",
+  );
+  const responseDeadlineAt = parseSurveyDateTime(
+    body.responseDeadlineAt,
+    "Invalid survey payload.",
+  );
+  validateSurveyDateRange(
+    publishStartsAt,
+    responseDeadlineAt,
+    "Invalid survey payload.",
+  );
 
   // アンケート作成
   const surveyResult = await db
     .prepare(
-      `INSERT INTO surveys (title, description, status)
-       VALUES (?, ?, ?)
+      `INSERT INTO surveys (title, description, status, publish_starts_at, response_deadline_at)
+       VALUES (?, ?, ?, ?, ?)
        RETURNING id`,
     )
     .bind(
       body.title,
       body.description ?? "",
       status,
+      publishStartsAt,
+      responseDeadlineAt,
     )
     .first<{ id: number }>();
 
