@@ -18,7 +18,7 @@ import {
   surfaceCardClass,
   topicTagClass,
 } from "~/utils/ui";
-import { buildSurveyAvailabilityText } from "~~/utils/survey";
+import { formatSurveyResponseDeadline } from "~~/utils/survey";
 
 const today = getTodayDate();
 
@@ -45,7 +45,7 @@ const activeSurveys = computed(() =>
     .slice(0, 2)
     .map((survey) => ({
       survey,
-      availabilityText: buildSurveyAvailabilityText(survey),
+      deadlineText: formatSurveyResponseDeadline(survey),
     })),
 );
 
@@ -102,7 +102,7 @@ useSeoMeta({
 
       <div class="space-y-3">
         <article
-          v-for="{ survey, availabilityText } in activeSurveys"
+          v-for="{ survey, deadlineText } in activeSurveys"
           :key="survey.id"
           :class="surfaceCardClass"
         >
@@ -116,14 +116,12 @@ useSeoMeta({
                   受付中
                 </span>
               </div>
+              <p v-if="deadlineText" class="text-sm font-medium text-slate-600">{{ deadlineText }}</p>
               <p class="text-sm leading-6 text-slate-500">{{ survey.description }}</p>
               <div class="flex flex-wrap gap-2 text-sm text-slate-500">
                 <span class="rounded-full bg-slate-100 px-3 py-1">設問数 {{ survey.questions.length }}問</span>
                 <span class="rounded-full bg-slate-100 px-3 py-1">
                   回答者 {{ survey.responseCount ?? 0 }}人
-                </span>
-                <span v-if="availabilityText" class="rounded-full bg-slate-100 px-3 py-1">
-                  {{ availabilityText }}
                 </span>
               </div>
             </div>

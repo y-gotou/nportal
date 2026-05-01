@@ -17,7 +17,12 @@ export default defineTask({
     const db = (event.context as CloudflareTaskContext).cloudflare?.env?.DB;
 
     if (!db) {
-      throw new Error("Cloudflare D1 binding `DB` is not configured.");
+      // dev では cloudflare bindings が tasks に渡らないため no-op で抜ける。
+      // 本番 (Cloudflare cron trigger) では env.DB が解決される。
+      console.warn(
+        "[surveys:update-status] D1 binding `DB` is not available; skipping.",
+      );
+      return { result: { success: true } };
     }
 
     await updateSurveyPublicationStatuses(db);

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { secondaryButtonClass } from "~/utils/ui";
 import {
-  buildSurveyAvailabilityText,
+  formatSurveyResponseDeadline,
   getSurveyStatusLabel,
 } from "~~/utils/survey";
 
@@ -13,7 +13,7 @@ const { survey, responses, myAnswers } = await useSurveyDetail(surveyId, {
 
 const hasResponded = computed(() => Object.keys(myAnswers).length > 0);
 const canEdit = computed(() => survey.status === "active");
-const availabilityText = computed(() => buildSurveyAvailabilityText(survey));
+const deadlineText = computed(() => formatSurveyResponseDeadline(survey));
 const isEditing = ref(
   hasResponded.value && canEdit.value && route.query.edit === "1",
 );
@@ -49,6 +49,8 @@ useSeoMeta({
         :description="survey.description"
       />
 
+      <p v-if="deadlineText" class="text-sm font-medium text-slate-600">{{ deadlineText }}</p>
+
       <div class="flex flex-wrap gap-2">
         <span class="rounded-full bg-slate-100 px-3 py-1.5 text-sm text-slate-600">
           設問数: {{ survey.questions.length }}問
@@ -64,12 +66,6 @@ useSeoMeta({
           class="rounded-full bg-green-50 px-3 py-1.5 text-sm font-medium text-green-700"
         >
           回答済み
-        </span>
-        <span
-          v-if="availabilityText"
-          class="rounded-full bg-slate-100 px-3 py-1.5 text-sm text-slate-600"
-        >
-          {{ availabilityText }}
         </span>
       </div>
     </div>

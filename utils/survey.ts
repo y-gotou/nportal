@@ -133,6 +133,14 @@ export function buildSurveyAvailabilityText(survey: Pick<Survey, "publishStartsA
   return labels.join(" / ");
 }
 
+export function formatSurveyResponseDeadline(survey: Pick<Survey, "responseDeadlineAt">) {
+  if (!survey.responseDeadlineAt) {
+    return "";
+  }
+
+  return `回答期限: ${formatSurveyDateTime(survey.responseDeadlineAt)}`;
+}
+
 interface ParsedSurveySelectionAnswer {
   selected: string[];
   otherText: string;

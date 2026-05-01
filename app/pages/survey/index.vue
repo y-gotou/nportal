@@ -6,7 +6,7 @@ import {
   surfaceCardClass,
 } from "~/utils/ui";
 import {
-  buildSurveyAvailabilityText,
+  formatSurveyResponseDeadline,
   getSurveyStatusLabel,
 } from "~~/utils/survey";
 
@@ -15,7 +15,7 @@ const { data, error } = await useFetch<SurveysResponse>("/api/surveys");
 const surveys = computed(() =>
   (data.value?.surveys ?? []).map((survey) => ({
     survey,
-    availabilityText: buildSurveyAvailabilityText(survey),
+    deadlineText: formatSurveyResponseDeadline(survey),
   })),
 );
 
@@ -47,7 +47,7 @@ useSeoMeta({
 
     <div v-else-if="surveys.length" class="space-y-3">
       <article
-        v-for="{ survey, availabilityText } in surveys"
+        v-for="{ survey, deadlineText } in surveys"
         :key="survey.id"
         :class="surfaceCardClass"
       >
@@ -70,14 +70,12 @@ useSeoMeta({
                 回答済み
               </span>
             </div>
+            <p v-if="deadlineText" class="text-sm font-medium text-slate-600">{{ deadlineText }}</p>
             <p class="text-sm leading-6 text-slate-500">{{ survey.description }}</p>
             <div class="flex flex-wrap gap-2 text-sm text-slate-500">
               <span class="rounded-full bg-slate-100 px-3 py-1">設問数 {{ survey.questions.length }}問</span>
               <span class="rounded-full bg-slate-100 px-3 py-1">
                 回答者 {{ survey.responseCount ?? 0 }}人
-              </span>
-              <span v-if="availabilityText" class="rounded-full bg-slate-100 px-3 py-1">
-                {{ availabilityText }}
               </span>
             </div>
           </div>
