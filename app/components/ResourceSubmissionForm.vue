@@ -18,6 +18,31 @@ const selectedFile = ref<File | null>(null);
 const isSubmitting = ref(false);
 const serverError = ref<string | null>(null);
 const sourceMode = ref<"url" | "file">("url");
+const currentUser = useCurrentUser();
+const canSubmitZip = computed(() => currentUser.value?.isAdmin === true);
+const fileAccept = computed(() => [
+  ".pdf",
+  ".ppt",
+  ".pptx",
+  ".doc",
+  ".docx",
+  ".xls",
+  ".xlsx",
+  ".csv",
+  ".txt",
+  ".md",
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".gif",
+  ".webp",
+  ...(canSubmitZip.value ? [".zip"] : []),
+].join(","));
+const fileHint = computed(() =>
+  canSubmitZip.value
+    ? "50MB まで。PDF、Office、画像、CSV、テキスト等に対応します。"
+    : "50MB まで。PDF、Office、画像、CSV、テキスト等に対応します。zipは管理者のみ投稿できます。",
+);
 
 const form = reactive({
   title: "",
@@ -80,6 +105,10 @@ function onFileChange(event: Event) {
   selectedFile.value = input.files?.[0] ?? null;
 }
 
+function isZipFile(file: File): boolean {
+  return file.name.toLowerCase().endsWith(".zip");
+}
+
 function validate() {
   const nextErrors: Record<string, string> = {};
   const hasSelectedUrl = sourceMode.value === "url" && Boolean(form.url.trim());
@@ -94,6 +123,13 @@ function validate() {
     nextErrors.source = "URLを入力してください。";
   } else if (sourceMode.value === "file" && !hasSelectedFile && !canKeepExistingFile) {
     nextErrors.source = "ファイルを選択してください。";
+  } else if (
+    sourceMode.value === "file" &&
+    selectedFile.value &&
+    isZipFile(selectedFile.value) &&
+    !canSubmitZip.value
+  ) {
+    nextErrors.source = "zipは管理者のみ投稿できます。";
   }
 
   Object.keys(errors).forEach((key) => delete errors[key]);
@@ -191,13 +227,13 @@ async function submit() {
         label="ファイル"
         field-id="resource-file"
         :error="errors.source"
-        hint="50MB まで。PDF、Office、画像、CSV、テキスト等に対応します。"
+        :hint="fileHint"
       >
         <input
           id="resource-file"
           ref="fileInput"
           type="file"
-          accept=".pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.csv,.txt,.md,.png,.jpg,.jpeg,.gif,.webp"
+          :accept="fileAccept"
           class="block w-full text-sm text-slate-700 file:mr-4 file:rounded-lg file:border-0 file:bg-slate-100 file:px-4 file:py-2 file:text-sm file:font-medium file:text-slate-700 hover:file:bg-slate-200"
           @change="onFileChange"
         >

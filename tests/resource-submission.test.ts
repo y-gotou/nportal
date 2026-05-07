@@ -14,6 +14,7 @@ test("resource file helpers validate allowed files and infer resource types", ()
   assert.equal(inferResourceType({ url: "https://example.com/doc" }), "URL");
   assert.equal(inferResourceType({ fileName: "deck.pptx" }), "PowerPoint");
   assert.equal(inferResourceType({ fileName: "notes.md" }), "Markdown");
+  assert.equal(inferResourceType({ fileName: "archive.zip" }), "ZIP");
   assert.equal(sanitizeFileName("../demo deck.pdf"), "demo deck.pdf");
   assert.equal(sanitizeFileName("../営業資料.pptx"), "営業資料.pptx");
   assert.equal(
@@ -26,6 +27,22 @@ test("resource file helpers validate allowed files and infer resource types", ()
       fileName: "deck.pdf",
       size: 1024,
       mimeType: "application/pdf",
+    }),
+  );
+
+  assert.doesNotThrow(() =>
+    validateResourceFile({
+      fileName: "archive.zip",
+      size: 1024,
+      mimeType: "application/zip",
+    }, { allowZip: true }),
+  );
+
+  assert.throws(() =>
+    validateResourceFile({
+      fileName: "archive.zip",
+      size: 1024,
+      mimeType: "application/zip",
     }),
   );
 
@@ -68,7 +85,9 @@ test("resources page and shared form expose user submission controls", async () 
   assert.match(form, /isDirty/);
   assert.match(form, /資料の投稿方法/);
   assert.match(form, /type="file"/);
-  assert.match(form, /accept="\.pdf,\.ppt,\.pptx/);
+  assert.match(form, /canSubmitZip/);
+  assert.match(form, /:accept="fileAccept"/);
+  assert.match(form, /zipは管理者のみ投稿できます/);
   assert.doesNotMatch(form, /onUrlInput/);
   assert.doesNotMatch(form, /form\.url = ""/);
 });

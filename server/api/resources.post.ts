@@ -26,7 +26,7 @@ function getFilePart(parts: Awaited<ReturnType<typeof readMultipartFormData>>) {
 }
 
 export default defineEventHandler(async (event) => {
-  const user = event.context.user as { email: string } | undefined;
+  const user = event.context.user as { email: string; isAdmin?: boolean } | undefined;
   if (!user) {
     throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
   }
@@ -63,7 +63,7 @@ export default defineEventHandler(async (event) => {
   const fileName = sanitizeFileName(file?.filename);
   const mimeType = file?.type || "application/octet-stream";
   const size = file?.data.byteLength ?? 0;
-  validateResourceFile({ fileName, size, mimeType });
+  validateResourceFile({ fileName, size, mimeType }, { allowZip: user.isAdmin === true });
 
   const bucket = getResourcesBucket(event);
   const fileKey = createResourceObjectKey(event, fileName);

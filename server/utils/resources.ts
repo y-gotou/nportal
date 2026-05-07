@@ -68,6 +68,7 @@ const RESOURCE_TYPE_BY_EXTENSION: Record<string, string> = {
   jpeg: "Image",
   gif: "Image",
   webp: "Image",
+  zip: "ZIP",
 };
 
 const MIME_TYPES_BY_EXTENSION: Record<string, string[]> = {
@@ -86,6 +87,7 @@ const MIME_TYPES_BY_EXTENSION: Record<string, string[]> = {
   jpeg: ["image/jpeg"],
   gif: ["image/gif"],
   webp: ["image/webp"],
+  zip: ["application/zip", "application/x-zip-compressed", "application/octet-stream"],
 };
 
 function toResourceItem(row: ResourceRow, user?: ResourceUser): ResourceItem {
@@ -223,7 +225,10 @@ export function inferResourceType(input: { fileName?: string | null; url?: strin
   return "File";
 }
 
-export function validateResourceFile(file: { fileName: string; size: number; mimeType?: string | null }) {
+export function validateResourceFile(
+  file: { fileName: string; size: number; mimeType?: string | null },
+  options: { allowZip?: boolean } = {},
+) {
   if (file.size < 1) {
     throw createError({ statusCode: 400, statusMessage: "file is empty." });
   }
@@ -237,6 +242,13 @@ export function validateResourceFile(file: { fileName: string; size: number; mim
 
   if (!allowedMimes) {
     throw createError({ statusCode: 400, statusMessage: "file extension is not allowed." });
+  }
+
+  if (extension === "zip" && options.allowZip !== true) {
+    throw createError({
+      statusCode: 403,
+      statusMessage: "zip files can only be submitted by administrators.",
+    });
   }
 
   const mimeType = file.mimeType?.toLowerCase();
