@@ -74,7 +74,11 @@ useSeoMeta({
       </div>
     </section>
 
-    <section v-if="past.length" class="mt-10 space-y-4">
+    <section
+      v-if="past.length"
+      class="space-y-4"
+      :class="{ 'mt-10': upcoming.length }"
+    >
       <SectionHeader title="開催済みの回" />
 
       <div class="space-y-3">

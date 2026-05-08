@@ -136,7 +136,11 @@ useSeoMeta({
       </div>
     </section>
 
-    <section v-if="recentMinutes.length" class="mt-10 space-y-4">
+    <section
+      v-if="recentMinutes.length"
+      class="space-y-4"
+      :class="{ 'mt-10': nextEvent || activeSurveys.length }"
+    >
       <SectionHeader
         title="最近の議事録"
       >
