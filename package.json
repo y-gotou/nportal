@@ -9,12 +9,12 @@
     "test": "node --experimental-strip-types --test tests/*.test.ts tests/*.test.mjs",
     "check": "npm run typecheck && npm run build",
     "preview": "npm run build && wrangler pages dev dist",
-    "db:seed:local": "wrangler d1 execute nportal-db --local --file db/schema.sql && wrangler d1 execute nportal-db --local --file db/seed.sql",
-    "db:seed:prod": "wrangler d1 execute nportal-db --remote --file db/schema.sql && wrangler d1 execute nportal-db --remote --file db/seed.sql",
-    "db:seed:preview": "wrangler d1 execute nportal-preview-db --remote --file db/schema.sql && wrangler d1 execute nportal-preview-db --remote --file db/seed.sql",
-    "db:migrate:local": "wrangler d1 execute nportal-db --local --file db/migrate.sql",
-    "db:migrate:prod": "wrangler d1 execute nportal-db --remote --file db/migrate.sql",
-    "db:migrate:preview": "wrangler d1 execute nportal-preview-db --remote --file db/migrate.sql",
+    "db:seed:local": "node scripts/d1-execute.mjs local db/schema.sql && node scripts/d1-execute.mjs local db/seed.sql",
+    "db:seed:prod": "node scripts/d1-execute.mjs prod db/schema.sql && node scripts/d1-execute.mjs prod db/seed.sql",
+    "db:seed:preview": "node scripts/d1-execute.mjs preview db/schema.sql && node scripts/d1-execute.mjs preview db/seed.sql",
+    "db:migrate:local": "node scripts/d1-execute.mjs local db/migrate.sql",
+    "db:migrate:prod": "node scripts/d1-execute.mjs prod db/migrate.sql",
+    "db:migrate:preview": "node scripts/d1-execute.mjs preview db/migrate.sql",
     "postinstall": "nuxt prepare"
   },
   "dependencies": {

@@ -3,6 +3,11 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineNuxtConfig({
   compatibilityDate: "2026-03-31",
   devtools: { enabled: false },
+  runtimeConfig: {
+    public: {
+      loginDomainLabel: "",
+    },
+  },
   modules: ["nitro-cloudflare-dev"],
   app: {
     head: {

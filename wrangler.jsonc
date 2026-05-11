@@ -3,45 +3,5 @@
   "name": "nportal",
   "pages_build_output_dir": "dist",
   "compatibility_date": "2026-03-31",
-  "compatibility_flags": ["nodejs_compat"],
-  "vars": {
-    "CF_ACCESS_TEAM_DOMAIN": "d2sol-nsp.cloudflareaccess.com",
-    "CF_ACCESS_AUD": "13e0a1448713f09f0f61639765930aff48dbba382e7775d2f3d104851064a7e4",
-    "RESOURCE_OBJECT_PREFIX": "production"
-  },
-  "r2_buckets": [
-    {
-      "binding": "RESOURCES_BUCKET",
-      "bucket_name": "nportal-resources"
-    }
-  ],
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "nportal-db",
-      "database_id": "94ed6116-8e30-453c-8356-f87f065040d0"
-    }
-  ],
-  "env": {
-    "preview": {
-      "vars": {
-        "CF_ACCESS_TEAM_DOMAIN": "d2sol-nsp.cloudflareaccess.com",
-        "CF_ACCESS_AUD": "13e0a1448713f09f0f61639765930aff48dbba382e7775d2f3d104851064a7e4",
-        "RESOURCE_OBJECT_PREFIX": "preview"
-      },
-      "r2_buckets": [
-        {
-          "binding": "RESOURCES_BUCKET",
-          "bucket_name": "nportal-resources"
-        }
-      ],
-      "d1_databases": [
-        {
-          "binding": "DB",
-          "database_name": "nportal-preview-db",
-          "database_id": "1e220f4f-15d5-489e-ad17-6258d9b279b7"
-        }
-      ]
-    }
-  }
+  "compatibility_flags": ["nodejs_compat"]
 }

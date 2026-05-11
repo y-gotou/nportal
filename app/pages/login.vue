@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const loginDomainLabel = useRuntimeConfig().public.loginDomainLabel;
+
 useSeoMeta({
   title: "ログインが必要です",
 });
@@ -30,7 +32,12 @@ useSeoMeta({
         </h1>
         <p class="text-sm leading-6 text-slate-500">
           N Portal は社内メンバー限定のサービスです。<br>
-          アクセスするには @d2sol.co.jp アカウントでのログインが必要です。
+          <template v-if="loginDomainLabel">
+            アクセスするには {{ loginDomainLabel }} アカウントでのログインが必要です。
+          </template>
+          <template v-else>
+            アクセスするには許可された社内アカウントでのログインが必要です。
+          </template>
         </p>
       </div>
 

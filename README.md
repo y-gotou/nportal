@@ -55,26 +55,28 @@ server/
   utils/        D1 アクセス
 types/
   portal.ts     共有型
-wrangler.jsonc  Pages/D1 設定
+wrangler.jsonc  Pages ビルド設定
 ```
 
 ## Cloudflare 構成
 
-- Pages project: `nportal`
-- Production D1: `nportal-db`
-- Preview D1: `nportal-preview-db`
-- R2 bucket: `nportal-resources`
+- Pages project: Cloudflare Pages 側で設定
+- Production / Preview D1: Cloudflare Pages 側で binding `DB` を設定
+- R2 bucket: Cloudflare Pages 側で binding `RESOURCES_BUCKET` を設定
 - R2 binding: `RESOURCES_BUCKET`
 - Build command: `npm run build`
 - Build output directory: `dist`
+- 環境変数の例: `.env.example`
 
 ## GitHub / Cloudflare 運用
 
-1. GitHub に `nportal` リポジトリを作成する
+1. GitHub に公開リポジトリを作成する
 2. `main` ブランチを push する
-3. Cloudflare Pages で GitHub リポジトリ `y-gotou/nportal` を import する
+3. Cloudflare Pages で GitHub リポジトリを import する
 4. Preview / Production の D1 binding `DB` と R2 binding `RESOURCES_BUCKET` を紐付ける
 5. `main` push で本番、PR/branch push で Preview が自動デプロイされる
+
+社内共同管理の詳細な運用ルールは [docs/operation.md](docs/operation.md) を参照してください。
 
 ## メモ
 
