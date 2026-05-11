@@ -1,0 +1,47 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "your-pages-project",
+  "pages_build_output_dir": "dist",
+  "compatibility_date": "2026-03-31",
+  "compatibility_flags": ["nodejs_compat"],
+  "vars": {
+    "CF_ACCESS_TEAM_DOMAIN": "your-team.cloudflareaccess.com",
+    "CF_ACCESS_AUD": "your-cloudflare-access-aud",
+    "RESOURCE_OBJECT_PREFIX": "production"
+  },
+  "r2_buckets": [
+    {
+      "binding": "RESOURCES_BUCKET",
+      "bucket_name": "your-r2-bucket"
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "your-production-d1-database",
+      "database_id": "your-production-d1-database-id"
+    }
+  ],
+  "env": {
+    "preview": {
+      "vars": {
+        "CF_ACCESS_TEAM_DOMAIN": "your-team.cloudflareaccess.com",
+        "CF_ACCESS_AUD": "your-cloudflare-access-aud",
+        "RESOURCE_OBJECT_PREFIX": "preview"
+      },
+      "r2_buckets": [
+        {
+          "binding": "RESOURCES_BUCKET",
+          "bucket_name": "your-r2-bucket"
+        }
+      ],
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "your-preview-d1-database",
+          "database_id": "your-preview-d1-database-id"
+        }
+      ]
+    }
+  }
+}

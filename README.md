@@ -55,7 +55,7 @@ server/
   utils/        D1 アクセス
 types/
   portal.ts     共有型
-wrangler.jsonc  Pages ビルド設定
+wrangler.example.jsonc  Pages/D1/R2 設定例
 ```
 
 ## Cloudflare 構成
@@ -67,6 +67,8 @@ wrangler.jsonc  Pages ビルド設定
 - Build command: `npm run build`
 - Build output directory: `dist`
 - 環境変数の例: `.env.example`
+
+`wrangler.jsonc` をリポジトリに配置すると、Cloudflare Pages の dashboard 側 bindings を上書きする可能性があります。公開リポジトリでは実設定を Git 管理せず、Cloudflare Pages 側で環境変数と bindings を管理します。
 
 ## GitHub / Cloudflare 運用
 
