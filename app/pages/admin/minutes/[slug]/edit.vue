@@ -71,9 +71,9 @@ useSeoMeta({ title: `${minutes.title} を編集` });
   <div class="space-y-6">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <NuxtLink to="/admin/minutes" class="text-sm text-slate-500 hover:text-slate-700">議事録</NuxtLink>
-        <span class="text-slate-300">/</span>
-        <h1 class="text-xl font-bold tracking-tight text-slate-900">編集</h1>
+        <NuxtLink to="/admin/minutes" class="text-sm text-muted hover:text-foreground">議事録</NuxtLink>
+        <span class="text-border">/</span>
+        <h1 class="text-xl font-bold tracking-tight text-foreground">編集</h1>
       </div>
       <AdminDeleteButton
         :fetch-url="`/api/admin/minutes/${slug}`"
@@ -82,7 +82,7 @@ useSeoMeta({ title: `${minutes.title} を編集` });
       />
     </div>
 
-    <form class="space-y-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm" @submit.prevent="submit">
+    <form class="space-y-6 rounded-xl border border-border bg-surface p-6 shadow-sm" @submit.prevent="submit">
       <p v-if="serverError" class="rounded-lg bg-red-50 p-3 text-sm text-red-600" role="alert">{{ serverError }}</p>
 
       <div class="grid gap-5 sm:grid-cols-2">
@@ -91,7 +91,7 @@ useSeoMeta({ title: `${minutes.title} を編集` });
             id="slug-display"
             :value="slug"
             type="text"
-            class="w-full rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-500"
+            class="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-muted"
             disabled
           >
         </AdminFormField>
@@ -101,7 +101,7 @@ useSeoMeta({ title: `${minutes.title} を編集` });
             id="date"
             v-model="form.date"
             type="date"
-            class="w-full rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-500"
+            class="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-muted"
             :class="errors.date ? 'border-red-300' : ''"
             disabled
           >
@@ -113,7 +113,7 @@ useSeoMeta({ title: `${minutes.title} を編集` });
           id="title"
           v-model="form.title"
           type="text"
-          class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          class="w-full rounded-lg border border-border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           :class="errors.title ? 'border-red-300' : ''"
         >
       </AdminFormField>
@@ -123,7 +123,7 @@ useSeoMeta({ title: `${minutes.title} を編集` });
           id="attendees"
           v-model="form.attendees"
           type="text"
-          class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          class="w-full rounded-lg border border-border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           :class="errors.attendees ? 'border-red-300' : ''"
         >
       </AdminFormField>
@@ -133,7 +133,7 @@ useSeoMeta({ title: `${minutes.title} を編集` });
           id="topics"
           v-model="form.topics"
           type="text"
-          class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          class="w-full rounded-lg border border-border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           :class="errors.topics ? 'border-red-300' : ''"
         >
       </AdminFormField>
@@ -143,7 +143,7 @@ useSeoMeta({ title: `${minutes.title} を編集` });
           id="contentMd"
           v-model="form.contentMd"
           rows="16"
-          class="w-full rounded-lg border border-slate-200 px-3 py-2 font-mono text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          class="w-full rounded-lg border border-border px-3 py-2 font-mono text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
         />
       </AdminFormField>
 
@@ -155,7 +155,7 @@ useSeoMeta({ title: `${minutes.title} を編集` });
         >
           {{ isSubmitting ? "更新中..." : "保存する" }}
         </button>
-        <NuxtLink to="/admin/minutes" class="inline-flex items-center rounded-lg border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100">
+        <NuxtLink to="/admin/minutes" class="inline-flex items-center rounded-lg border border-border px-5 py-2.5 text-sm font-medium text-foreground hover:bg-surface-hover">
           キャンセル
         </NuxtLink>
       </div>

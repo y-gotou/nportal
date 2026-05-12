@@ -35,9 +35,9 @@ useSeoMeta({ title: `${item.title} を編集` });
   <div class="space-y-6">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <NuxtLink to="/admin/resources" class="text-sm text-slate-500 hover:text-slate-700">資料</NuxtLink>
-        <span class="text-slate-300">/</span>
-        <h1 class="text-xl font-bold tracking-tight text-slate-900">編集</h1>
+        <NuxtLink to="/admin/resources" class="text-sm text-muted hover:text-foreground">資料</NuxtLink>
+        <span class="text-border">/</span>
+        <h1 class="text-xl font-bold tracking-tight text-foreground">編集</h1>
       </div>
       <AdminDeleteButton
         :fetch-url="`/api/admin/resources/${id}`"

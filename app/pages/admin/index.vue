@@ -69,29 +69,29 @@ useSeoMeta({ title: "ダッシュボード" });
 
 <template>
   <div class="space-y-6">
-    <h1 class="text-xl font-bold tracking-tight text-slate-900">ダッシュボード</h1>
+    <h1 class="text-xl font-bold tracking-tight text-foreground">ダッシュボード</h1>
 
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <div
         v-for="stat in stats"
         :key="stat.label"
-        class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+        class="rounded-xl border border-border bg-surface p-5 shadow-sm"
       >
-        <p class="text-sm font-medium text-slate-500">{{ stat.label }}</p>
-        <p class="mt-1 text-3xl font-bold tracking-tight text-slate-900">{{ stat.count }}</p>
-        <p v-if="stat.subLabel" class="text-xs text-amber-600">{{ stat.subLabel }}</p>
+        <p class="text-sm font-medium text-muted">{{ stat.label }}</p>
+        <p class="mt-1 text-3xl font-bold tracking-tight text-foreground">{{ stat.count }}</p>
+        <p v-if="stat.subLabel" class="text-xs text-amber-600 dark:text-amber-400">{{ stat.subLabel }}</p>
         <div class="mt-4 flex gap-2">
           <NuxtLink
             :to="stat.to"
-            class="text-xs font-medium text-blue-600 hover:underline"
+            class="text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
           >
             一覧
           </NuxtLink>
           <template v-if="stat.newTo">
-            <span class="text-slate-300">|</span>
+            <span class="text-border">|</span>
             <NuxtLink
               :to="stat.newTo"
-              class="text-xs font-medium text-blue-600 hover:underline"
+              class="text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
             >
               新規追加
             </NuxtLink>

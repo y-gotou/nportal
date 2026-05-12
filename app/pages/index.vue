@@ -104,17 +104,17 @@ useSeoMeta({
           <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div class="min-w-0 space-y-2">
               <div class="flex min-w-0 flex-wrap items-start gap-2">
-                <h2 class="min-w-0 text-pretty text-xl font-semibold tracking-tight text-slate-900">
+                <h2 class="min-w-0 text-pretty text-xl font-semibold tracking-tight text-foreground">
                   {{ survey.title }}
                 </h2>
                 <span class="shrink-0 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-600">
                   受付中
                 </span>
               </div>
-              <p class="text-sm leading-6 text-slate-500">{{ survey.description }}</p>
-              <div class="flex flex-wrap gap-2 text-sm text-slate-500">
-                <span class="rounded-full bg-slate-100 px-3 py-1">設問数 {{ survey.questions.length }}問</span>
-                <span class="rounded-full bg-slate-100 px-3 py-1">
+              <p class="text-sm leading-6 text-muted">{{ survey.description }}</p>
+              <div class="flex flex-wrap gap-2 text-sm text-muted">
+                <span class="rounded-full bg-surface-hover px-3 py-1">設問数 {{ survey.questions.length }}問</span>
+                <span class="rounded-full bg-surface-hover px-3 py-1">
                   回答者 {{ survey.responseCount ?? 0 }}人
                 </span>
               </div>
@@ -159,10 +159,10 @@ useSeoMeta({
           :class="`${interactiveCardClass} block p-5`"
         >
           <div class="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
-            <h3 class="text-pretty text-lg font-semibold tracking-tight text-slate-900">
+            <h3 class="text-pretty text-lg font-semibold tracking-tight text-foreground">
               {{ minutes.title }}
             </h3>
-            <p class="shrink-0 text-sm text-slate-500">{{ formatDisplayDate(minutes.date) }}</p>
+            <p class="shrink-0 text-sm text-muted">{{ formatDisplayDate(minutes.date) }}</p>
           </div>
           <div class="mt-3 flex flex-wrap gap-2">
             <span
@@ -196,11 +196,11 @@ useSeoMeta({
         >
           <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div class="min-w-0 space-y-2">
-              <p class="text-sm text-slate-500">
+              <p class="text-sm text-muted">
                 {{ formatDisplayDate(resource.date) }}
-                <span class="ml-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-500">{{ resource.type }}</span>
+                <span class="ml-1 rounded-full bg-surface-hover px-2.5 py-1 text-xs text-muted">{{ resource.type }}</span>
               </p>
-              <h3 class="text-pretty text-lg font-semibold tracking-tight text-slate-900">
+              <h3 class="text-pretty text-lg font-semibold tracking-tight text-foreground">
                 {{ resource.title }}
               </h3>
               <div class="flex flex-wrap gap-2">

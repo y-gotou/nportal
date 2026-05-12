@@ -59,12 +59,12 @@ useSeoMeta({ title: "スケジュールを作成" });
 <template>
   <div class="space-y-6">
     <div class="flex items-center gap-3">
-      <NuxtLink to="/admin/schedule" class="text-sm text-slate-500 hover:text-slate-700">スケジュール</NuxtLink>
-      <span class="text-slate-300">/</span>
-      <h1 class="text-xl font-bold tracking-tight text-slate-900">新規作成</h1>
+      <NuxtLink to="/admin/schedule" class="text-sm text-muted hover:text-foreground">スケジュール</NuxtLink>
+      <span class="text-border">/</span>
+      <h1 class="text-xl font-bold tracking-tight text-foreground">新規作成</h1>
     </div>
 
-    <form class="space-y-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm" @submit.prevent="submit">
+    <form class="space-y-6 rounded-xl border border-border bg-surface p-6 shadow-sm" @submit.prevent="submit">
       <p v-if="serverError" class="rounded-lg bg-red-50 p-3 text-sm text-red-600" role="alert">{{ serverError }}</p>
 
       <div class="grid gap-5 sm:grid-cols-2">
@@ -73,7 +73,7 @@ useSeoMeta({ title: "スケジュールを作成" });
             id="date"
             v-model="form.date"
             type="date"
-            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            class="w-full rounded-lg border border-border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             :class="errors.date ? 'border-red-300' : ''"
           >
         </AdminFormField>
@@ -83,7 +83,7 @@ useSeoMeta({ title: "スケジュールを作成" });
             id="time"
             v-model="form.time"
             type="time"
-            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            class="w-full rounded-lg border border-border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             :class="errors.time ? 'border-red-300' : ''"
           >
         </AdminFormField>
@@ -94,7 +94,7 @@ useSeoMeta({ title: "スケジュールを作成" });
           id="title"
           v-model="form.title"
           type="text"
-          class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          class="w-full rounded-lg border border-border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           :class="errors.title ? 'border-red-300' : ''"
           placeholder="第1回 社内AI勉強会"
         >
@@ -105,7 +105,7 @@ useSeoMeta({ title: "スケジュールを作成" });
           id="topics"
           v-model="form.topics"
           type="text"
-          class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          class="w-full rounded-lg border border-border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           placeholder="ChatGPT, プロンプト設計"
         >
       </AdminFormField>
@@ -115,7 +115,7 @@ useSeoMeta({ title: "スケジュールを作成" });
           id="location"
           v-model="form.location"
           type="text"
-          class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          class="w-full rounded-lg border border-border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           placeholder="会議室A / オンライン"
         >
       </AdminFormField>
@@ -125,7 +125,7 @@ useSeoMeta({ title: "スケジュールを作成" });
           id="meetingUrl"
           v-model="form.meetingUrl"
           type="url"
-          class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          class="w-full rounded-lg border border-border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           placeholder="https://..."
         >
       </AdminFormField>
@@ -138,7 +138,7 @@ useSeoMeta({ title: "スケジュールを作成" });
         >
           {{ isSubmitting ? "作成中..." : "作成する" }}
         </button>
-        <NuxtLink to="/admin/schedule" class="inline-flex items-center rounded-lg border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100">
+        <NuxtLink to="/admin/schedule" class="inline-flex items-center rounded-lg border border-border px-5 py-2.5 text-sm font-medium text-foreground hover:bg-surface-hover">
           キャンセル
         </NuxtLink>
       </div>

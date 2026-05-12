@@ -47,33 +47,32 @@ useSeoMeta({
       />
 
       <div class="flex flex-wrap gap-2">
-        <span class="rounded-full bg-slate-100 px-3 py-1.5 text-sm text-slate-600">
+        <span class="rounded-full bg-surface-hover px-3 py-1.5 text-sm text-muted">
           設問数: {{ survey.questions.length }}問
         </span>
         <span
           class="rounded-full px-3 py-1.5 text-sm font-medium"
-          :class="canEdit ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-500'"
+          :class="canEdit ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' : 'bg-surface-hover text-muted'"
         >
           {{ getSurveyStatusLabel(survey.status) }}
         </span>
         <span
           v-if="hasResponded"
-          class="rounded-full bg-green-50 px-3 py-1.5 text-sm font-medium text-green-700"
+          class="rounded-full bg-green-50 px-3 py-1.5 text-sm font-medium text-green-700 dark:bg-green-900/20 dark:text-green-400"
         >
           回答済み
         </span>
       </div>
     </div>
 
-    <!-- 回答済み & 未編集モード -->
     <div
       v-if="hasResponded && !isEditing"
-      class="mt-8 rounded-xl border border-green-200 bg-green-50 p-6"
+      class="mt-8 rounded-xl border border-green-200 bg-green-50 p-6 dark:border-green-800 dark:bg-green-900/20"
     >
       <div class="flex items-start gap-3">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          class="mt-0.5 h-5 w-5 shrink-0 text-green-600"
+          class="mt-0.5 h-5 w-5 shrink-0 text-green-600 dark:text-green-400"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -81,8 +80,8 @@ useSeoMeta({
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
         </svg>
         <div class="space-y-2">
-          <p class="font-medium text-green-800">このアンケートには既に回答済みです</p>
-          <p class="text-sm text-green-700">
+          <p class="font-medium text-green-800 dark:text-green-300">このアンケートには既に回答済みです</p>
+          <p class="text-sm text-green-700 dark:text-green-400">
             {{ canEdit ? "受付中の間は回答を編集できます。" : "回答の集計結果は結果ページで確認できます。" }}
           </p>
           <div class="flex flex-wrap gap-2">
@@ -96,7 +95,7 @@ useSeoMeta({
             </button>
             <NuxtLink
               :to="`/survey/${survey.id}/results`"
-              class="inline-block rounded-lg border border-green-600 px-4 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-100"
+              class="inline-block rounded-lg border border-green-600 px-4 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-100 dark:border-green-500 dark:text-green-400 dark:hover:bg-green-900/30"
             >
               結果を見る
             </NuxtLink>
@@ -105,7 +104,6 @@ useSeoMeta({
       </div>
     </div>
 
-    <!-- 未回答 or 編集モード -->
     <div v-else class="mt-8 space-y-4">
       <SurveyForm
         :survey="survey"

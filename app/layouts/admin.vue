@@ -67,18 +67,18 @@ useSeoMeta({
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-100">
-    <header class="sticky top-0 z-40 border-b border-slate-200 bg-white shadow-sm">
+  <div class="min-h-screen bg-background">
+    <header class="sticky top-0 z-40 border-b border-border bg-surface shadow-sm">
       <div class="flex h-14 items-center justify-between px-4 md:px-6">
         <NuxtLink to="/admin" class="flex items-center gap-2.5" translate="no">
           <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500 text-sm font-bold text-white">N</span>
-          <span class="text-sm font-semibold text-slate-900">N Portal <span class="text-slate-400">管理</span></span>
+          <span class="text-sm font-semibold text-foreground">N Portal <span class="text-muted">管理</span></span>
         </NuxtLink>
 
         <div class="flex items-center gap-3">
           <NuxtLink
             to="/"
-            class="hidden items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 md:flex"
+            class="hidden items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-muted transition-colors hover:bg-surface-hover hover:text-foreground md:flex"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -86,11 +86,11 @@ useSeoMeta({
             公開サイト
           </NuxtLink>
 
-          <div v-if="currentUser" class="hidden items-center gap-2 border-l border-slate-200 pl-3 md:flex">
-            <span class="text-xs text-slate-500">{{ currentUser.email }}</span>
+          <div v-if="currentUser" class="hidden items-center gap-2 border-l border-border pl-3 md:flex">
+            <span class="text-xs text-muted">{{ currentUser.email }}</span>
             <button
               type="button"
-              class="rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100"
+              class="rounded-lg px-2.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-surface-hover"
               @click="logout"
             >
               ログアウト
@@ -100,7 +100,7 @@ useSeoMeta({
           <button
             ref="mobileMenuButtonRef"
             type="button"
-            class="flex items-center justify-center rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 md:hidden"
+            class="flex items-center justify-center rounded-lg p-2 text-muted transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 md:hidden"
             :aria-controls="mobileMenuId"
             :aria-expanded="isMobileMenuOpen"
             aria-label="管理メニューを開く"
@@ -136,8 +136,8 @@ useSeoMeta({
             :to="item.to"
             class="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors"
             :class="isActive(item.to, item.exact)
-              ? 'bg-blue-50 text-blue-700'
-              : 'text-slate-600 hover:bg-slate-200 hover:text-slate-900'"
+              ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
+              : 'text-muted hover:bg-surface-hover hover:text-foreground'"
           >
             {{ item.label }}
           </NuxtLink>
@@ -175,14 +175,14 @@ useSeoMeta({
       <aside
         v-if="isMobileMenuOpen"
         :id="mobileMenuId"
-        class="fixed inset-y-0 right-0 z-50 flex w-full max-w-xs flex-col border-l border-slate-200 bg-white shadow-2xl md:hidden"
+        class="fixed inset-y-0 right-0 z-50 flex w-full max-w-xs flex-col border-l border-border bg-surface shadow-2xl md:hidden"
         aria-label="管理メニュー（モバイル）"
       >
-        <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-          <span class="text-sm font-semibold text-slate-900">管理メニュー</span>
+        <div class="flex items-center justify-between border-b border-border px-5 py-4">
+          <span class="text-sm font-semibold text-foreground">管理メニュー</span>
           <button
             type="button"
-            class="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+            class="rounded-lg p-2 text-muted transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
             aria-label="管理メニューを閉じる"
             @click="closeMobileMenu"
           >
@@ -199,22 +199,22 @@ useSeoMeta({
             :to="item.to"
             class="flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-colors"
             :class="isActive(item.to, item.exact)
-              ? 'bg-blue-50 text-blue-700'
-              : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'"
+              ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
+              : 'text-foreground hover:bg-surface-hover hover:text-foreground'"
             @click="closeMobileMenu"
           >
             {{ item.label }}
           </NuxtLink>
 
-          <div class="mt-6 border-t border-slate-200 pt-6">
+          <div class="mt-6 border-t border-border pt-6">
             <div v-if="currentUser" class="px-4 py-2">
-              <p class="text-xs font-medium text-slate-500">ログイン中</p>
-              <p class="truncate text-sm font-medium text-slate-900">{{ currentUser.email }}</p>
+              <p class="text-xs font-medium text-muted">ログイン中</p>
+              <p class="truncate text-sm font-medium text-foreground">{{ currentUser.email }}</p>
             </div>
 
             <NuxtLink
               to="/"
-              class="mt-4 flex items-center rounded-xl px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900"
+              class="mt-4 flex items-center rounded-xl px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-surface-hover"
               @click="closeMobileMenu"
             >
               公開サイト
@@ -223,7 +223,7 @@ useSeoMeta({
             <button
               v-if="currentUser"
               type="button"
-              class="mt-2 flex w-full items-center rounded-xl px-4 py-3 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900"
+              class="mt-2 flex w-full items-center rounded-xl px-4 py-3 text-left text-sm font-medium text-foreground transition-colors hover:bg-surface-hover"
               @click="logout"
             >
               ログアウト

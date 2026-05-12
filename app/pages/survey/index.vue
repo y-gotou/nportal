@@ -13,8 +13,8 @@ const surveys = computed(() => data.value?.surveys ?? []);
 
 function getSurveyStatusClass(status: SurveyStatus) {
   return status === "active"
-    ? "bg-blue-50 text-blue-600"
-    : "bg-slate-100 text-slate-500";
+    ? "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
+    : "bg-surface-hover text-muted";
 }
 
 useSeoMeta({
@@ -27,14 +27,13 @@ useSeoMeta({
   <PageContainer size="wide">
     <SectionHeader title="アンケート一覧" />
 
-    <!-- APIエラー表示 -->
     <div
       v-if="error"
-      class="rounded-xl border border-rose-200 bg-rose-50 p-6"
+      class="rounded-xl border border-rose-200 bg-rose-50 p-6 dark:border-rose-800 dark:bg-rose-900/20"
       role="alert"
     >
-      <p class="font-medium text-rose-800">アンケートの読み込みに失敗しました</p>
-      <p class="mt-1 text-sm text-rose-600">しばらくしてからページを再読み込みしてください。</p>
+      <p class="font-medium text-rose-800 dark:text-rose-300">アンケートの読み込みに失敗しました</p>
+      <p class="mt-1 text-sm text-rose-600 dark:text-rose-400">しばらくしてからページを再読み込みしてください。</p>
     </div>
 
     <div v-else-if="surveys.length" class="space-y-3">
@@ -46,7 +45,7 @@ useSeoMeta({
         <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div class="min-w-0 space-y-2">
             <div class="flex min-w-0 flex-wrap items-start gap-2">
-              <h2 class="min-w-0 text-pretty text-xl font-semibold tracking-tight text-slate-900">
+              <h2 class="min-w-0 text-pretty text-xl font-semibold tracking-tight text-foreground">
                 {{ survey.title }}
               </h2>
               <span
@@ -57,15 +56,15 @@ useSeoMeta({
               </span>
               <span
                 v-if="survey.hasResponded"
-                class="shrink-0 rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700"
+                class="shrink-0 rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700 dark:bg-green-900/20 dark:text-green-400"
               >
                 回答済み
               </span>
             </div>
-            <p class="text-sm leading-6 text-slate-500">{{ survey.description }}</p>
-            <div class="flex flex-wrap gap-2 text-sm text-slate-500">
-              <span class="rounded-full bg-slate-100 px-3 py-1">設問数 {{ survey.questions.length }}問</span>
-              <span class="rounded-full bg-slate-100 px-3 py-1">
+            <p class="text-sm leading-6 text-muted">{{ survey.description }}</p>
+            <div class="flex flex-wrap gap-2 text-sm text-muted">
+              <span class="rounded-full bg-surface-hover px-3 py-1">設問数 {{ survey.questions.length }}問</span>
+              <span class="rounded-full bg-surface-hover px-3 py-1">
                 回答者 {{ survey.responseCount ?? 0 }}人
               </span>
             </div>
@@ -99,7 +98,7 @@ useSeoMeta({
 
     <p
       v-else
-      class="rounded-xl border border-dashed border-slate-300 bg-white px-5 py-8 text-center text-sm text-slate-500"
+      class="rounded-xl border border-dashed border-border bg-surface px-5 py-8 text-center text-sm text-muted"
     >
       アンケートはまだありません。
     </p>

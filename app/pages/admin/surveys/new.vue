@@ -149,24 +149,24 @@ useSeoMeta({ title: "アンケートを作成" });
 <template>
   <div class="space-y-6">
     <div class="flex items-center gap-3">
-      <NuxtLink to="/admin/surveys" class="text-sm text-slate-500 hover:text-slate-700">アンケート</NuxtLink>
-      <span class="text-slate-300">/</span>
-      <h1 class="text-xl font-bold tracking-tight text-slate-900">新規作成</h1>
+      <NuxtLink to="/admin/surveys" class="text-sm text-muted hover:text-foreground">アンケート</NuxtLink>
+      <span class="text-border">/</span>
+      <h1 class="text-xl font-bold tracking-tight text-foreground">新規作成</h1>
     </div>
 
     <form class="space-y-6" @submit.prevent="submit">
       <p v-if="serverError" class="rounded-lg bg-red-50 p-3 text-sm text-red-600" role="alert">{{ serverError }}</p>
 
       <!-- 基本情報 -->
-      <div class="space-y-5 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 class="text-sm font-semibold text-slate-700">基本情報</h2>
+      <div class="space-y-5 rounded-xl border border-border bg-surface p-6 shadow-sm">
+        <h2 class="text-sm font-semibold text-foreground">基本情報</h2>
 
         <AdminFormField label="タイトル" field-id="title" :error="errors.title" required>
           <input
             id="title"
             v-model="form.title"
             type="text"
-            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            class="w-full rounded-lg border border-border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             :class="errors.title ? 'border-red-300' : ''"
             placeholder="第1回 勉強会アンケート"
           >
@@ -177,7 +177,7 @@ useSeoMeta({ title: "アンケートを作成" });
             id="description"
             v-model="form.description"
             rows="3"
-            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            class="w-full rounded-lg border border-border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             placeholder="アンケートの目的や注意事項"
           />
         </AdminFormField>
@@ -186,7 +186,7 @@ useSeoMeta({ title: "アンケートを作成" });
           <select
             id="status"
             v-model="form.status"
-            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            class="w-full rounded-lg border border-border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           >
             <option value="draft">下書き</option>
             <option value="active">受付中</option>
@@ -198,21 +198,21 @@ useSeoMeta({ title: "アンケートを作成" });
       <!-- 設問 -->
       <div class="space-y-4">
         <div class="flex items-center justify-between">
-          <h2 class="text-sm font-semibold text-slate-700">設問</h2>
+          <h2 class="text-sm font-semibold text-foreground">設問</h2>
           <p v-if="errors.questions" class="text-xs text-red-600">{{ errors.questions }}</p>
         </div>
 
         <div
           v-for="(q, i) in questions"
           :key="i"
-          class="space-y-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+          class="space-y-4 rounded-xl border border-border bg-surface p-5 shadow-sm"
         >
           <div class="flex items-start justify-between gap-3">
-            <span class="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">設問 {{ i + 1 }}</span>
+            <span class="shrink-0 rounded-full bg-surface-hover px-2.5 py-1 text-xs font-semibold text-muted">設問 {{ i + 1 }}</span>
             <div class="flex gap-1">
               <button
                 type="button"
-                class="rounded p-1 text-slate-400 hover:bg-slate-100 disabled:opacity-30"
+                class="rounded p-1 text-muted hover:bg-surface-hover disabled:opacity-30"
                 :disabled="i === 0"
                 aria-label="上に移動"
                 @click="moveUp(i)"
@@ -221,7 +221,7 @@ useSeoMeta({ title: "アンケートを作成" });
               </button>
               <button
                 type="button"
-                class="rounded p-1 text-slate-400 hover:bg-slate-100 disabled:opacity-30"
+                class="rounded p-1 text-muted hover:bg-surface-hover disabled:opacity-30"
                 :disabled="i === questions.length - 1"
                 aria-label="下に移動"
                 @click="moveDown(i)"
@@ -244,7 +244,7 @@ useSeoMeta({ title: "アンケートを作成" });
               :id="`q_${i}_text`"
               v-model="q.questionText"
               type="text"
-              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              class="w-full rounded-lg border border-border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
               :class="errors[`q_${i}_text`] ? 'border-red-300' : ''"
               placeholder="質問の内容を入力"
             >
@@ -254,7 +254,7 @@ useSeoMeta({ title: "アンケートを作成" });
             <select
               :id="`q_${i}_type`"
               v-model="q.questionType"
-              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              class="w-full rounded-lg border border-border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
               @change="handleQuestionTypeChange(q)"
             >
               <option value="single_choice">単一選択</option>
@@ -281,13 +281,13 @@ useSeoMeta({ title: "アンケートを作成" });
                   :id="optionIndex === 0 ? `q_${i}_options` : undefined"
                   v-model="q.options[optionIndex]"
                   type="text"
-                  class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                  class="w-full rounded-lg border border-border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                   :class="errors[`q_${i}_options`] ? 'border-red-300' : ''"
                   :placeholder="`選択肢 ${optionIndex + 1}`"
                 >
                 <button
                   type="button"
-                  class="rounded p-1 text-slate-400 hover:bg-slate-100 disabled:opacity-30"
+                  class="rounded p-1 text-muted hover:bg-surface-hover disabled:opacity-30"
                   :disabled="optionIndex === 0"
                   aria-label="選択肢を上に移動"
                   @click="moveOptionUp(q, optionIndex)"
@@ -296,7 +296,7 @@ useSeoMeta({ title: "アンケートを作成" });
                 </button>
                 <button
                   type="button"
-                  class="rounded p-1 text-slate-400 hover:bg-slate-100 disabled:opacity-30"
+                  class="rounded p-1 text-muted hover:bg-surface-hover disabled:opacity-30"
                   :disabled="optionIndex === q.options.length - 1"
                   aria-label="選択肢を下に移動"
                   @click="moveOptionDown(q, optionIndex)"
@@ -315,7 +315,7 @@ useSeoMeta({ title: "アンケートを作成" });
 
               <button
                 type="button"
-                class="inline-flex items-center rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                class="inline-flex items-center rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-background"
                 @click="addOption(q)"
               >
                 + 選択肢を追加
@@ -325,15 +325,15 @@ useSeoMeta({ title: "アンケートを作成" });
 
           <div
             v-if="q.questionType !== 'free_text'"
-            class="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3"
+            class="flex items-center gap-3 rounded-lg border border-border bg-background px-4 py-3"
           >
             <input
               :id="`q_${i}_allow_other`"
               v-model="q.allowOtherText"
               type="checkbox"
-              class="h-4 w-4 rounded border-slate-300 text-blue-500 focus:ring-blue-500"
+              class="h-4 w-4 rounded border-border text-blue-500 focus:ring-blue-500"
             >
-            <label :for="`q_${i}_allow_other`" class="text-sm font-medium text-slate-700">
+            <label :for="`q_${i}_allow_other`" class="text-sm font-medium text-foreground">
               「その他」の自由記述欄を追加する
             </label>
           </div>
@@ -341,7 +341,7 @@ useSeoMeta({ title: "アンケートを作成" });
 
         <button
           type="button"
-          class="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 py-3 text-sm font-medium text-slate-500 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
+          class="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border py-3 text-sm font-medium text-muted hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
           @click="addQuestion"
         >
           + 設問を追加
@@ -356,7 +356,7 @@ useSeoMeta({ title: "アンケートを作成" });
         >
           {{ isSubmitting ? "作成中..." : "作成する" }}
         </button>
-        <NuxtLink to="/admin/surveys" class="inline-flex items-center rounded-lg border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100">
+        <NuxtLink to="/admin/surveys" class="inline-flex items-center rounded-lg border border-border px-5 py-2.5 text-sm font-medium text-foreground hover:bg-surface-hover">
           キャンセル
         </NuxtLink>
       </div>

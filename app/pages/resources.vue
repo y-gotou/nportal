@@ -154,9 +154,9 @@ useSeoMeta({
           aria-modal="true"
           aria-labelledby="resource-form-title"
         >
-          <div class="rounded-xl border border-slate-200 bg-white shadow-xl">
-            <div class="border-b border-slate-100 px-5 py-4">
-              <h2 id="resource-form-title" class="text-lg font-semibold tracking-tight text-slate-900">
+          <div class="rounded-xl border border-border bg-surface shadow-xl">
+            <div class="border-b border-border px-5 py-4">
+              <h2 id="resource-form-title" class="text-lg font-semibold tracking-tight text-foreground">
                 {{ editingResource ? "資料を編集" : "資料を投稿" }}
               </h2>
             </div>
@@ -173,9 +173,9 @@ useSeoMeta({
       </div>
     </Teleport>
 
-    <div class="space-y-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div class="space-y-4 rounded-xl border border-border bg-surface p-5 shadow-sm">
       <div class="space-y-2">
-        <label for="resource-search" class="block text-sm font-medium text-slate-700">
+        <label for="resource-search" class="block text-sm font-medium text-foreground">
           資料を検索
         </label>
         <div class="flex items-center gap-2">
@@ -185,7 +185,7 @@ useSeoMeta({
             name="resource-search"
             type="search"
             autocomplete="off"
-            class="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 transition-[border-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+            class="min-w-0 flex-1 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground transition-[border-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
             placeholder="タイトル・タグ・発表者で検索…"
           >
           <button
@@ -200,10 +200,10 @@ useSeoMeta({
       </div>
 
       <div class="flex flex-wrap items-center gap-2">
-        <span class="text-sm font-medium text-slate-700">種類</span>
+        <span class="text-sm font-medium text-foreground">種類</span>
         <button
           class="rounded-full px-3 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-          :class="selectedType === null ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+          :class="selectedType === null ? 'bg-blue-500 text-white' : 'bg-surface-hover text-muted hover:bg-border'"
           type="button"
           @click="selectedType = null"
         >
@@ -213,7 +213,7 @@ useSeoMeta({
           v-for="type in allTypes"
           :key="type"
           class="rounded-full px-3 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-          :class="selectedType === type ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+          :class="selectedType === type ? 'bg-blue-500 text-white' : 'bg-surface-hover text-muted hover:bg-border'"
           type="button"
           @click="selectedType = selectedType === type ? null : type"
         >
@@ -222,12 +222,12 @@ useSeoMeta({
       </div>
 
       <div class="flex flex-wrap items-center gap-2">
-        <span class="text-sm font-medium text-slate-700">タグ</span>
+        <span class="text-sm font-medium text-foreground">タグ</span>
         <button
           v-for="tag in allTags"
           :key="tag"
           class="rounded-full px-3 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-          :class="selectedTag === tag ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+          :class="selectedTag === tag ? 'bg-blue-500 text-white' : 'bg-surface-hover text-muted hover:bg-border'"
           type="button"
           @click="selectedTag = selectedTag === tag ? null : tag"
         >
@@ -247,11 +247,11 @@ useSeoMeta({
         >
           <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div class="min-w-0 space-y-2">
-              <p class="text-sm text-slate-500">
+              <p class="text-sm text-muted">
                 {{ formatDisplayDate(resource.date) }}
-                <span class="ml-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-500">{{ resource.type }}</span>
+                <span class="ml-1 rounded-full bg-surface-hover px-2.5 py-1 text-xs text-muted">{{ resource.type }}</span>
               </p>
-              <h2 class="text-pretty text-lg font-semibold tracking-tight text-slate-900">
+              <h2 class="text-pretty text-lg font-semibold tracking-tight text-foreground">
                 {{ resource.title }}
               </h2>
               <div class="flex flex-wrap gap-2">
@@ -263,10 +263,10 @@ useSeoMeta({
                   {{ tag }}
                 </span>
               </div>
-              <p v-if="resource.fileName" class="text-sm text-slate-500">
+              <p v-if="resource.fileName" class="text-sm text-muted">
                 {{ resource.fileName }} <span v-if="resource.fileSize">({{ formatFileSize(resource.fileSize) }})</span>
               </p>
-              <p v-if="resource.submittedBy" class="text-xs text-slate-400">
+              <p v-if="resource.submittedBy" class="text-xs text-muted">
                 投稿者: {{ resource.submittedBy }}
               </p>
             </div>
@@ -297,7 +297,7 @@ useSeoMeta({
               <button
                 v-if="resource.canEdit"
                 type="button"
-                class="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-white px-4 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+                class="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-surface px-4 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
                 @click="deleteResource(resource)"
               >
                 削除
@@ -310,7 +310,7 @@ useSeoMeta({
 
     <p
       v-else
-      class="mt-8 rounded-xl border border-dashed border-slate-300 bg-white px-5 py-8 text-center text-sm text-slate-500"
+      class="mt-8 rounded-xl border border-dashed border-border bg-surface px-5 py-8 text-center text-sm text-muted"
     >
       条件に合う資料はありません。
     </p>

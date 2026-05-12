@@ -16,14 +16,10 @@ const statusOptions: { value: SpeakerApplicationStatus; label: string }[] = [
   { value: "done", label: "発表済み" },
 ];
 
-function getStatusLabel(status: SpeakerApplicationStatus) {
-  return statusOptions.find((o) => o.value === status)?.label ?? status;
-}
-
 function getStatusClass(status: SpeakerApplicationStatus) {
-  if (status === "pending") return "bg-amber-50 text-amber-700";
-  if (status === "scheduled") return "bg-blue-50 text-blue-700";
-  return "bg-green-50 text-green-700";
+  if (status === "pending") return "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400";
+  if (status === "scheduled") return "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400";
+  return "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400";
 }
 
 const updatingId = ref<number | null>(null);
@@ -49,36 +45,36 @@ useSeoMeta({ title: "発表募集管理" });
 
 <template>
   <div class="space-y-6">
-    <h1 class="text-xl font-bold tracking-tight text-slate-900">発表募集管理</h1>
+    <h1 class="text-xl font-bold tracking-tight text-foreground">発表募集管理</h1>
 
-    <div v-if="applications.length" class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-      <table class="min-w-full divide-y divide-slate-200">
-        <thead class="bg-slate-50">
+    <div v-if="applications.length" class="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
+      <table class="min-w-full divide-y divide-border">
+        <thead class="bg-background">
           <tr>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">発表テーマ</th>
-            <th class="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 sm:table-cell">応募者</th>
-            <th class="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 md:table-cell">時間</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">ステータス</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">発表テーマ</th>
+            <th class="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted sm:table-cell">応募者</th>
+            <th class="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted md:table-cell">時間</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">ステータス</th>
             <th class="px-4 py-3" />
           </tr>
         </thead>
-        <tbody class="divide-y divide-slate-100">
-          <tr v-for="app in applications" :key="app.id" class="hover:bg-slate-50">
+        <tbody class="divide-y divide-border">
+          <tr v-for="app in applications" :key="app.id" class="hover:bg-surface-hover">
             <td class="px-4 py-3">
-              <p class="font-medium text-slate-900">{{ app.title }}</p>
-              <p v-if="app.note" class="mt-0.5 text-xs text-slate-500 line-clamp-2">{{ app.note }}</p>
+              <p class="font-medium text-foreground">{{ app.title }}</p>
+              <p v-if="app.note" class="mt-0.5 text-xs text-muted line-clamp-2">{{ app.note }}</p>
             </td>
-            <td class="hidden px-4 py-3 text-sm text-slate-600 sm:table-cell">
+            <td class="hidden px-4 py-3 text-sm text-muted sm:table-cell">
               {{ app.user_email }}
             </td>
-            <td class="hidden px-4 py-3 text-sm text-slate-600 md:table-cell">
+            <td class="hidden px-4 py-3 text-sm text-muted md:table-cell">
               {{ app.duration }}分
             </td>
             <td class="px-4 py-3">
               <select
                 :value="app.status"
                 :disabled="updatingId === app.id"
-                class="rounded-lg border border-slate-200 px-2 py-1.5 text-xs font-medium focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                class="rounded-lg border border-border bg-surface px-2 py-1.5 text-xs font-medium focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
                 :class="getStatusClass(app.status)"
                 @change="changeStatus(app, ($event.target as HTMLSelectElement).value as SpeakerApplicationStatus)"
               >
@@ -103,7 +99,7 @@ useSeoMeta({ title: "発表募集管理" });
       </table>
     </div>
 
-    <p v-else class="rounded-xl border border-dashed border-slate-300 bg-white px-5 py-8 text-center text-sm text-slate-500">
+    <p v-else class="rounded-xl border border-dashed border-border bg-surface px-5 py-8 text-center text-sm text-muted">
       発表申し込みはまだありません。
     </p>
   </div>

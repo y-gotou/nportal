@@ -170,8 +170,8 @@ async function submit() {
 </script>
 
 <template>
-  <form class="space-y-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm" @submit.prevent="submit">
-    <p v-if="serverError" class="rounded-lg bg-red-50 p-3 text-sm text-red-600" role="alert">
+  <form class="space-y-5 rounded-xl border border-border bg-surface p-5 shadow-sm" @submit.prevent="submit">
+    <p v-if="serverError" class="rounded-lg bg-rose-50 p-3 text-sm text-rose-600 dark:bg-rose-900/20 dark:text-rose-400" role="alert">
       {{ serverError }}
     </p>
 
@@ -180,17 +180,17 @@ async function submit() {
         id="resource-title"
         v-model="form.title"
         type="text"
-        class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-        :class="errors.title ? 'border-red-300' : ''"
+        class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+        :class="errors.title ? 'border-red-300 dark:border-red-700' : ''"
       >
     </AdminFormField>
 
     <div class="space-y-3">
-      <div class="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1" role="group" aria-label="資料の投稿方法">
+      <div class="inline-flex rounded-lg border border-border bg-background p-1" role="group" aria-label="資料の投稿方法">
         <button
           type="button"
           class="rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-          :class="sourceMode === 'url' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'"
+          :class="sourceMode === 'url' ? 'bg-surface text-blue-600 shadow-sm' : 'text-muted hover:text-foreground'"
           @click="sourceMode = 'url'"
         >
           URL
@@ -198,7 +198,7 @@ async function submit() {
         <button
           type="button"
           class="rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-          :class="sourceMode === 'file' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'"
+          :class="sourceMode === 'file' ? 'bg-surface text-blue-600 shadow-sm' : 'text-muted hover:text-foreground'"
           @click="sourceMode = 'file'"
         >
           ファイル
@@ -216,8 +216,8 @@ async function submit() {
           id="resource-url"
           v-model="form.url"
           type="url"
-          class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-          :class="errors.source ? 'border-red-300' : ''"
+          class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          :class="errors.source ? 'border-red-300 dark:border-red-700' : ''"
           placeholder="https://..."
         >
       </AdminFormField>
@@ -234,10 +234,10 @@ async function submit() {
           ref="fileInput"
           type="file"
           :accept="fileAccept"
-          class="block w-full text-sm text-slate-700 file:mr-4 file:rounded-lg file:border-0 file:bg-slate-100 file:px-4 file:py-2 file:text-sm file:font-medium file:text-slate-700 hover:file:bg-slate-200"
+          class="block w-full text-sm text-foreground file:mr-4 file:rounded-lg file:border-0 file:bg-surface-hover file:px-4 file:py-2 file:text-sm file:font-medium file:text-foreground hover:file:bg-border"
           @change="onFileChange"
         >
-        <p v-if="existingFileName && !selectedFile" class="text-xs text-slate-500">
+        <p v-if="existingFileName && !selectedFile" class="text-xs text-muted">
           現在のファイル: {{ existingFileName }}
         </p>
       </AdminFormField>
@@ -249,7 +249,7 @@ async function submit() {
           id="resource-tags"
           v-model="form.tags"
           type="text"
-          class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           placeholder="ChatGPT, プロンプト設計"
         >
       </AdminFormField>
@@ -258,7 +258,7 @@ async function submit() {
         <select
           id="resource-minutes"
           v-model="form.relatedMinutesSlug"
-          class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
         >
           <option value="">未選択</option>
           <option

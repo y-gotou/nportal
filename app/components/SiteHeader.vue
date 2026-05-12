@@ -3,6 +3,7 @@ import { useCurrentUser } from "~/composables/useCurrentUser";
 
 const route = useRoute();
 const currentUser = useCurrentUser();
+const { isDark, toggleTheme } = useTheme();
 
 const navItems = [
   { to: "/", label: "ホーム" },
@@ -95,7 +96,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <header class="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
+  <header class="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur">
     <div
       class="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-4 md:px-6"
     >
@@ -107,7 +108,7 @@ onUnmounted(() => {
             N
           </span>
           <span class="flex flex-col">
-            <strong class="text-base font-semibold tracking-tight text-slate-900">N Portal</strong>
+            <strong class="text-base font-semibold tracking-tight text-foreground">N Portal</strong>
           </span>
         </NuxtLink>
 
@@ -119,8 +120,8 @@ onUnmounted(() => {
             v-for="item in navItems"
             :key="item.to"
             :to="item.to"
-            class="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-            :class="isActive(item.to) ? 'bg-blue-50 text-blue-600' : ''"
+            class="rounded-lg px-3 py-2 text-sm font-medium text-muted transition-colors hover:bg-surface-hover hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+            :class="isActive(item.to) ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' : ''"
           >
             {{ item.label }}
           </NuxtLink>
@@ -131,25 +132,25 @@ onUnmounted(() => {
         <div
           v-if="currentUser"
           ref="userMenuRef"
-          class="relative hidden shrink-0 border-l border-slate-200 pl-3 md:block"
+          class="relative hidden shrink-0 border-l border-border pl-3 md:block"
         >
           <button
             type="button"
-            class="flex items-center gap-2 rounded-lg px-2 py-1 transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+            class="flex items-center gap-2 rounded-lg px-2 py-1 transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
             :aria-expanded="isUserMenuOpen"
             aria-haspopup="true"
             @click.stop="toggleUserMenu"
           >
             <span
-              class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-700"
+              class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
               aria-hidden="true"
             >
               {{ userInitial }}
             </span>
-            <span class="hidden text-xs text-slate-600 lg:block">{{ currentUser.email }}</span>
+            <span class="hidden text-xs text-muted lg:block">{{ currentUser.email }}</span>
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              class="h-3.5 w-3.5 text-slate-400 transition-transform"
+              class="h-3.5 w-3.5 text-muted transition-transform"
               :class="isUserMenuOpen ? 'rotate-180' : ''"
               fill="none"
               viewBox="0 0 24 24"
@@ -162,21 +163,21 @@ onUnmounted(() => {
 
           <div
             v-if="isUserMenuOpen"
-            class="absolute right-0 top-full z-50 mt-1 w-52 rounded-xl border border-slate-200 bg-white py-1 shadow-lg"
+            class="absolute right-0 top-full z-50 mt-1 w-52 rounded-xl border border-border bg-surface py-1 shadow-lg"
             role="menu"
           >
-            <div class="border-b border-slate-100 px-4 py-2.5">
-              <p class="truncate text-xs font-medium text-slate-900">{{ currentUser.email }}</p>
+            <div class="border-b border-border px-4 py-2.5">
+              <p class="truncate text-xs font-medium text-foreground">{{ currentUser.email }}</p>
             </div>
             <NuxtLink
               to="/reports"
-              class="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
+              class="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
               role="menuitem"
               @click="closeUserMenu"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-4 w-4 text-slate-400"
+                class="h-4 w-4 text-muted"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -189,11 +190,11 @@ onUnmounted(() => {
             <NuxtLink
               v-if="currentUser.isAdmin"
               to="/admin"
-              class="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
+              class="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
               role="menuitem"
               @click="closeUserMenu"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
@@ -201,13 +202,43 @@ onUnmounted(() => {
             </NuxtLink>
             <button
               type="button"
-              class="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
+              class="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
+              role="menuitem"
+              @click="toggleTheme"
+            >
+              <svg
+                v-if="isDark"
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4 text-muted"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+              <svg
+                v-else
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4 text-muted"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+              {{ isDark ? "ライトモード" : "ダークモード" }}
+            </button>
+            <button
+              type="button"
+              class="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
               role="menuitem"
               @click="logout"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-4 w-4 text-slate-400"
+                class="h-4 w-4 text-muted"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -223,7 +254,7 @@ onUnmounted(() => {
         <button
           ref="mobileMenuButtonRef"
           type="button"
-          class="flex items-center justify-center rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 md:hidden"
+          class="flex items-center justify-center rounded-lg p-2 text-muted transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 md:hidden"
           :aria-controls="mobileMenuId"
           :aria-expanded="isMobileMenuOpen"
           aria-label="メニューを開く"
@@ -276,14 +307,14 @@ onUnmounted(() => {
     <aside
       v-if="isMobileMenuOpen"
       :id="mobileMenuId"
-      class="fixed inset-y-0 right-0 z-50 flex w-full max-w-xs flex-col border-l border-slate-200 bg-white shadow-2xl md:hidden"
+      class="fixed inset-y-0 right-0 z-50 flex w-full max-w-xs flex-col border-l border-border bg-surface shadow-2xl md:hidden"
       aria-label="モバイルメニュー"
     >
-      <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-        <span class="text-sm font-semibold text-slate-900">メニュー</span>
+      <div class="flex items-center justify-between border-b border-border px-5 py-4">
+        <span class="text-sm font-semibold text-foreground">メニュー</span>
         <button
           type="button"
-          class="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+          class="rounded-lg p-2 text-muted transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
           aria-label="メニューを閉じる"
           @click="closeMobileMenu"
         >
@@ -298,30 +329,30 @@ onUnmounted(() => {
           v-for="item in navItems"
           :key="item.to"
           :to="item.to"
-          class="flex items-center rounded-xl px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900"
-          :class="isActive(item.to) ? 'bg-blue-50 text-blue-600' : ''"
+          class="flex items-center rounded-xl px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-surface-hover"
+          :class="isActive(item.to) ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' : ''"
           @click="closeMobileMenu"
         >
           {{ item.label }}
         </NuxtLink>
 
-        <div v-if="currentUser" class="mt-6 border-t border-slate-200 pt-6">
+        <div v-if="currentUser" class="mt-6 border-t border-border pt-6">
           <div class="flex items-center gap-3 px-4 py-2">
             <span
-              class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700"
+              class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
               aria-hidden="true"
             >
               {{ userInitial }}
             </span>
             <div class="min-w-0">
-              <p class="text-xs font-medium text-slate-500">ログイン中</p>
-              <p class="truncate text-sm font-medium text-slate-900">{{ currentUser.email }}</p>
+              <p class="text-xs font-medium text-muted">ログイン中</p>
+              <p class="truncate text-sm font-medium text-foreground">{{ currentUser.email }}</p>
             </div>
           </div>
 
           <NuxtLink
             to="/reports"
-            class="mt-4 flex items-center rounded-xl px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900"
+            class="mt-4 flex items-center rounded-xl px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-surface-hover"
             @click="closeMobileMenu"
           >
             不具合・要望報告
@@ -330,7 +361,7 @@ onUnmounted(() => {
           <NuxtLink
             v-if="currentUser.isAdmin"
             to="/admin"
-            class="mt-2 flex items-center rounded-xl px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900"
+            class="mt-2 flex items-center rounded-xl px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-surface-hover"
             @click="closeMobileMenu"
           >
             管理画面
@@ -338,7 +369,37 @@ onUnmounted(() => {
 
           <button
             type="button"
-            class="mt-2 flex w-full items-center rounded-xl px-4 py-3 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900"
+            class="mt-2 flex w-full items-center gap-2.5 rounded-xl px-4 py-3 text-left text-sm font-medium text-foreground transition-colors hover:bg-surface-hover"
+            @click="toggleTheme"
+          >
+            <svg
+              v-if="isDark"
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4 text-muted"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            <svg
+              v-else
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4 text-muted"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+            {{ isDark ? "ライトモード" : "ダークモード" }}
+          </button>
+
+          <button
+            type="button"
+            class="mt-2 flex w-full items-center rounded-xl px-4 py-3 text-left text-sm font-medium text-foreground transition-colors hover:bg-surface-hover"
             @click="logout"
           >
             ログアウト
