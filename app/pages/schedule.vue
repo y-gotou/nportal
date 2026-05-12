@@ -38,14 +38,14 @@ useSeoMeta({
         <article
           v-for="item in upcoming"
           :key="item.id"
-          class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+          class="rounded-xl border border-border bg-surface p-5 shadow-sm"
         >
           <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div class="min-w-0 space-y-2">
-              <p class="text-sm text-slate-500">
+              <p class="text-sm text-muted">
                 {{ formatDisplayDateTime(item.date, item.time) }}<span v-if="item.location"> ・ {{ item.location }}</span>
               </p>
-              <h2 class="text-pretty text-xl font-semibold tracking-tight text-slate-900">
+              <h2 class="text-pretty text-xl font-semibold tracking-tight text-foreground">
                 {{ item.title }}
               </h2>
               <div class="flex flex-wrap gap-2">
@@ -85,21 +85,21 @@ useSeoMeta({
         <article
           v-for="item in past"
           :key="item.id"
-          class="rounded-xl border border-slate-200 bg-slate-50 p-5 shadow-sm"
+          class="rounded-xl border border-border bg-background p-5 shadow-sm"
         >
           <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div class="min-w-0 space-y-2">
-              <p class="text-sm text-slate-500">
+              <p class="text-sm text-muted">
                 {{ formatDisplayDateTime(item.date, item.time) }}<span v-if="item.location"> ・ {{ item.location }}</span>
               </p>
-              <h2 class="text-pretty text-lg font-semibold tracking-tight text-slate-900">
+              <h2 class="text-pretty text-lg font-semibold tracking-tight text-foreground">
                 {{ item.title }}
               </h2>
               <div class="flex flex-wrap gap-2">
                 <span
                   v-for="topic in item.topics"
                   :key="topic"
-                  class="rounded-full bg-slate-200 px-2.5 py-1 text-xs text-slate-600"
+                  class="rounded-full bg-surface-hover px-2.5 py-1 text-xs text-muted"
                 >
                   {{ topic }}
                 </span>
@@ -121,7 +121,7 @@ useSeoMeta({
 
     <p
       v-if="!upcoming.length && !past.length"
-      class="rounded-xl border border-dashed border-slate-300 bg-white px-5 py-8 text-center text-sm text-slate-500"
+      class="rounded-xl border border-dashed border-border bg-surface px-5 py-8 text-center text-sm text-muted"
     >
       スケジュールはまだ登録されていません。
     </p>

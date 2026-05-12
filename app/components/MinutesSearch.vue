@@ -51,10 +51,10 @@ watch(
 
 <template>
   <div class="space-y-6">
-    <div class="rounded-xl border border-slate-200 bg-slate-100 p-5 shadow-sm">
+    <div class="rounded-xl border border-border bg-surface-hover p-5 shadow-sm">
       <label
         for="minutes-search"
-        class="mb-2 block text-sm font-medium text-slate-700"
+        class="mb-2 block text-sm font-medium text-foreground"
       >
         キーワード検索
       </label>
@@ -64,7 +64,7 @@ watch(
         name="minutes-search"
         type="search"
         autocomplete="off"
-        class="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 transition-[border-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+        class="w-full rounded-lg border border-border bg-surface px-4 py-3 text-sm text-foreground transition-[border-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
         placeholder="タイトルやトピックで検索…"
       >
     </div>
@@ -77,8 +77,8 @@ watch(
         :class="`${interactiveCardClass} block p-5`"
       >
         <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <h3 class="text-lg font-semibold tracking-tight text-slate-900">{{ minutes.title }}</h3>
-          <span class="text-sm text-slate-500">{{ formatDisplayDate(minutes.date) }}</span>
+          <h3 class="text-lg font-semibold tracking-tight text-foreground">{{ minutes.title }}</h3>
+          <span class="text-sm text-muted">{{ formatDisplayDate(minutes.date) }}</span>
         </div>
         <div class="mt-4 flex flex-wrap gap-2">
           <span
@@ -94,7 +94,7 @@ watch(
 
     <p
       v-else
-      class="rounded-xl border border-dashed border-slate-300 bg-white px-5 py-8 text-center text-sm text-slate-500"
+      class="rounded-xl border border-dashed border-border bg-surface px-5 py-8 text-center text-sm text-muted"
     >
       該当する議事録が見つかりません。
     </p>

@@ -49,19 +49,19 @@ function isMyOtherText(
       :class="`${surfaceCardClass} space-y-4`"
     >
       <div class="space-y-1">
-        <p class="text-xs font-semibold tracking-[0.16em] text-slate-500">
+        <p class="text-xs font-semibold tracking-[0.16em] text-muted">
           Q{{ index + 1 }}
         </p>
-        <h3 class="text-lg font-semibold tracking-tight text-slate-900">
+        <h3 class="text-lg font-semibold tracking-tight text-foreground">
           {{ block.questionText }}
         </h3>
-        <p class="text-sm text-slate-500">回答者数: {{ block.responseCount }}人</p>
+        <p class="text-sm text-muted">回答者数: {{ block.responseCount }}人</p>
       </div>
 
       <div v-if="block.questionType === 'free_text'" class="space-y-3">
         <p
           v-if="!block.freeTextAnswers.length"
-          class="rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500"
+          class="rounded-lg border border-dashed border-border bg-background px-4 py-6 text-center text-sm text-muted"
         >
           まだ自由記述の回答はありません。
         </p>
@@ -71,13 +71,13 @@ function isMyOtherText(
           class="rounded-lg border px-4 py-3 text-sm leading-6"
           :class="
             isMyFreeText(block.id, answer)
-              ? 'border-blue-300 bg-blue-50 text-blue-800'
-              : 'border-slate-200 bg-slate-50 text-slate-700'
+              ? 'border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-700 dark:bg-blue-900/20 dark:text-blue-300'
+              : 'border-border bg-background text-foreground'
           "
         >
           <span
             v-if="isMyFreeText(block.id, answer)"
-            class="mb-1 block text-xs font-semibold text-blue-600"
+            class="mb-1 block text-xs font-semibold text-blue-600 dark:text-blue-400"
           >あなたの回答</span>
           {{ answer }}
         </div>
@@ -90,60 +90,60 @@ function isMyOtherText(
           class="space-y-2 rounded-lg border px-4 py-3"
           :class="
             isMyChoice(block.id, item.label, block.questionType)
-              ? 'border-blue-300 bg-blue-50'
-              : 'border-slate-200 bg-slate-50'
+              ? 'border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/20'
+              : 'border-border bg-background'
           "
         >
           <div class="flex items-center justify-between gap-3 text-sm"
             :class="
               isMyChoice(block.id, item.label, block.questionType)
-                ? 'text-blue-700'
-                : 'text-slate-700'
+                ? 'text-blue-700 dark:text-blue-300'
+                : 'text-foreground'
             "
           >
             <span class="flex items-center gap-1.5">
               <span
                 v-if="isMyChoice(block.id, item.label, block.questionType)"
-                class="text-xs font-semibold text-blue-600"
+                class="text-xs font-semibold text-blue-600 dark:text-blue-400"
               >✓</span>
               {{ item.label }}
             </span>
             <strong class="font-semibold"
               :class="
                 isMyChoice(block.id, item.label, block.questionType)
-                  ? 'text-blue-800'
-                  : 'text-slate-900'
+                  ? 'text-blue-800 dark:text-blue-200'
+                  : 'text-foreground'
               "
             >{{ item.value }}</strong>
           </div>
-          <div class="h-2.5 overflow-hidden rounded-full bg-slate-200">
+          <div class="h-2.5 overflow-hidden rounded-full bg-surface-hover">
             <div
               class="h-full rounded-full transition-[width]"
               :class="
                 isMyChoice(block.id, item.label, block.questionType)
                   ? 'bg-blue-500'
-                  : 'bg-slate-400'
+                  : 'bg-muted'
               "
               :style="{ width: item.width }"
             />
           </div>
         </div>
 
-        <div v-if="block.otherTextAnswers.length" class="space-y-3 rounded-lg border border-slate-200 bg-white px-4 py-4">
-          <p class="text-sm font-semibold text-slate-700">その他の自由記述</p>
+        <div v-if="block.otherTextAnswers.length" class="space-y-3 rounded-lg border border-border bg-surface px-4 py-4">
+          <p class="text-sm font-semibold text-foreground">その他の自由記述</p>
           <div
             v-for="(answer, answerIndex) in block.otherTextAnswers"
             :key="`${block.id}-other-${answerIndex}`"
             class="rounded-lg border px-4 py-3 text-sm leading-6"
             :class="
               isMyOtherText(block.id, answer, block.questionType)
-                ? 'border-blue-300 bg-blue-50 text-blue-800'
-                : 'border-slate-200 bg-slate-50 text-slate-700'
+                ? 'border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-700 dark:bg-blue-900/20 dark:text-blue-300'
+                : 'border-border bg-background text-foreground'
             "
           >
             <span
               v-if="isMyOtherText(block.id, answer, block.questionType)"
-              class="mb-1 block text-xs font-semibold text-blue-600"
+              class="mb-1 block text-xs font-semibold text-blue-600 dark:text-blue-400"
             >あなたの回答</span>
             {{ answer }}
           </div>

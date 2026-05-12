@@ -208,7 +208,6 @@ function validateAnswers(): boolean {
         errors[question.id] = "その他の内容を入力してください";
       }
     }
-    // text は任意入力
   }
 
   validationErrors.value = errors;
@@ -217,7 +216,6 @@ function validateAnswers(): boolean {
 
 async function submitSurvey() {
   if (!validateAnswers()) {
-    // 最初のバリデーションエラーの設問にフォーカスを移動
     await nextTick();
     const firstErrorId = Object.keys(validationErrors.value)[0];
     if (firstErrorId) {
@@ -258,7 +256,6 @@ async function submitSurvey() {
 </script>
 
 <template>
-  <!-- スクリーンリーダー向け aria-live リージョン（常にDOMに存在） -->
   <div aria-live="polite" aria-atomic="true" class="sr-only">
     <span v-if="isSubmitted">
       {{ isEditing ? "回答を更新しました。" : "回答ありがとうございました。" }}回答は保存されました。
@@ -270,12 +267,12 @@ async function submitSurvey() {
     v-if="isSubmitted"
     ref="successRef"
     tabindex="-1"
-    class="space-y-4 rounded-xl border border-green-200 bg-green-50 p-6 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+    class="space-y-4 rounded-xl border border-green-200 bg-green-50 p-6 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:border-green-800 dark:bg-green-900/20"
   >
-    <h2 class="text-xl font-semibold tracking-tight text-slate-900">
+    <h2 class="text-xl font-semibold tracking-tight text-foreground">
       {{ isEditing ? "回答を更新しました" : "回答ありがとうございました" }}
     </h2>
-    <p class="text-sm leading-6 text-slate-600">
+    <p class="text-sm leading-6 text-muted">
       回答は保存されました。結果ページから集計を確認できます。
     </p>
     <div class="flex flex-wrap gap-3">
@@ -303,10 +300,10 @@ async function submitSurvey() {
       :aria-describedby="validationErrors[question.id] ? `error-${question.id}` : undefined"
     >
       <div class="space-y-1">
-        <p class="text-xs font-semibold tracking-[0.16em] text-slate-500">
+        <p class="text-xs font-semibold tracking-[0.16em] text-muted">
           Q{{ index + 1 }}
         </p>
-        <h3 class="text-lg font-semibold tracking-tight text-slate-900">
+        <h3 class="text-lg font-semibold tracking-tight text-foreground">
           {{ question.questionText }}
           <span
             v-if="question.questionType !== 'free_text'"
@@ -320,15 +317,15 @@ async function submitSurvey() {
         <label
           v-for="option in question.options"
           :key="option"
-          class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 transition hover:border-blue-200 hover:bg-blue-50"
-          :class="{ 'border-rose-200 bg-rose-50': validationErrors[question.id] }"
+          class="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-background px-4 py-3 text-sm text-foreground transition hover:border-blue-200 hover:bg-blue-50 dark:hover:bg-blue-900/10"
+          :class="{ 'border-rose-200 bg-rose-50 dark:border-rose-800 dark:bg-rose-900/20': validationErrors[question.id] }"
         >
           <input
             :name="`question-${question.id}`"
             type="radio"
             :value="option"
             :checked="getSingleAnswer(question.id) === option"
-            class="mt-0.5 h-4 w-4 border-slate-300 text-blue-500 focus:ring-blue-500"
+            class="mt-0.5 h-4 w-4 border-border text-blue-500 focus:ring-blue-500"
             @change="setSingleAnswer(question.id, option)"
           >
           <span>{{ option }}</span>
@@ -336,15 +333,15 @@ async function submitSurvey() {
 
         <label
           v-if="question.allowOtherText"
-          class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 transition hover:border-blue-200 hover:bg-blue-50"
-          :class="{ 'border-rose-200 bg-rose-50': validationErrors[question.id] }"
+          class="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-background px-4 py-3 text-sm text-foreground transition hover:border-blue-200 hover:bg-blue-50 dark:hover:bg-blue-900/10"
+          :class="{ 'border-rose-200 bg-rose-50 dark:border-rose-800 dark:bg-rose-900/20': validationErrors[question.id] }"
         >
           <input
             :name="`question-${question.id}`"
             type="radio"
             :value="SURVEY_OTHER_OPTION_VALUE"
             :checked="getSingleAnswer(question.id) === SURVEY_OTHER_OPTION_VALUE"
-            class="mt-0.5 h-4 w-4 border-slate-300 text-blue-500 focus:ring-blue-500"
+            class="mt-0.5 h-4 w-4 border-border text-blue-500 focus:ring-blue-500"
             @change="setSingleAnswer(question.id, SURVEY_OTHER_OPTION_VALUE)"
           >
           <span class="w-full space-y-3">
@@ -353,7 +350,7 @@ async function submitSurvey() {
               v-if="isOtherSelected(question)"
               :value="getOtherText(question.id)"
               type="text"
-              class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
               placeholder="内容を入力してください"
               @input="setOtherText(question, ($event.target as HTMLInputElement).value)"
             >
@@ -365,14 +362,14 @@ async function submitSurvey() {
         <label
           v-for="option in question.options"
           :key="option"
-          class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 transition hover:border-blue-200 hover:bg-blue-50"
-          :class="{ 'border-rose-200 bg-rose-50': validationErrors[question.id] }"
+          class="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-background px-4 py-3 text-sm text-foreground transition hover:border-blue-200 hover:bg-blue-50 dark:hover:bg-blue-900/10"
+          :class="{ 'border-rose-200 bg-rose-50 dark:border-rose-800 dark:bg-rose-900/20': validationErrors[question.id] }"
         >
           <input
             :name="`question-${question.id}`"
             type="checkbox"
             :checked="getMultipleAnswers(question.id).includes(option)"
-            class="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-500 focus:ring-blue-500"
+            class="mt-0.5 h-4 w-4 rounded border-border text-blue-500 focus:ring-blue-500"
             @change="toggleMultipleAnswer(question.id, option)"
           >
           <span>{{ option }}</span>
@@ -380,14 +377,14 @@ async function submitSurvey() {
 
         <label
           v-if="question.allowOtherText"
-          class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 transition hover:border-blue-200 hover:bg-blue-50"
-          :class="{ 'border-rose-200 bg-rose-50': validationErrors[question.id] }"
+          class="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-background px-4 py-3 text-sm text-foreground transition hover:border-blue-200 hover:bg-blue-50 dark:hover:bg-blue-900/10"
+          :class="{ 'border-rose-200 bg-rose-50 dark:border-rose-800 dark:bg-rose-900/20': validationErrors[question.id] }"
         >
           <input
             :name="`question-${question.id}`"
             type="checkbox"
             :checked="getMultipleAnswers(question.id).includes(SURVEY_OTHER_OPTION_VALUE)"
-            class="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-500 focus:ring-blue-500"
+            class="mt-0.5 h-4 w-4 rounded border-border text-blue-500 focus:ring-blue-500"
             @change="toggleMultipleAnswer(question.id, SURVEY_OTHER_OPTION_VALUE)"
           >
           <span class="w-full space-y-3">
@@ -396,7 +393,7 @@ async function submitSurvey() {
               v-if="isOtherSelected(question)"
               :value="getOtherText(question.id)"
               type="text"
-              class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
               placeholder="内容を入力してください"
               @input="setOtherText(question, ($event.target as HTMLInputElement).value)"
             >
@@ -411,19 +408,18 @@ async function submitSurvey() {
         :name="`question-${question.id}`"
         :aria-label="question.questionText"
         autocomplete="off"
-        class="min-h-32 w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 transition-[border-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+        class="min-h-32 w-full rounded-lg border border-border bg-surface px-4 py-3 text-sm text-foreground transition-[border-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
         rows="5"
         placeholder="自由にご記入ください…"
         @input="setSingleAnswer(question.id, ($event.target as HTMLTextAreaElement).value)"
       />
 
-      <!-- バリデーションエラーメッセージ -->
       <p
         v-if="validationErrors[question.id]"
         :id="`error-${question.id}`"
         :data-question-id="question.id"
         tabindex="-1"
-        class="flex items-center gap-1.5 text-sm text-rose-600 focus-visible:outline-none"
+        class="flex items-center gap-1.5 text-sm text-rose-600 dark:text-rose-400 focus-visible:outline-none"
         role="alert"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -433,18 +429,17 @@ async function submitSurvey() {
       </p>
     </section>
 
-    <!-- 送信エラーメッセージ -->
     <div
       v-if="errorMessage"
       ref="errorRef"
       tabindex="-1"
-      class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+      class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-400"
       role="alert"
     >
       {{ errorMessage }}
     </div>
 
-    <p class="text-xs text-slate-500">
+    <p class="text-xs text-muted">
       <span class="text-rose-500" aria-hidden="true">*</span> は必須項目です
     </p>
 

@@ -9,10 +9,10 @@ useSeoMeta({
 <template>
   <PageContainer size="narrow">
     <div class="flex min-h-[60vh] flex-col items-center justify-center gap-6 text-center">
-      <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100">
+      <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-surface-hover">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          class="h-8 w-8 text-slate-400"
+          class="h-8 w-8 text-muted"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -27,10 +27,10 @@ useSeoMeta({
       </div>
 
       <div class="space-y-2">
-        <h1 class="text-2xl font-semibold tracking-tight text-slate-900">
+        <h1 class="text-2xl font-semibold tracking-tight text-foreground">
           ログインが必要です
         </h1>
-        <p class="text-sm leading-6 text-slate-500">
+        <p class="text-sm leading-6 text-muted">
           N Portal は社内メンバー限定のサービスです。<br>
           <template v-if="loginDomainLabel">
             アクセスするには {{ loginDomainLabel }} アカウントでのログインが必要です。

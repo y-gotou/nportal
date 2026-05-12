@@ -11,6 +11,13 @@ export default defineNuxtConfig({
   modules: ["nitro-cloudflare-dev"],
   app: {
     head: {
+      script: [
+        {
+          innerHTML:
+            "(function(){if(localStorage.getItem('theme')==='dark')document.documentElement.classList.add('dark')})()",
+          type: "text/javascript",
+        },
+      ],
       link: [
         { rel: "preconnect", href: "https://fonts.googleapis.com" },
         {

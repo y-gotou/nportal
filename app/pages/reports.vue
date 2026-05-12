@@ -78,7 +78,7 @@ useSeoMeta({
   <PageContainer size="medium">
     <div v-if="isSubmitted" class="space-y-6">
       <div :class="surfaceCardClass" class="space-y-4">
-        <p class="text-lg font-semibold text-slate-900">ご報告ありがとうございます。内容を確認のうえ対応します。</p>
+        <p class="text-lg font-semibold text-foreground">ご報告ありがとうございます。内容を確認のうえ対応します。</p>
         <div class="flex flex-wrap gap-3">
           <NuxtLink to="/" :class="secondaryButtonClass">
             <IconArrowLeft />
@@ -101,13 +101,13 @@ useSeoMeta({
       <div :class="surfaceCardClass" class="space-y-6">
         <form class="space-y-6" @submit.prevent="submit">
           <div>
-            <label for="report-type" class="block text-sm font-medium text-slate-900">
+            <label for="report-type" class="block text-sm font-medium text-foreground">
               種別 <span class="text-red-500">*</span>
             </label>
             <select
               id="report-type"
               v-model="form.reportType"
-              class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              class="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option
                 v-for="option in typeOptions"
@@ -120,36 +120,36 @@ useSeoMeta({
           </div>
 
           <div>
-            <label for="report-title" class="block text-sm font-medium text-slate-900">
+            <label for="report-title" class="block text-sm font-medium text-foreground">
               件名 <span class="text-red-500">*</span>
             </label>
             <input
               id="report-title"
               v-model="form.title"
               type="text"
-              class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              class="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder-muted focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               placeholder="例: 議事録詳細ページで表示が崩れる"
             >
-            <p v-if="errors.title" class="mt-1 text-sm text-red-600" role="alert">{{ errors.title }}</p>
+            <p v-if="errors.title" class="mt-1 text-sm text-red-600 dark:text-red-400" role="alert">{{ errors.title }}</p>
           </div>
 
           <div>
-            <label for="report-detail" class="block text-sm font-medium text-slate-900">
+            <label for="report-detail" class="block text-sm font-medium text-foreground">
               詳細 <span class="text-red-500">*</span>
             </label>
             <textarea
               id="report-detail"
               v-model="form.detail"
               rows="8"
-              class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm leading-6 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              class="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm leading-6 text-foreground placeholder-muted focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               placeholder="発生した画面、状況、期待した動作などを記載してください。"
             />
-            <p v-if="errors.detail" class="mt-1 text-sm text-red-600" role="alert">{{ errors.detail }}</p>
+            <p v-if="errors.detail" class="mt-1 text-sm text-red-600 dark:text-red-400" role="alert">{{ errors.detail }}</p>
           </div>
 
           <div
             v-if="submitError"
-            class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
+            class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-400"
             role="alert"
           >
             {{ submitError }}

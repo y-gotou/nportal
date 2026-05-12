@@ -18,7 +18,6 @@ const doneApplications = computed(() =>
   applications.value.filter((a) => a.status === "done"),
 );
 
-// フォーム状態
 const showForm = ref(false);
 const editingId = ref<number | null>(null);
 const formTitle = ref("");
@@ -103,9 +102,9 @@ function getStatusLabel(status: SpeakerApplication["status"]) {
 }
 
 function getStatusClass(status: SpeakerApplication["status"]) {
-  if (status === "pending") return "bg-amber-50 text-amber-700";
-  if (status === "scheduled") return "bg-blue-50 text-blue-700";
-  return "bg-green-50 text-green-700";
+  if (status === "pending") return "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400";
+  if (status === "scheduled") return "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400";
+  return "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400";
 }
 
 useSeoMeta({
@@ -128,45 +127,43 @@ useSeoMeta({
       </button>
     </div>
 
-    <!-- APIエラー表示 -->
     <div
       v-if="error"
-      class="rounded-xl border border-rose-200 bg-rose-50 p-6"
+      class="rounded-xl border border-rose-200 bg-rose-50 p-6 dark:border-rose-800 dark:bg-rose-900/20"
       role="alert"
     >
-      <p class="font-medium text-rose-800">データの読み込みに失敗しました</p>
-      <p class="mt-1 text-sm text-rose-600">しばらくしてからページを再読み込みしてください。</p>
+      <p class="font-medium text-rose-800 dark:text-rose-300">データの読み込みに失敗しました</p>
+      <p class="mt-1 text-sm text-rose-600 dark:text-rose-400">しばらくしてからページを再読み込みしてください。</p>
     </div>
 
-    <!-- 応募フォーム（モーダル） -->
     <Teleport to="body">
       <div
         v-if="showForm"
         class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4"
         @click.self="closeForm"
       >
-        <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
-          <h2 class="text-lg font-bold text-slate-900">
+        <div class="w-full max-w-lg rounded-2xl bg-surface p-6 shadow-xl">
+          <h2 class="text-lg font-bold text-foreground">
             {{ editingId !== null ? "応募内容を編集" : "発表を申し込む" }}
           </h2>
 
           <form class="mt-5 space-y-4" @submit.prevent="submitForm">
             <div>
-              <label class="block text-sm font-medium text-slate-700" for="form-title">
+              <label class="block text-sm font-medium text-foreground" for="form-title">
                 発表テーマ・タイトル <span class="text-red-500">*</span>
               </label>
               <input
                 id="form-title"
                 v-model="formTitle"
                 type="text"
-                class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                class="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder-muted focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 placeholder="例: LLMのファインチューニング入門"
                 required
               />
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-slate-700" for="form-duration">
+              <label class="block text-sm font-medium text-foreground" for="form-duration">
                 発表時間（分）<span class="text-red-500">*</span>
               </label>
               <input
@@ -175,26 +172,26 @@ useSeoMeta({
                 type="number"
                 min="1"
                 max="120"
-                class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                class="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder-muted focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 placeholder="15"
                 required
               />
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-slate-700" for="form-note">
+              <label class="block text-sm font-medium text-foreground" for="form-note">
                 備考・コメント
               </label>
               <textarea
                 id="form-note"
                 v-model="formNote"
                 rows="3"
-                class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                class="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder-muted focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 placeholder="発表概要や希望日程など、自由に記載してください"
               />
             </div>
 
-            <p v-if="formError" class="text-sm text-red-600" role="alert">{{ formError }}</p>
+            <p v-if="formError" class="text-sm text-red-600 dark:text-red-400" role="alert">{{ formError }}</p>
 
             <div class="flex justify-end gap-3 pt-2">
               <button
@@ -218,17 +215,16 @@ useSeoMeta({
     </Teleport>
 
     <div v-if="!error" class="space-y-8">
-      <!-- ステータスグループ -->
       <template
         v-for="group in [
-          { label: '応募中', color: 'text-amber-600', items: pendingApplications },
-          { label: '発表予定', color: 'text-blue-600', items: scheduledApplications },
-          { label: '発表済み', color: 'text-green-600', items: doneApplications },
+          { label: '応募中', color: 'text-amber-600 dark:text-amber-400', items: pendingApplications },
+          { label: '発表予定', color: 'text-blue-600 dark:text-blue-400', items: scheduledApplications },
+          { label: '発表済み', color: 'text-green-600 dark:text-green-400', items: doneApplications },
         ]"
         :key="group.label"
       >
         <section v-if="group.items.length > 0">
-          <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
+          <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">
             {{ group.label }}
             <span :class="group.color" class="ml-1">{{ group.items.length }}件</span>
           </h2>
@@ -241,7 +237,7 @@ useSeoMeta({
               <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div class="min-w-0 space-y-1.5">
                   <div class="flex flex-wrap items-center gap-2">
-                    <h3 class="text-base font-semibold text-slate-900">{{ app.title }}</h3>
+                    <h3 class="text-base font-semibold text-foreground">{{ app.title }}</h3>
                     <span
                       class="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium"
                       :class="getStatusClass(app.status)"
@@ -249,29 +245,28 @@ useSeoMeta({
                       {{ getStatusLabel(app.status) }}
                     </span>
                   </div>
-                  <div class="flex flex-wrap gap-3 text-sm text-slate-500">
+                  <div class="flex flex-wrap gap-3 text-sm text-muted">
                     <span>{{ app.user_email }}</span>
-                    <span class="text-slate-300">|</span>
+                    <span class="text-border">|</span>
                     <span>{{ app.duration }}分</span>
                   </div>
-                  <p v-if="app.note" class="text-sm text-slate-600">{{ app.note }}</p>
+                  <p v-if="app.note" class="text-sm text-muted">{{ app.note }}</p>
                 </div>
 
-                <!-- 自分の応募かつ発表済みでない場合のみ操作ボタンを表示 -->
                 <div
                   v-if="currentUser?.email === app.user_email && app.status !== 'done'"
                   class="flex shrink-0 gap-2"
                 >
                   <button
                     type="button"
-                    class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50"
+                    class="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted transition-colors hover:bg-surface-hover"
                     @click="openEditForm(app)"
                   >
                     編集
                   </button>
                   <button
                     type="button"
-                    class="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50"
+                    class="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
                     @click="withdrawApplication(app.id)"
                   >
                     取り下げ
@@ -283,10 +278,9 @@ useSeoMeta({
         </section>
       </template>
 
-      <!-- 空の状態 -->
       <p
         v-if="applications.length === 0"
-        class="rounded-xl border border-dashed border-slate-300 bg-white px-5 py-8 text-center text-sm text-slate-500"
+        class="rounded-xl border border-dashed border-border bg-surface px-5 py-8 text-center text-sm text-muted"
       >
         発表申し込みはまだありません。ぜひエントリーしてください！
       </p>
