@@ -6,6 +6,7 @@ import {
   createSubmittedResource,
   getResourcesBucket,
   normalizeResourceTags,
+  normalizeResourceMimeType,
   requireResourceTitle,
   sanitizeFileName,
   validateResourceFile,
@@ -61,9 +62,10 @@ export default defineEventHandler(async (event) => {
   }
 
   const fileName = sanitizeFileName(file?.filename);
-  const mimeType = file?.type || "application/octet-stream";
+  const submittedMimeType = file?.type || "application/octet-stream";
+  const mimeType = normalizeResourceMimeType(fileName, submittedMimeType);
   const size = file?.data.byteLength ?? 0;
-  validateResourceFile({ fileName, size, mimeType }, { allowZip: user.isAdmin === true });
+  validateResourceFile({ fileName, size, mimeType: submittedMimeType }, { allowZip: user.isAdmin === true });
 
   const bucket = getResourcesBucket(event);
   const fileKey = createResourceObjectKey(event, fileName);

@@ -132,6 +132,11 @@ export interface ResourcesListResponse {
   resources: ResourceItem[];
 }
 
+export interface ResourceMarkdownResponse {
+  resource: ResourceItem;
+  contentHtml: string;
+}
+
 export interface SurveyDistributionItem {
   label: string;
   value: number;

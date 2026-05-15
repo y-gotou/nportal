@@ -90,13 +90,35 @@ const MIME_TYPES_BY_EXTENSION: Record<string, string[]> = {
   zip: ["application/zip", "application/x-zip-compressed", "application/octet-stream"],
 };
 
+function getBaseMimeType(value: string | null | undefined): string {
+  return value?.split(";")[0]?.trim().toLowerCase() ?? "";
+}
+
+export function isMarkdownFileName(fileName: string | null | undefined): boolean {
+  return getFileExtension(fileName ?? "") === "md";
+}
+
+export function normalizeResourceMimeType(fileName: string, mimeType?: string | null): string {
+  if (isMarkdownFileName(fileName)) {
+    return "text/markdown; charset=utf-8";
+  }
+
+  return mimeType?.trim() || "application/octet-stream";
+}
+
+export function getResourceFileUrl(resourceId: number, fileName?: string | null): string {
+  return isMarkdownFileName(fileName)
+    ? `/resources/${resourceId}`
+    : `/api/resources/${resourceId}/file`;
+}
+
 function toResourceItem(row: ResourceRow, user?: ResourceUser): ResourceItem {
   const sourceType: ResourceSourceType = row.source_type === "file" ? "file" : "url";
 
   return {
     id: row.id,
     title: row.title,
-    url: sourceType === "file" ? `/api/resources/${row.id}/file` : row.url,
+    url: sourceType === "file" ? getResourceFileUrl(row.id, row.file_name) : row.url,
     type: row.type,
     tags: parseTags(row.tags),
     date: row.date,
@@ -251,7 +273,7 @@ export function validateResourceFile(
     });
   }
 
-  const mimeType = file.mimeType?.toLowerCase();
+  const mimeType = getBaseMimeType(file.mimeType);
   if (mimeType && !allowedMimes.includes(mimeType)) {
     throw createError({ statusCode: 400, statusMessage: "file type is not allowed." });
   }

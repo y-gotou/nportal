@@ -4,6 +4,7 @@ import {
   buildResourceContentDisposition,
   getResourceRow,
   getResourcesBucket,
+  normalizeResourceMimeType,
   parseResourceId,
 } from "~~/server/utils/resources";
 
@@ -27,7 +28,13 @@ export default defineEventHandler(async (event) => {
 
   const headers = new Headers();
   object.writeHttpMetadata?.(headers);
-  headers.set("Content-Type", resource.mime_type || headers.get("Content-Type") || "application/octet-stream");
+  headers.set(
+    "Content-Type",
+    normalizeResourceMimeType(
+      resource.file_name ?? "resource",
+      resource.mime_type || headers.get("Content-Type") || "application/octet-stream",
+    ),
+  );
   headers.set("Content-Disposition", buildResourceContentDisposition(resource.file_name));
   headers.set("X-Content-Type-Options", "nosniff");
 
