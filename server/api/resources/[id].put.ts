@@ -6,6 +6,7 @@ import {
   getEditableResourceRow,
   getResourcesBucket,
   normalizeResourceTags,
+  normalizeResourceMimeType,
   parseResourceId,
   requireResourceTitle,
   sanitizeFileName,
@@ -73,9 +74,10 @@ export default defineEventHandler(async (event) => {
 
   if (file) {
     const fileName = sanitizeFileName(file.filename);
-    const mimeType = file.type || "application/octet-stream";
+    const submittedMimeType = file.type || "application/octet-stream";
+    const mimeType = normalizeResourceMimeType(fileName, submittedMimeType);
     const size = file.data.byteLength;
-    validateResourceFile({ fileName, size, mimeType }, { allowZip: user.isAdmin === true });
+    validateResourceFile({ fileName, size, mimeType: submittedMimeType }, { allowZip: user.isAdmin === true });
 
     const bucket = getResourcesBucket(event);
     const fileKey = createResourceObjectKey(event, fileName);

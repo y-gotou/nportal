@@ -30,7 +30,7 @@ function toMinutes(row: MinutesRow): Minutes {
   };
 }
 
-async function renderMarkdown(markdown: string): Promise<string> {
+export async function renderMarkdown(markdown: string): Promise<string> {
   // remark は ESM モジュールのため動的インポートを使用
   const { remark } = await import("remark");
   const { default: gfm } = await import("remark-gfm");
