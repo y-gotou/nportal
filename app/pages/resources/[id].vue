@@ -30,11 +30,10 @@ useSeoMeta({
       </NuxtLink>
       <a
         :href="`/api/resources/${resource.id}/file`"
-        target="_blank"
-        rel="noreferrer"
+        :download="resource.fileName || true"
         :class="secondaryButtonClass"
       >
-        元ファイルを開く
+        ファイルを保存
       </a>
     </div>
 

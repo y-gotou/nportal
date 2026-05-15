@@ -99,7 +99,9 @@ test("resources page and shared form expose user submission controls", async () 
   assert.match(page, /canEdit/);
   assert.match(markdownPage, /ResourceMarkdownResponse/);
   assert.match(markdownPage, /v-html="contentHtml"/);
-  assert.match(markdownPage, /元ファイルを開く/);
+  assert.match(markdownPage, /ファイルを保存/);
+  assert.match(markdownPage, /:download="resource\.fileName \|\| true"/);
+  assert.doesNotMatch(page, /target="_blank"/);
   assert.match(markdownApi, /renderMarkdown/);
   assert.match(markdownApi, /isMarkdownFileName/);
   assert.match(form, /sourceMode/);

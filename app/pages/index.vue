@@ -216,8 +216,6 @@ useSeoMeta({
             <div class="flex shrink-0 flex-wrap gap-3">
               <a
                 :href="resource.url"
-                target="_blank"
-                rel="noreferrer"
                 :class="primaryButtonClass"
               >
                 資料を開く
