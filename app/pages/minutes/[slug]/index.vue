@@ -63,8 +63,6 @@ useSeoMeta({
           v-for="resource in relatedResources"
           :key="resource.id"
           :href="resource.url"
-          target="_blank"
-          rel="noreferrer"
           class="rounded-xl border border-border bg-surface p-5 shadow-sm transition-[border-color,box-shadow] hover:border-blue-500/30 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
         >
           <p class="text-sm text-muted">{{ resource.type }}</p>

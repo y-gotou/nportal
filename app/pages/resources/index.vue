@@ -273,8 +273,6 @@ useSeoMeta({
             <div class="flex shrink-0 flex-wrap gap-3">
               <a
                 :href="resource.url"
-                target="_blank"
-                rel="noreferrer"
                 class="inline-flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
               >
                 資料を開く
