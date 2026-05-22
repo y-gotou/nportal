@@ -52,7 +52,7 @@ const responses: SurveyResponse[] = [
   { questionId: 101, answer: "[\"RAG\",\"運用\"]", submittedAt: "2026-04-01T10:02:00Z" },
   {
     questionId: 101,
-    answer: "{\"selected\":[\"評価\",\"__other__\"],\"otherText\":\"監査\"}",
+    answer: "{\"selected\":[\"評価\",\"__other__\"],\"otherText\":\"監査\\n対応\"}",
     submittedAt: "2026-04-01T10:03:00Z",
   },
   {
@@ -60,7 +60,7 @@ const responses: SurveyResponse[] = [
     answer: "{\"selected\":[],\"otherText\":\" \"}",
     submittedAt: "2026-04-01T10:03:30Z",
   },
-  { questionId: 102, answer: " 参考になりました ", submittedAt: "2026-04-01T10:04:00Z" },
+  { questionId: 102, answer: " 参考になりました\n次回も参加します ", submittedAt: "2026-04-01T10:04:00Z" },
   { questionId: 102, answer: " ", submittedAt: "2026-04-01T10:05:00Z" },
 ];
 
@@ -110,10 +110,10 @@ test("buildSurveyResultBlocks aggregates survey responses by question type", () 
     { label: "運用", value: 1, width: "50%" },
     { label: "その他", value: 1, width: "50%" },
   ]);
-  assert.deepEqual(blocks[1].otherTextAnswers, ["監査"]);
+  assert.deepEqual(blocks[1].otherTextAnswers, ["監査\n対応"]);
 
   assert.equal(blocks[2].responseCount, 1);
-  assert.deepEqual(blocks[2].freeTextAnswers, ["参考になりました"]);
+  assert.deepEqual(blocks[2].freeTextAnswers, ["参考になりました\n次回も参加します"]);
   assert.deepEqual(blocks[2].otherTextAnswers, []);
   assert.deepEqual(blocks[2].distribution, []);
 });
