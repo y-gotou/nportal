@@ -68,7 +68,7 @@ function isMyOtherText(
         <div
           v-for="(answer, answerIndex) in block.freeTextAnswers"
           :key="`${block.id}-${answerIndex}`"
-          class="rounded-lg border px-4 py-3 text-sm leading-6"
+          class="whitespace-pre-wrap rounded-lg border px-4 py-3 text-sm leading-6"
           :class="
             isMyFreeText(block.id, answer)
               ? 'border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-700 dark:bg-blue-900/20 dark:text-blue-300'
@@ -134,7 +134,7 @@ function isMyOtherText(
           <div
             v-for="(answer, answerIndex) in block.otherTextAnswers"
             :key="`${block.id}-other-${answerIndex}`"
-            class="rounded-lg border px-4 py-3 text-sm leading-6"
+            class="whitespace-pre-wrap rounded-lg border px-4 py-3 text-sm leading-6"
             :class="
               isMyOtherText(block.id, answer, block.questionType)
                 ? 'border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-700 dark:bg-blue-900/20 dark:text-blue-300'
