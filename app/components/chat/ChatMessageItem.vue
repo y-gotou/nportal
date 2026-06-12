@@ -69,7 +69,7 @@ function pickEmoji(emoji: string) {
           v-else-if="message.kind === 'sticker' && isChatStickerId(message.body)"
           :src="`/stamps/${message.body}.png`"
           :alt="chatStickerLabel(message.body)"
-          class="h-32 w-auto"
+          class="size-32"
         >
         <div
           v-else

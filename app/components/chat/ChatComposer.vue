@@ -194,7 +194,7 @@ defineExpose({ reset });
             <img
               :src="`/stamps/${sticker.id}.png`"
               :alt="sticker.label"
-              class="mx-auto h-16 w-auto"
+              class="mx-auto size-16"
               loading="lazy"
             >
           </button>
