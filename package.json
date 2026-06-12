@@ -13,9 +13,6 @@
     "db:schema:local": "node scripts/d1-execute.mjs local db/schema.sql",
     "db:schema:prod": "node scripts/d1-execute.mjs prod db/schema.sql",
     "db:schema:preview": "node scripts/d1-execute.mjs preview db/schema.sql",
-    "db:migrate:local": "node scripts/d1-execute.mjs local db/migrate.sql",
-    "db:migrate:prod": "node scripts/d1-execute.mjs prod db/migrate.sql",
-    "db:migrate:preview": "node scripts/d1-execute.mjs preview db/migrate.sql",
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
