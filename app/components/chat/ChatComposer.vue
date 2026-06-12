@@ -37,13 +37,17 @@ function autoResize() {
   const el = textarea.value;
   if (!el) return;
   el.style.height = "auto";
-  el.style.height = `${Math.min(el.scrollHeight, MAX_TEXTAREA_HEIGHT_PX)}px`;
+  // scrollHeightはborderを含まないため、border分を足さないと常に僅かに溢れてスクロールバーが出る
+  const borderHeight = el.offsetHeight - el.clientHeight;
+  el.style.height = `${Math.min(el.scrollHeight + borderHeight, MAX_TEXTAREA_HEIGHT_PX)}px`;
 }
 
 watch(body, async () => {
   await nextTick();
   autoResize();
 });
+
+onMounted(autoResize);
 
 function onEnter(event: KeyboardEvent) {
   // 日本語IMEの変換確定Enterでは送信しない
