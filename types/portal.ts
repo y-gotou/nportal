@@ -7,6 +7,7 @@ export interface ScheduleItem {
   minutesSlug?: string | null;
   topics: string[];
   location?: string | null;
+  hasChat?: boolean;
 }
 
 export interface ResourceItem {
@@ -186,6 +187,49 @@ export interface SpeakerApplication {
 
 export interface SpeakersListResponse {
   applications: SpeakerApplication[];
+}
+
+export type ChatMessageKind = "text" | "stamp" | "sticker";
+
+export interface ChatAttachment {
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+  isImage: boolean;
+}
+
+export interface ChatMessage {
+  id: number;
+  scheduleId: number;
+  userEmail: string;
+  kind: ChatMessageKind;
+  body: string;
+  replyToId: number | null;
+  attachment: ChatAttachment | null;
+  deleted: boolean;
+  createdAt: string;
+}
+
+export interface ChatReaction {
+  messageId: number;
+  emoji: string;
+  userEmails: string[];
+}
+
+export interface ChatRoomInfo {
+  scheduleId: number;
+  title: string;
+  date: string;
+  time: string;
+  readOnly: boolean;
+}
+
+export interface ChatMessagesResponse {
+  version: number;
+  room: ChatRoomInfo;
+  messages: ChatMessage[];
+  reactions: ChatReaction[];
+  deletedMessageIds: number[];
 }
 
 export interface D1PreparedStatement {

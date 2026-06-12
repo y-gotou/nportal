@@ -111,3 +111,37 @@ CREATE TABLE IF NOT EXISTS reports (
 
 CREATE INDEX IF NOT EXISTS idx_reports_created_at ON reports(created_at);
 CREATE INDEX IF NOT EXISTS idx_reports_report_type ON reports(report_type);
+
+CREATE TABLE IF NOT EXISTS chat_messages (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  schedule_id INTEGER NOT NULL REFERENCES schedule(id),
+  user_email  TEXT NOT NULL,
+  kind        TEXT NOT NULL DEFAULT 'text',
+  body        TEXT NOT NULL DEFAULT '',
+  reply_to_id INTEGER REFERENCES chat_messages(id),
+  file_key    TEXT,
+  file_name   TEXT,
+  file_size   INTEGER,
+  mime_type   TEXT,
+  deleted_at  TEXT,
+  created_at  TEXT DEFAULT (datetime('now'))
+);
+-- kind: 'text'（テキスト）/ 'stamp'（大きめ絵文字スタンプ）
+
+CREATE TABLE IF NOT EXISTS chat_reactions (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  message_id INTEGER NOT NULL REFERENCES chat_messages(id),
+  user_email TEXT NOT NULL,
+  emoji      TEXT NOT NULL,
+  created_at TEXT DEFAULT (datetime('now')),
+  UNIQUE(message_id, user_email, emoji)
+);
+
+CREATE TABLE IF NOT EXISTS chat_room_state (
+  schedule_id INTEGER PRIMARY KEY REFERENCES schedule(id),
+  version     INTEGER NOT NULL DEFAULT 0,
+  updated_at  TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_chat_messages_schedule ON chat_messages(schedule_id, id);
+CREATE INDEX IF NOT EXISTS idx_chat_reactions_message ON chat_reactions(message_id);

@@ -68,6 +68,12 @@ useSeoMeta({
               >
                 会議に参加する
               </a>
+              <NuxtLink
+                :to="`/chat/${item.id}`"
+                :class="secondaryButtonClass"
+              >
+                チャット
+              </NuxtLink>
             </div>
           </div>
         </article>
@@ -112,6 +118,13 @@ useSeoMeta({
                 :class="secondaryButtonClass"
               >
                 議事録を見る
+              </NuxtLink>
+              <NuxtLink
+                v-if="item.hasChat"
+                :to="`/chat/${item.id}`"
+                :class="secondaryButtonClass"
+              >
+                チャット
               </NuxtLink>
             </div>
           </div>
