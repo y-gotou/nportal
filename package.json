@@ -10,11 +10,9 @@
     "check": "npm run typecheck && npm run build",
     "preview": "npm run build && wrangler pages dev dist",
     "db:seed:local": "node scripts/d1-execute.mjs local db/schema.sql && node scripts/d1-execute.mjs local db/seed.sql",
-    "db:seed:prod": "node scripts/d1-execute.mjs prod db/schema.sql && node scripts/d1-execute.mjs prod db/seed.sql",
-    "db:seed:preview": "node scripts/d1-execute.mjs preview db/schema.sql && node scripts/d1-execute.mjs preview db/seed.sql",
-    "db:migrate:local": "node scripts/d1-execute.mjs local db/migrate.sql",
-    "db:migrate:prod": "node scripts/d1-execute.mjs prod db/migrate.sql",
-    "db:migrate:preview": "node scripts/d1-execute.mjs preview db/migrate.sql",
+    "db:schema:local": "node scripts/d1-execute.mjs local db/schema.sql",
+    "db:schema:prod": "node scripts/d1-execute.mjs prod db/schema.sql",
+    "db:schema:preview": "node scripts/d1-execute.mjs preview db/schema.sql",
     "postinstall": "nuxt prepare"
   },
   "dependencies": {

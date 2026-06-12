@@ -24,6 +24,15 @@ if (!config || !file) {
   process.exit(1);
 }
 
+// seed.sql は既存データを DELETE してから投入する破壊的スクリプトのため、リモート DB への適用を禁止する
+if (config.scopeArg === "--remote" && /seed/i.test(file)) {
+  console.error(
+    `Refusing to run ${file} on a remote database: seed.sql deletes existing survey data. ` +
+      "Use `npm run db:schema:prod` / `db:schema:preview` to apply schema changes safely.",
+  );
+  process.exit(1);
+}
+
 const databaseName = process.env[config.databaseEnv];
 
 if (!databaseName) {
