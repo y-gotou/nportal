@@ -82,6 +82,12 @@ useSeoMeta({
           会議に参加する
         </a>
         <NuxtLink
+          :to="`/chat/${nextEvent.id}`"
+          :class="`${secondaryButtonClass} !bg-transparent border-white/20 text-white hover:!bg-white/10 hover:text-white`"
+        >
+          チャットを開く
+        </NuxtLink>
+        <NuxtLink
           to="/schedule"
           :class="`${secondaryButtonClass} !bg-transparent border-white/20 text-white hover:!bg-white/10 hover:text-white`"
         >

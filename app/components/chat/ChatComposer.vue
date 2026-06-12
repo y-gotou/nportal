@@ -1,0 +1,164 @@
+<script setup lang="ts">
+import { Paperclip, Send, SmilePlus, X } from "lucide-vue-next";
+import type { ChatMessage } from "~~/types/portal";
+import { CHAT_EMOJIS, MAX_CHAT_BODY_LENGTH, chatDisplayName } from "~~/utils/chat";
+
+const props = defineProps<{
+  sending: boolean;
+  replyTo: ChatMessage | null;
+}>();
+
+const emit = defineEmits<{
+  send: [payload: { kind: "text" | "stamp"; body: string; file: File | null }];
+  cancelReply: [];
+}>();
+
+const body = ref("");
+const file = ref<File | null>(null);
+const showStampPicker = ref(false);
+const fileInput = ref<HTMLInputElement | null>(null);
+const textarea = ref<HTMLTextAreaElement | null>(null);
+
+const canSend = computed(
+  () => !props.sending && (body.value.trim().length > 0 || file.value !== null),
+);
+
+function onEnter(event: KeyboardEvent) {
+  // 日本語IMEの変換確定Enterでは送信しない
+  if (event.isComposing || event.keyCode === 229) return;
+  if (event.shiftKey) return;
+  event.preventDefault();
+  submit();
+}
+
+function submit() {
+  if (!canSend.value) return;
+  emit("send", { kind: "text", body: body.value, file: file.value });
+}
+
+function sendStamp(emoji: string) {
+  showStampPicker.value = false;
+  if (props.sending) return;
+  emit("send", { kind: "stamp", body: emoji, file: null });
+}
+
+function onFileChange(event: Event) {
+  const input = event.target as HTMLInputElement;
+  file.value = input.files?.[0] ?? null;
+}
+
+function clearFile() {
+  file.value = null;
+  if (fileInput.value) fileInput.value.value = "";
+}
+
+// 親が送信完了後に呼び出す
+function reset() {
+  body.value = "";
+  clearFile();
+  textarea.value?.focus();
+}
+
+defineExpose({ reset });
+</script>
+
+<template>
+  <div class="border-t border-border bg-surface px-4 py-3">
+    <!-- 返信中表示 -->
+    <div
+      v-if="replyTo"
+      class="mb-2 flex items-start justify-between gap-2 rounded-lg border-l-2 border-blue-400 bg-surface-hover px-3 py-1.5 text-xs text-muted"
+    >
+      <div class="min-w-0">
+        <span class="font-medium">{{ chatDisplayName(replyTo.userEmail) }}</span> に返信
+        <p class="mt-0.5 line-clamp-1 break-words">
+          {{ replyTo.kind === "stamp" ? replyTo.body : (replyTo.body || replyTo.attachment?.fileName || "") }}
+        </p>
+      </div>
+      <button
+        type="button"
+        class="shrink-0 rounded p-0.5 hover:bg-surface"
+        aria-label="返信をやめる"
+        @click="emit('cancelReply')"
+      >
+        <X class="size-4" />
+      </button>
+    </div>
+
+    <!-- 添付ファイル表示 -->
+    <div
+      v-if="file"
+      class="mb-2 flex items-center justify-between gap-2 rounded-lg bg-surface-hover px-3 py-1.5 text-xs"
+    >
+      <span class="break-all">{{ file.name }}</span>
+      <button
+        type="button"
+        class="shrink-0 rounded p-0.5 text-muted hover:bg-surface hover:text-foreground"
+        aria-label="添付を取り消す"
+        @click="clearFile"
+      >
+        <X class="size-4" />
+      </button>
+    </div>
+
+    <div class="relative flex items-end gap-2">
+      <input
+        ref="fileInput"
+        type="file"
+        class="hidden"
+        @change="onFileChange"
+      >
+      <button
+        type="button"
+        class="rounded-lg p-2.5 text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
+        title="ファイルを添付"
+        @click="fileInput?.click()"
+      >
+        <Paperclip class="size-5" />
+      </button>
+      <button
+        type="button"
+        class="rounded-lg p-2.5 text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
+        title="スタンプ"
+        @click="showStampPicker = !showStampPicker"
+      >
+        <SmilePlus class="size-5" />
+      </button>
+
+      <!-- スタンプピッカー -->
+      <div
+        v-if="showStampPicker"
+        class="absolute bottom-full left-0 z-10 mb-2 grid w-72 grid-cols-8 gap-1 rounded-xl border border-border bg-surface p-2 shadow-lg"
+      >
+        <button
+          v-for="emoji in CHAT_EMOJIS"
+          :key="emoji"
+          type="button"
+          class="rounded p-1.5 text-xl hover:bg-surface-hover"
+          @click="sendStamp(emoji)"
+        >
+          {{ emoji }}
+        </button>
+      </div>
+
+      <textarea
+        ref="textarea"
+        v-model="body"
+        rows="2"
+        :maxlength="MAX_CHAT_BODY_LENGTH"
+        placeholder="メッセージを入力(Enterで送信、Shift+Enterで改行)"
+        class="min-h-0 flex-1 resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-blue-500"
+        @keydown.enter="onEnter"
+      />
+      <button
+        type="button"
+        class="rounded-lg bg-blue-500 p-2.5 text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-40"
+        title="送信"
+        :disabled="!canSend"
+        @click="submit"
+      >
+        <Send class="size-5" />
+      </button>
+    </div>
+  </div>
+</template>

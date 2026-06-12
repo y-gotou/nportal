@@ -36,8 +36,19 @@ export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss()],
   },
+  // server/utils から共有ユーティリティ(utils/chat.ts)を .ts 拡張子付きで import するため
+  typescript: {
+    tsConfig: {
+      compilerOptions: { allowImportingTsExtensions: true },
+    },
+  },
   nitro: {
     preset: "cloudflare_pages",
+    typescript: {
+      tsConfig: {
+        compilerOptions: { allowImportingTsExtensions: true },
+      },
+    },
   },
   routeRules: {
     "/api/**": { prerender: false },
@@ -49,6 +60,7 @@ export default defineNuxtConfig({
     "/resources": { prerender: false },
     "/resources/**": { prerender: false },
     "/admin/**": { prerender: false },
+    "/chat/**": { prerender: false },
     "/": { prerender: false },
     "/login": { prerender: false },
   },
