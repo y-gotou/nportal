@@ -32,10 +32,11 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
       >
         <X class="size-5" />
       </button>
+      <!-- bg-white: 透過画像が暗いオーバーレイを拾わないようにする -->
       <img
         :src="src"
         :alt="fileName"
-        class="max-h-full max-w-full rounded-lg object-contain"
+        class="max-h-full max-w-full rounded-lg bg-white object-contain"
         @click.stop
       >
     </div>

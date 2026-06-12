@@ -101,11 +101,12 @@ function pickEmoji(emoji: string) {
 
           <!-- 添付 -->
           <template v-if="message.attachment">
+            <!-- bg-white: 透過画像が吹き出しの背景色を拾わないようにする -->
             <img
               v-if="message.attachment.isImage"
               :src="fileUrl"
               :alt="message.attachment.fileName"
-              class="mt-1 max-h-60 max-w-full cursor-zoom-in rounded-lg"
+              class="mt-1 max-h-60 max-w-full cursor-zoom-in rounded-lg bg-white"
               loading="lazy"
               @click="emit('imageClick', fileUrl, message.attachment.fileName)"
             >
