@@ -31,6 +31,7 @@ const fileAccept = computed(() => [
   ".csv",
   ".txt",
   ".md",
+  ".html",
   ".png",
   ".jpg",
   ".jpeg",

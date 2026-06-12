@@ -63,6 +63,7 @@ const RESOURCE_TYPE_BY_EXTENSION: Record<string, string> = {
   csv: "CSV",
   txt: "Text",
   md: "Markdown",
+  html: "HTML",
   png: "Image",
   jpg: "Image",
   jpeg: "Image",
@@ -82,6 +83,7 @@ const MIME_TYPES_BY_EXTENSION: Record<string, string[]> = {
   csv: ["text/csv", "application/csv", "application/vnd.ms-excel", "text/plain"],
   txt: ["text/plain"],
   md: ["text/markdown", "text/plain", "application/octet-stream"],
+  html: ["text/html", "application/octet-stream"],
   png: ["image/png"],
   jpg: ["image/jpeg"],
   jpeg: ["image/jpeg"],
@@ -96,6 +98,10 @@ function getBaseMimeType(value: string | null | undefined): string {
 
 export function isMarkdownFileName(fileName: string | null | undefined): boolean {
   return getFileExtension(fileName ?? "") === "md";
+}
+
+export function isHtmlFileName(fileName: string | null | undefined): boolean {
+  return getFileExtension(fileName ?? "") === "html";
 }
 
 export function normalizeResourceMimeType(fileName: string, mimeType?: string | null): string {
@@ -226,7 +232,8 @@ function buildAsciiFileNameFallback(fileName: string): string {
 
 export function buildResourceContentDisposition(fileName: string | null | undefined): string {
   const safeName = sanitizeFileName(fileName ?? "resource");
-  return `inline; filename="${buildAsciiFileNameFallback(safeName)}"; filename*=UTF-8''${encodeContentDispositionValue(safeName)}`;
+  const dispositionType = isHtmlFileName(safeName) ? "attachment" : "inline";
+  return `${dispositionType}; filename="${buildAsciiFileNameFallback(safeName)}"; filename*=UTF-8''${encodeContentDispositionValue(safeName)}`;
 }
 
 export function getFileExtension(fileName: string): string {
