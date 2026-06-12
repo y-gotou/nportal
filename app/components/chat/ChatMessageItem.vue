@@ -5,7 +5,9 @@ import {
   CHAT_EMOJIS,
   CHAT_QUICK_REACTION_EMOJIS,
   chatDisplayName,
+  chatStickerLabel,
   formatChatTime,
+  isChatStickerId,
   splitChatBody,
 } from "~~/utils/chat";
 
@@ -63,6 +65,12 @@ function pickEmoji(emoji: string) {
         <div v-if="message.kind === 'stamp'" class="text-5xl leading-none">
           {{ message.body }}
         </div>
+        <img
+          v-else-if="message.kind === 'sticker' && isChatStickerId(message.body)"
+          :src="`/stamps/${message.body}.png`"
+          :alt="chatStickerLabel(message.body)"
+          class="h-32 w-auto"
+        >
         <div
           v-else
           class="rounded-2xl px-4 py-2.5 text-sm leading-6 shadow-sm"
@@ -79,7 +87,9 @@ function pickEmoji(emoji: string) {
             <template v-if="quote && !quote.deleted">
               <span class="font-medium">{{ chatDisplayName(quote.userEmail) }}</span>
               <p class="mt-0.5 line-clamp-2 whitespace-pre-wrap break-words">
-                {{ quote.kind === "stamp" ? quote.body : (quote.body || quote.attachment?.fileName || "") }}
+                {{ quote.kind === "sticker" ? `スタンプ: ${chatStickerLabel(quote.body)}`
+                  : quote.kind === "stamp" ? quote.body
+                  : (quote.body || quote.attachment?.fileName || "") }}
               </p>
             </template>
             <p v-else>削除された投稿</p>

@@ -12,6 +12,26 @@ export function isChatEmoji(value: string): boolean {
   return (CHAT_EMOJIS as readonly string[]).includes(value);
 }
 
+// 画像スタンプ(public/stamps/<id>.png)
+export const CHAT_STICKERS = [
+  { id: "naruhodo", label: "なるほど" },
+  { id: "iidesune", label: "いいですね" },
+  { id: "kansha", label: "感謝" },
+  { id: "kakuninchu", label: "確認中" },
+  { id: "hatena", label: "?" },
+  { id: "atodemimasu", label: "後で見ます" },
+  { id: "tsukaesou", label: "使えそう" },
+  { id: "tameshitai", label: "試したい" },
+] as const;
+
+export function isChatStickerId(value: string): boolean {
+  return CHAT_STICKERS.some((sticker) => sticker.id === value);
+}
+
+export function chatStickerLabel(id: string): string {
+  return CHAT_STICKERS.find((sticker) => sticker.id === id)?.label ?? "スタンプ";
+}
+
 // schedule.date(YYYY-MM-DD)の翌日以降は読み取り専用
 export function isChatReadOnly(scheduleDate: string, today: string): boolean {
   return today > scheduleDate;

@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { Paperclip, Send, SmilePlus, X } from "lucide-vue-next";
 import type { ChatMessage } from "~~/types/portal";
-import { CHAT_EMOJIS, MAX_CHAT_BODY_LENGTH, chatDisplayName } from "~~/utils/chat";
+import {
+  CHAT_EMOJIS,
+  CHAT_STICKERS,
+  MAX_CHAT_BODY_LENGTH,
+  chatDisplayName,
+  chatStickerLabel,
+} from "~~/utils/chat";
 
 const props = defineProps<{
   sending: boolean;
@@ -9,13 +15,14 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  send: [payload: { kind: "text" | "stamp"; body: string; file: File | null }];
+  send: [payload: { kind: "text" | "stamp" | "sticker"; body: string; file: File | null }];
   cancelReply: [];
 }>();
 
 const body = ref("");
 const file = ref<File | null>(null);
 const showStampPicker = ref(false);
+const pickerTab = ref<"sticker" | "emoji">("sticker");
 const fileInput = ref<HTMLInputElement | null>(null);
 const textarea = ref<HTMLTextAreaElement | null>(null);
 
@@ -57,6 +64,12 @@ function sendStamp(emoji: string) {
   emit("send", { kind: "stamp", body: emoji, file: null });
 }
 
+function sendSticker(id: string) {
+  showStampPicker.value = false;
+  if (props.sending) return;
+  emit("send", { kind: "sticker", body: id, file: null });
+}
+
 function onFileChange(event: Event) {
   const input = event.target as HTMLInputElement;
   file.value = input.files?.[0] ?? null;
@@ -87,7 +100,9 @@ defineExpose({ reset });
       <div class="min-w-0">
         <span class="font-medium">{{ chatDisplayName(replyTo.userEmail) }}</span> に返信
         <p class="mt-0.5 line-clamp-1 break-words">
-          {{ replyTo.kind === "stamp" ? replyTo.body : (replyTo.body || replyTo.attachment?.fileName || "") }}
+          {{ replyTo.kind === "sticker" ? `スタンプ: ${chatStickerLabel(replyTo.body)}`
+            : replyTo.kind === "stamp" ? replyTo.body
+            : (replyTo.body || replyTo.attachment?.fileName || "") }}
         </p>
       </div>
       <button
@@ -140,20 +155,57 @@ defineExpose({ reset });
         <SmilePlus class="size-5" />
       </button>
 
-      <!-- スタンプピッカー -->
+      <!-- スタンプピッカー(スタンプ/絵文字のタブ切り替え) -->
       <div
         v-if="showStampPicker"
-        class="absolute bottom-full left-0 z-10 mb-2 grid w-72 grid-cols-8 gap-1 rounded-xl border border-border bg-surface p-2 shadow-lg"
+        class="absolute bottom-full left-0 z-10 mb-2 w-80 rounded-xl border border-border bg-surface p-2 shadow-lg"
       >
-        <button
-          v-for="emoji in CHAT_EMOJIS"
-          :key="emoji"
-          type="button"
-          class="rounded p-1.5 text-xl hover:bg-surface-hover"
-          @click="sendStamp(emoji)"
-        >
-          {{ emoji }}
-        </button>
+        <div class="mb-2 flex gap-1 border-b border-border pb-2">
+          <button
+            type="button"
+            class="rounded-lg px-3 py-1 text-xs font-medium transition-colors"
+            :class="pickerTab === 'sticker' ? 'bg-blue-500 text-white' : 'text-muted hover:bg-surface-hover'"
+            @click="pickerTab = 'sticker'"
+          >
+            スタンプ
+          </button>
+          <button
+            type="button"
+            class="rounded-lg px-3 py-1 text-xs font-medium transition-colors"
+            :class="pickerTab === 'emoji' ? 'bg-blue-500 text-white' : 'text-muted hover:bg-surface-hover'"
+            @click="pickerTab = 'emoji'"
+          >
+            絵文字
+          </button>
+        </div>
+        <div v-if="pickerTab === 'sticker'" class="grid grid-cols-4 gap-1">
+          <button
+            v-for="sticker in CHAT_STICKERS"
+            :key="sticker.id"
+            type="button"
+            class="rounded-lg p-1 hover:bg-surface-hover"
+            :title="sticker.label"
+            @click="sendSticker(sticker.id)"
+          >
+            <img
+              :src="`/stamps/${sticker.id}.png`"
+              :alt="sticker.label"
+              class="mx-auto h-16 w-auto"
+              loading="lazy"
+            >
+          </button>
+        </div>
+        <div v-else class="grid grid-cols-8 gap-1">
+          <button
+            v-for="emoji in CHAT_EMOJIS"
+            :key="emoji"
+            type="button"
+            class="rounded p-1.5 text-xl hover:bg-surface-hover"
+            @click="sendStamp(emoji)"
+          >
+            {{ emoji }}
+          </button>
+        </div>
       </div>
 
       <textarea

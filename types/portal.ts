@@ -188,7 +188,7 @@ export interface SpeakersListResponse {
   applications: SpeakerApplication[];
 }
 
-export type ChatMessageKind = "text" | "stamp";
+export type ChatMessageKind = "text" | "stamp" | "sticker";
 
 export interface ChatAttachment {
   fileName: string;

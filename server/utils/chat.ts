@@ -9,6 +9,7 @@ import {
   MAX_CHAT_BODY_LENGTH,
   isChatEmoji,
   isChatImageMimeType,
+  isChatStickerId,
 } from "../../utils/chat.ts";
 
 export interface ChatMessageRow {
@@ -50,7 +51,7 @@ export function toChatMessage(row: ChatMessageRow): ChatMessage {
     id: row.id,
     scheduleId: row.schedule_id,
     userEmail: row.user_email,
-    kind: row.kind === "stamp" ? "stamp" : "text",
+    kind: row.kind === "stamp" ? "stamp" : row.kind === "sticker" ? "sticker" : "text",
     body: deleted ? "" : row.body,
     replyToId: row.reply_to_id,
     attachment: !deleted && row.file_key
@@ -77,6 +78,16 @@ export function validateChatMessageBody(input: {
     }
     if (!isChatEmoji(input.body)) {
       throw createError({ statusCode: 400, statusMessage: "stamp emoji is not allowed." });
+    }
+    return input.body;
+  }
+
+  if (input.kind === "sticker") {
+    if (input.hasAttachment) {
+      throw createError({ statusCode: 400, statusMessage: "sticker message cannot have an attachment." });
+    }
+    if (!isChatStickerId(input.body)) {
+      throw createError({ statusCode: 400, statusMessage: "sticker is not allowed." });
     }
     return input.body;
   }

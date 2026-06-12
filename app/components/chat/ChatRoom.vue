@@ -121,7 +121,7 @@ onUnmounted(() => {
   document.removeEventListener("visibilitychange", onVisibilityChange);
 });
 
-async function sendMessage(payload: { kind: "text" | "stamp"; body: string; file: File | null }) {
+async function sendMessage(payload: { kind: "text" | "stamp" | "sticker"; body: string; file: File | null }) {
   if (sending.value) return;
   sending.value = true;
   errorMessage.value = "";

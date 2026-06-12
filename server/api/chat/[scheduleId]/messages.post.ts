@@ -43,7 +43,7 @@ export default defineEventHandler(async (event) => {
     parts.find((item) => item.name === name && !item.filename)?.data.toString("utf8") ?? "";
 
   const rawKind = getTextField("kind").trim() || "text";
-  if (rawKind !== "text" && rawKind !== "stamp") {
+  if (rawKind !== "text" && rawKind !== "stamp" && rawKind !== "sticker") {
     throw createError({ statusCode: 400, statusMessage: "kind is invalid." });
   }
   const kind = rawKind as ChatMessageKind;
