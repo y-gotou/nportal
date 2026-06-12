@@ -17,8 +17,10 @@ test("resource file helpers validate allowed files and infer resource types", ()
   assert.equal(inferResourceType({ url: "https://example.com/doc" }), "URL");
   assert.equal(inferResourceType({ fileName: "deck.pptx" }), "PowerPoint");
   assert.equal(inferResourceType({ fileName: "notes.md" }), "Markdown");
+  assert.equal(inferResourceType({ fileName: "sample.html" }), "HTML");
   assert.equal(inferResourceType({ fileName: "archive.zip" }), "ZIP");
   assert.equal(getResourceFileUrl(10, "notes.md"), "/resources/10");
+  assert.equal(getResourceFileUrl(10, "sample.html"), "/api/resources/10/file");
   assert.equal(getResourceFileUrl(10, "deck.pdf"), "/api/resources/10/file");
   assert.equal(normalizeResourceMimeType("notes.md", "application/octet-stream"), "text/markdown; charset=utf-8");
   assert.equal(normalizeResourceMimeType("deck.pdf", "application/pdf"), "application/pdf");
@@ -27,6 +29,10 @@ test("resource file helpers validate allowed files and infer resource types", ()
   assert.equal(
     buildResourceContentDisposition("営業資料.pptx"),
     `inline; filename="____.pptx"; filename*=UTF-8''%E5%96%B6%E6%A5%AD%E8%B3%87%E6%96%99.pptx`,
+  );
+  assert.equal(
+    buildResourceContentDisposition("sample.html"),
+    `attachment; filename="sample.html"; filename*=UTF-8''sample.html`,
   );
 
   assert.doesNotThrow(() =>
@@ -42,6 +48,14 @@ test("resource file helpers validate allowed files and infer resource types", ()
       fileName: "notes.md",
       size: 1024,
       mimeType: "text/markdown; charset=utf-8",
+    }),
+  );
+
+  assert.doesNotThrow(() =>
+    validateResourceFile({
+      fileName: "sample.html",
+      size: 1024,
+      mimeType: "text/html",
     }),
   );
 
@@ -111,6 +125,7 @@ test("resources page and shared form expose user submission controls", async () 
   assert.match(form, /type="file"/);
   assert.match(form, /canSubmitZip/);
   assert.match(form, /:accept="fileAccept"/);
+  assert.match(form, /\.html/);
   assert.match(form, /zipは管理者のみ投稿できます/);
   assert.doesNotMatch(form, /onUrlInput/);
   assert.doesNotMatch(form, /form\.url = ""/);
