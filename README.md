@@ -28,10 +28,16 @@ npm run build          # Cloudflare Pages 向け本番ビルド
 npm run preview        # wrangler pages dev で dist を確認
 npm run typecheck      # Nuxt の型チェック
 npm run check          # typecheck + build
-npm run db:seed:local  # ローカル D1 を初期化
-npm run db:seed:prod   # 本番 D1 を初期化
-npm run db:seed:preview # Preview D1 を初期化
+npm run db:seed:local   # ローカル D1 を初期化(既存データを削除して初期データを投入)
+npm run db:schema:local  # ローカル D1 にスキーマのみ適用
+npm run db:schema:prod   # 本番 D1 にスキーマのみ適用(テーブル追加の反映に使う)
+npm run db:schema:preview # Preview D1 にスキーマのみ適用
 ```
+
+> **注意**: `db/seed.sql` はアンケート関連の既存データを DELETE してから投入する破壊的スクリプトです。
+> リモート(本番/Preview)へのテーブル追加は `db:schema:prod` / `db:schema:preview` を使ってください
+> (`schema.sql` は `CREATE TABLE IF NOT EXISTS` のみで既存データに影響しません)。
+> リモートへの seed 実行はスクリプト側でも拒否されます。
 
 ## ディレクトリ
 
@@ -47,7 +53,7 @@ content/
   schedule.json
 db/
   schema.sql    D1 スキーマ
-  seed.sql      D1 初期データ
+  seed.sql      D1 初期データ(ローカル専用・既存データを削除して投入)
 generated/
   minutes.json  build 時に生成される議事録 JSON
 scripts/
