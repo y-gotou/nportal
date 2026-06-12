@@ -7,6 +7,7 @@ export interface ScheduleItem {
   minutesSlug?: string | null;
   topics: string[];
   location?: string | null;
+  hasChat?: boolean;
 }
 
 export interface ResourceItem {

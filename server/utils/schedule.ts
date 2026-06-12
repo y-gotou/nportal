@@ -11,6 +11,7 @@ interface ScheduleRow {
   resolved_minutes_slug?: string | null;
   topics: string;
   location: string | null;
+  has_chat?: number;
 }
 
 function toScheduleItem(row: ScheduleRow): ScheduleItem {
@@ -23,6 +24,7 @@ function toScheduleItem(row: ScheduleRow): ScheduleItem {
     minutesSlug: row.resolved_minutes_slug ?? null,
     topics: JSON.parse(row.topics) as string[],
     location: row.location,
+    hasChat: (row.has_chat ?? 0) === 1,
   };
 }
 
@@ -30,7 +32,8 @@ export async function listSchedule(db: D1DatabaseLike): Promise<ScheduleItem[]> 
   const { results } = await db
     .prepare(
       `SELECT schedule.*,
-        (SELECT minutes.slug FROM minutes WHERE minutes.date = schedule.date LIMIT 1) AS resolved_minutes_slug
+        (SELECT minutes.slug FROM minutes WHERE minutes.date = schedule.date LIMIT 1) AS resolved_minutes_slug,
+        EXISTS(SELECT 1 FROM chat_messages WHERE chat_messages.schedule_id = schedule.id AND chat_messages.deleted_at IS NULL) AS has_chat
        FROM schedule
        ORDER BY schedule.date ASC`,
     )
@@ -45,7 +48,8 @@ export async function getScheduleItem(
   const row = await db
     .prepare(
       `SELECT schedule.*,
-        (SELECT minutes.slug FROM minutes WHERE minutes.date = schedule.date LIMIT 1) AS resolved_minutes_slug
+        (SELECT minutes.slug FROM minutes WHERE minutes.date = schedule.date LIMIT 1) AS resolved_minutes_slug,
+        EXISTS(SELECT 1 FROM chat_messages WHERE chat_messages.schedule_id = schedule.id AND chat_messages.deleted_at IS NULL) AS has_chat
        FROM schedule
        WHERE schedule.id = ?`,
     )

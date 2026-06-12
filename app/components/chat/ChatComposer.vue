@@ -25,6 +25,10 @@ const showStampPicker = ref(false);
 const pickerTab = ref<"sticker" | "emoji">("sticker");
 const fileInput = ref<HTMLInputElement | null>(null);
 const textarea = ref<HTMLTextAreaElement | null>(null);
+const stampToggle = ref<HTMLElement | null>(null);
+const stampPicker = ref<HTMLElement | null>(null);
+
+useClickOutside(showStampPicker, [stampToggle, stampPicker]);
 
 const canSend = computed(
   () => !props.sending && (body.value.trim().length > 0 || file.value !== null),
@@ -151,6 +155,7 @@ defineExpose({ reset });
         <Paperclip class="size-5" />
       </button>
       <button
+        ref="stampToggle"
         type="button"
         class="rounded-lg p-2.5 text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
         title="スタンプ"
@@ -162,6 +167,7 @@ defineExpose({ reset });
       <!-- スタンプピッカー(スタンプ/絵文字のタブ切り替え) -->
       <div
         v-if="showStampPicker"
+        ref="stampPicker"
         class="absolute bottom-full left-0 z-10 mb-2 w-80 rounded-xl border border-border bg-surface p-2 shadow-lg"
       >
         <div class="mb-2 flex gap-1 border-b border-border pb-2">

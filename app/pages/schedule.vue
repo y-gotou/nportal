@@ -120,6 +120,7 @@ useSeoMeta({
                 議事録を見る
               </NuxtLink>
               <NuxtLink
+                v-if="item.hasChat"
                 :to="`/chat/${item.id}`"
                 :class="secondaryButtonClass"
               >

@@ -29,6 +29,10 @@ const emit = defineEmits<{
 }>();
 
 const showPicker = ref(false);
+const reactionToggle = ref<HTMLElement | null>(null);
+const reactionPicker = ref<HTMLElement | null>(null);
+
+useClickOutside(showPicker, [reactionToggle, reactionPicker]);
 
 const bodyParts = computed(() => splitChatBody(props.message.body));
 const fileUrl = computed(() => `/api/chat/messages/${props.message.id}/file`);
@@ -155,6 +159,7 @@ function pickEmoji(emoji: string) {
                 {{ emoji }}
               </button>
               <button
+                ref="reactionToggle"
                 type="button"
                 class="rounded p-1 text-muted hover:bg-surface-hover hover:text-foreground"
                 title="その他のリアクション"
@@ -184,6 +189,7 @@ function pickEmoji(emoji: string) {
             <!-- リアクションピッカー -->
             <div
               v-if="showPicker"
+              ref="reactionPicker"
               class="absolute bottom-full z-10 mb-1 grid w-56 grid-cols-8 gap-1 rounded-xl border border-border bg-surface p-2 shadow-lg"
               :class="isOwn ? 'right-0' : 'left-0'"
             >
