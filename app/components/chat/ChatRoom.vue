@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowLeft, Lock } from "lucide-vue-next";
+import { Lock } from "lucide-vue-next";
 import type {
   ChatMessage,
   ChatMessagesResponse,
@@ -191,13 +191,6 @@ function setReplyTo(message: ChatMessage) {
       <!-- ヘッダー -->
       <div class="flex items-start justify-between gap-3 border-b border-border bg-surface px-4 py-3">
         <div class="min-w-0">
-          <NuxtLink
-            to="/schedule"
-            class="mb-1 inline-flex items-center gap-1 text-xs text-muted hover:text-foreground"
-          >
-            <ArrowLeft class="size-3.5" />
-            スケジュールへ戻る
-          </NuxtLink>
           <h1 class="truncate text-base font-semibold tracking-tight text-foreground">
             {{ room?.title ?? "チャット" }}
           </h1>

@@ -18,9 +18,8 @@ useSeoMeta({
 </script>
 
 <template>
-  <section class="mx-auto w-full max-w-4xl px-4 py-6 md:px-6">
-    <div class="flex h-[calc(100dvh-8.5rem)] min-h-96 flex-col overflow-hidden rounded-xl border border-border bg-background shadow-sm">
-      <ChatRoom :schedule-id="scheduleId" />
-    </div>
-  </section>
+  <!-- ヘッダー(約73px)下の全面をチャットが占有する -->
+  <div class="flex h-[calc(100dvh-73px)] min-h-96 flex-col bg-background">
+    <ChatRoom :schedule-id="scheduleId" />
+  </div>
 </template>

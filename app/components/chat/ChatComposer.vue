@@ -23,6 +23,21 @@ const canSend = computed(
   () => !props.sending && (body.value.trim().length > 0 || file.value !== null),
 );
 
+// 入力量に応じて1行から最大約6行まで自動で高さを広げる
+const MAX_TEXTAREA_HEIGHT_PX = 140;
+
+function autoResize() {
+  const el = textarea.value;
+  if (!el) return;
+  el.style.height = "auto";
+  el.style.height = `${Math.min(el.scrollHeight, MAX_TEXTAREA_HEIGHT_PX)}px`;
+}
+
+watch(body, async () => {
+  await nextTick();
+  autoResize();
+});
+
 function onEnter(event: KeyboardEvent) {
   // 日本語IMEの変換確定Enterでは送信しない
   if (event.isComposing || event.keyCode === 229) return;
@@ -144,10 +159,10 @@ defineExpose({ reset });
       <textarea
         ref="textarea"
         v-model="body"
-        rows="2"
+        rows="1"
         :maxlength="MAX_CHAT_BODY_LENGTH"
         placeholder="メッセージを入力(Enterで送信、Shift+Enterで改行)"
-        class="min-h-0 flex-1 resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-blue-500"
+        class="min-h-0 flex-1 resize-none overflow-y-auto rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-blue-500"
         @keydown.enter="onEnter"
       />
       <button
