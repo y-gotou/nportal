@@ -10,6 +10,21 @@ export function hasChatAiMention(body: string): boolean {
   return /(^|[^\w@])@ai\b/i.test(body);
 }
 
+// 入力補完用: カーソル直前のテキストから入力途中の @AI 候補を検出する。
+// 「AI」の前方一致のみ対象とし、入力が完成している場合(@ai / @AI)は候補を出さない。
+export function findChatAiMentionCandidate(
+  textBeforeCaret: string,
+): { start: number; query: string } | null {
+  const match = /(^|[^\w@])@([A-Za-z]*)$/.exec(textBeforeCaret);
+  if (!match) return null;
+
+  const query = match[2] ?? "";
+  const lower = query.toLowerCase();
+  if (lower === "ai" || !"ai".startsWith(lower)) return null;
+
+  return { start: match.index + (match[1]?.length ?? 0), query };
+}
+
 export const CHAT_QUICK_REACTION_EMOJIS = ["👍", "😀", "😮", "😢"] as const;
 
 export const CHAT_EMOJIS = [

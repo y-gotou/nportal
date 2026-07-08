@@ -7,6 +7,7 @@ import {
   MAX_CHAT_BODY_LENGTH,
   chatDisplayName,
   chatStickerLabel,
+  findChatAiMentionCandidate,
 } from "~~/utils/chat";
 
 const props = defineProps<{
@@ -53,7 +54,63 @@ watch(body, async () => {
 
 onMounted(autoResize);
 
-function onEnter(event: KeyboardEvent) {
+// @AI メンション候補(カーソル直前に入力途中の @ トークンがあるとき表示)
+const mention = ref<{ start: number; query: string } | null>(null);
+// Escで閉じた候補の @ 位置。同じトークンの間は再表示しない
+const mentionDismissedStart = ref<number | null>(null);
+
+function updateMention(event: Event) {
+  const el = textarea.value;
+  if (!el || (event as { isComposing?: boolean }).isComposing) return;
+
+  const caret = el.selectionStart ?? body.value.length;
+  const candidate = findChatAiMentionCandidate(body.value.slice(0, caret));
+
+  if (!candidate || candidate.start !== mentionDismissedStart.value) {
+    mentionDismissedStart.value = null;
+  }
+  mention.value = candidate && mentionDismissedStart.value === null ? candidate : null;
+}
+
+function confirmMention() {
+  const el = textarea.value;
+  if (!el || !mention.value) return;
+
+  const caret = el.selectionStart ?? body.value.length;
+  const before = `${body.value.slice(0, mention.value.start)}@AI `;
+  body.value = before + body.value.slice(caret);
+  mention.value = null;
+
+  nextTick(() => {
+    el.focus();
+    el.setSelectionRange(before.length, before.length);
+  });
+}
+
+function dismissMention() {
+  if (!mention.value) return;
+  mentionDismissedStart.value = mention.value.start;
+  mention.value = null;
+}
+
+function onMentionKeydown(event: KeyboardEvent) {
+  if (!mention.value || event.isComposing || event.keyCode === 229) return;
+
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    confirmMention();
+  } else if (event.key === "Tab") {
+    event.preventDefault();
+    confirmMention();
+  } else if (event.key === "Escape") {
+    event.preventDefault();
+    dismissMention();
+  }
+}
+
+function onKeydown(event: KeyboardEvent) {
+  onMentionKeydown(event);
+  if (event.key !== "Enter" || event.defaultPrevented) return; // 候補確定に使われたEnterでは送信しない
   // 日本語IMEの変換確定Enterでは送信しない
   if (event.isComposing || event.keyCode === 229) return;
   if (event.shiftKey) return;
@@ -218,15 +275,37 @@ defineExpose({ reset });
         </div>
       </div>
 
-      <textarea
-        ref="textarea"
-        v-model="body"
-        rows="1"
-        :maxlength="MAX_CHAT_BODY_LENGTH"
-        placeholder="メッセージを入力(Enterで送信、Shift+Enterで改行)"
-        class="min-h-0 flex-1 resize-none overflow-y-auto rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-blue-500"
-        @keydown.enter="onEnter"
-      />
+      <div class="relative min-w-0 flex-1">
+        <!-- @AI メンション候補 -->
+        <div
+          v-if="mention"
+          class="absolute bottom-full left-0 z-10 mb-2 w-72 rounded-xl border border-border bg-surface p-1 shadow-lg"
+        >
+          <button
+            type="button"
+            class="flex w-full items-center gap-2 rounded-lg bg-surface-hover px-3 py-2 text-left text-sm"
+            @pointerdown.prevent
+            @click="confirmMention"
+          >
+            <span class="font-medium text-blue-600 dark:text-blue-400">@AI</span>
+            <span class="text-xs text-muted">AI アシスタントに質問(Enterで確定)</span>
+          </button>
+        </div>
+
+        <textarea
+          ref="textarea"
+          v-model="body"
+          rows="1"
+          :maxlength="MAX_CHAT_BODY_LENGTH"
+          placeholder="メッセージを入力(Enterで送信、Shift+Enterで改行)"
+          class="min-h-0 w-full resize-none overflow-y-auto rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-blue-500"
+          @keydown="onKeydown"
+          @input="updateMention"
+          @keyup="updateMention"
+          @click="updateMention"
+          @blur="mention = null"
+        />
+      </div>
       <button
         type="button"
         class="rounded-lg bg-blue-500 p-2.5 text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-40"

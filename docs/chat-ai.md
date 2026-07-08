@@ -13,6 +13,10 @@
 3. 生成した返信を投稿者 `ai-assistant@nportal.local`(表示名「AI アシスタント」)のメッセージとして挿入し、`reply_to_id` で元投稿に紐付けます。ルームのバージョンが上がるため、クライアントには次回ポーリング(3 秒間隔)で表示されます。
 4. 生成に失敗した場合は、その旨のメッセージを AI アシスタントとして投稿します(ユーザーを無応答で待たせない)。
 
+## 入力補完
+
+メッセージ入力欄で `@`(半角)を入力すると `@AI` の候補が表示されます(「AI」の前方一致で追従)。候補表示中は Enter / Tab / クリックで確定して `@AI ` を挿入し、Esc で閉じます(同じ `@` トークンの間は再表示しません)。IME 変換中のキー操作には反応しません。
+
 ## LLM への入力
 
 - そのルームの直近 20 件のテキストメッセージ(スタンプ・削除済み・空本文は除外)を表示名付きで整形して渡します。
@@ -28,7 +32,8 @@
 
 | ファイル | 役割 |
 | --- | --- |
-| `utils/chat.ts` | `CHAT_AI_EMAIL` / `CHAT_AI_DISPLAY_NAME` / `hasChatAiMention`(クライアント・サーバー共有) |
+| `utils/chat.ts` | `CHAT_AI_EMAIL` / `CHAT_AI_DISPLAY_NAME` / `hasChatAiMention` / 入力補完判定 `findChatAiMentionCandidate`(クライアント・サーバー共有) |
+| `app/components/chat/ChatComposer.vue` | `@AI` 候補ポップアップの表示・確定・キー操作 |
 | `server/utils/chat-ai.ts` | コンテキスト整形・LLM 呼び出し・返信投稿(`postChatAiReply`) |
 | `server/api/chat/[scheduleId]/messages.post.ts` | メンション検知とバックグラウンド実行の起動 |
 
