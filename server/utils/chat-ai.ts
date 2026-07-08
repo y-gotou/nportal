@@ -6,10 +6,16 @@ import {
   CHAT_AI_EMAIL,
   MAX_CHAT_BODY_LENGTH,
   chatDisplayName,
+  getChatJstToday,
 } from "../../utils/chat.ts";
 
 // LLM に渡す直近メッセージ数
 export const CHAT_AI_CONTEXT_MESSAGES = 20;
+
+// 推論(reasoning)モデルは思考にトークンを消費するため、上限は思考分を見込んで大きめに取る
+// (不足すると content が空のまま打ち切られる)
+export const CHAT_AI_JUDGE_MAX_TOKENS = 1536;
+export const CHAT_AI_ANSWER_MAX_TOKENS = 4096;
 
 // Web 検索の取得件数と、LLM に渡す抜粋の最大文字数
 export const CHAT_AI_SEARCH_MAX_RESULTS = 5;
@@ -31,7 +37,14 @@ export interface ChatAiSearchResult {
 
 function formatChatHistory(messages: ChatMessage[]): string {
   return messages
-    .filter((message) => message.kind === "text" && !message.deleted && message.body)
+    .filter(
+      (message) =>
+        message.kind === "text" &&
+        !message.deleted &&
+        message.body &&
+        // 過去の生成失敗メッセージはノイズになるため履歴から除く
+        message.body !== CHAT_AI_ERROR_BODY,
+    )
     .slice(-CHAT_AI_CONTEXT_MESSAGES)
     .map((message) => `${chatDisplayName(message.userEmail)}: ${message.body}`)
     .join("\n");
@@ -42,6 +55,7 @@ export function buildChatAiMessages(input: {
   schedule: { title: string; date: string };
   messages: ChatMessage[];
   searchResults?: ChatAiSearchResult[] | null;
+  today?: string;
 }): ChatCompletionMessage[] {
   const sections = [`これまでのチャットログ:\n${formatChatHistory(input.messages)}`];
   let instruction = "最後の @AI 宛のメッセージに返信してください。";
@@ -62,7 +76,8 @@ export function buildChatAiMessages(input: {
       content:
         "あなたは社内AI勉強会ポータルの会議チャットに参加するアシスタントです。" +
         `勉強会「${input.schedule.title}」(${input.schedule.date})のチャットで、` +
-        "@AI 宛の質問に日本語で簡潔に回答してください。装飾のないプレーンテキストで出力してください。",
+        "@AI 宛の質問に日本語で簡潔に回答してください。装飾のないプレーンテキストで出力してください。" +
+        (input.today ? `本日の日付は ${input.today} です。` : ""),
     },
     {
       role: "user",
@@ -74,12 +89,14 @@ export function buildChatAiMessages(input: {
 // Web 検索の要否判定用の入力を整形する(テスト用に純関数として分離)
 export function buildSearchJudgeMessages(input: {
   messages: ChatMessage[];
+  today?: string;
 }): ChatCompletionMessage[] {
   return [
     {
       role: "system",
       content:
-        "あなたはWeb検索の要否を判定する分類器です。指定された形式のJSONのみを出力してください。",
+        "あなたはWeb検索の要否を判定する分類器です。指定された形式のJSONのみを出力してください。" +
+        (input.today ? `本日の日付は ${input.today} です。` : ""),
     },
     {
       role: "user",
@@ -149,7 +166,15 @@ async function llmChatCompletion(
   });
   if (!upstream.ok) throw new Error(`upstream returned ${upstream.status}`);
 
-  return extractChatCompletionText(await upstream.json());
+  const payload = await upstream.json();
+  const text = extractChatCompletionText(payload);
+  if (!text) {
+    // 推論モデルで思考が max_tokens を使い切ると content が空になる(finish_reason: length)
+    const finishReason = (payload as { choices?: Array<{ finish_reason?: unknown }> } | null)
+      ?.choices?.[0]?.finish_reason;
+    console.error(`chat AI completion text is empty (finish_reason: ${String(finishReason)})`);
+  }
+  return text;
 }
 
 async function searchTavily(apiKey: string, query: string): Promise<ChatAiSearchResult[]> {
@@ -186,6 +211,7 @@ async function maybeSearchWeb(
   event: H3Event,
   model: string,
   history: ChatMessage[],
+  today: string,
 ): Promise<ChatAiSearchResult[] | null> {
   const apiKey = getCloudflareEnv(event)?.TAVILY_API_KEY?.trim();
   if (!apiKey) return null;
@@ -194,12 +220,16 @@ async function maybeSearchWeb(
     const judgeText = await llmChatCompletion(
       event,
       model,
-      buildSearchJudgeMessages({ messages: history }),
-      200,
+      buildSearchJudgeMessages({ messages: history, today }),
+      CHAT_AI_JUDGE_MAX_TOKENS,
     );
     const query = extractSearchQuery(judgeText);
-    if (!query) return null;
+    if (!query) {
+      console.log("chat AI web search: not needed or no query judged.");
+      return null;
+    }
 
+    console.log(`chat AI web search: query="${query}"`);
     const results = await searchTavily(apiKey, query);
     return results.length ? results : null;
   } catch (error) {
@@ -225,13 +255,14 @@ export async function postChatAiReply(
     if (!model) throw new Error("chat model is not available.");
 
     const history = await listChatMessages(db, input.scheduleId);
-    const searchResults = await maybeSearchWeb(event, model, history);
+    const today = getChatJstToday();
+    const searchResults = await maybeSearchWeb(event, model, history, today);
 
     const text = await llmChatCompletion(
       event,
       model,
-      buildChatAiMessages({ schedule: input.schedule, messages: history, searchResults }),
-      1024,
+      buildChatAiMessages({ schedule: input.schedule, messages: history, searchResults, today }),
+      CHAT_AI_ANSWER_MAX_TOKENS,
     );
     if (!text) throw new Error("completion text is empty.");
 
