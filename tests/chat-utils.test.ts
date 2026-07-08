@@ -7,9 +7,12 @@ import {
   type ChatMessageRow,
 } from "../server/utils/chat.ts";
 import {
+  CHAT_AI_DISPLAY_NAME,
+  CHAT_AI_EMAIL,
   MAX_CHAT_BODY_LENGTH,
   chatDisplayName,
   chatStickerLabel,
+  hasChatAiMention,
   isChatEmoji,
   isChatImageMimeType,
   isChatReadOnly,
@@ -136,6 +139,20 @@ test("splitChatBody: URLをリンクパートに分割する", () => {
 test("chatDisplayName: メールのローカル部を返す", () => {
   assert.equal(chatDisplayName("y-gotou@d2sol.co.jp"), "y-gotou");
   assert.equal(chatDisplayName("invalid"), "invalid");
+});
+
+test("chatDisplayName: AIアシスタントは専用の表示名を返す", () => {
+  assert.equal(chatDisplayName(CHAT_AI_EMAIL), CHAT_AI_DISPLAY_NAME);
+});
+
+test("hasChatAiMention: @AIメンションを判定する", () => {
+  assert.equal(hasChatAiMention("@AI これを教えてください"), true);
+  assert.equal(hasChatAiMention("これはどうですか? @ai"), true);
+  assert.equal(hasChatAiMention("@AIに聞いてみます"), true);
+  assert.equal(hasChatAiMention("メンションなし"), false);
+  // 単語の一部やメールアドレスには反応しない
+  assert.equal(hasChatAiMention("@aircraft の話"), false);
+  assert.equal(hasChatAiMention("foo@ai.example.com 宛に送信"), false);
 });
 
 test("validateChatMessageBody: スタンプはプリセット絵文字のみ・添付不可", () => {

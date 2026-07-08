@@ -224,11 +224,12 @@ export interface CreateChatMessagePayload {
   } | null;
 }
 
+// 戻り値は挿入したメッセージの id(取得できない場合は null)
 export async function createChatMessage(
   db: D1DatabaseLike,
   payload: CreateChatMessagePayload,
-): Promise<void> {
-  await db.batch([
+): Promise<number | null> {
+  const results = (await db.batch([
     db
       .prepare(
         "INSERT INTO chat_messages (schedule_id, user_email, kind, body, reply_to_id, file_key, file_name, file_size, mime_type) " +
@@ -246,7 +247,10 @@ export async function createChatMessage(
         payload.attachment?.mimeType ?? null,
       ),
     bumpChatRoomVersionStatement(db, payload.scheduleId),
-  ]);
+  ])) as Array<{ meta?: { last_row_id?: number } } | null | undefined>;
+
+  const lastRowId = results?.[0]?.meta?.last_row_id;
+  return typeof lastRowId === "number" ? lastRowId : null;
 }
 
 export async function softDeleteChatMessage(
