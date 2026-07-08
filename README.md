@@ -4,6 +4,8 @@ Nuxt 4 と Cloudflare Pages/D1 で構成した、社内 AI 勉強会向けの軽
 
 会議チャットは会議(スケジュール)ごとのルームにテキスト・画像・ファイル・スタンプを投稿でき、ポーリング+バージョン番号方式(変更がなければ 204 応答)で通信量を抑えています。要件・設計は [docs/requirements-chat.md](docs/requirements-chat.md) を参照してください。
 
+社内 LLM(OpenAI 互換 API)へのプロキシ API(`/api/llm/*`)を備えています。構成と運用は [docs/llm-proxy.md](docs/llm-proxy.md) を参照してください。
+
 ## 技術スタック
 
 - Nuxt 4
@@ -59,8 +61,8 @@ generated/
 scripts/
   build-minutes.mjs
 server/
-  api/          Survey API
-  utils/        D1 アクセス
+  api/          Survey API・LLM プロキシほか
+  utils/        D1 アクセス・LLM 転送
 types/
   portal.ts     共有型
 wrangler.example.jsonc  Pages/D1/R2 設定例
