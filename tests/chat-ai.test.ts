@@ -3,7 +3,9 @@ import test from "node:test";
 import {
   CHAT_AI_CONTEXT_MESSAGES,
   buildChatAiMessages,
+  buildSearchJudgeMessages,
   extractChatCompletionText,
+  extractSearchQuery,
 } from "../server/utils/chat-ai.ts";
 import type { ChatMessage } from "../types/portal.ts";
 
@@ -68,6 +70,60 @@ test("buildChatAiMessages: 直近の件数のみ含める", () => {
 
   assert.ok(!log.includes("メッセージ5\n"));
   assert.ok(log.includes(`メッセージ${CHAT_AI_CONTEXT_MESSAGES + 5}`));
+});
+
+test("buildChatAiMessages: Web検索結果があればプロンプトに含める", () => {
+  const messages = buildChatAiMessages({
+    schedule,
+    messages: [makeMessage({ body: "@AI 最新情報を教えて" })],
+    searchResults: [
+      { title: "記事タイトル", url: "https://example.com/a", content: "記事の抜粋" },
+    ],
+  });
+
+  const content = messages[1]?.content ?? "";
+  assert.ok(content.includes("Web検索結果:"));
+  assert.ok(content.includes("[1] 記事タイトル"));
+  assert.ok(content.includes("https://example.com/a"));
+  assert.ok(content.includes("情報源のURL"));
+});
+
+test("buildChatAiMessages: 検索結果がなければ従来のプロンプトのまま", () => {
+  const withoutSearch = buildChatAiMessages({
+    schedule,
+    messages: [makeMessage()],
+    searchResults: null,
+  });
+
+  const content = withoutSearch[1]?.content ?? "";
+  assert.ok(!content.includes("Web検索結果:"));
+  assert.ok(content.includes("最後の @AI 宛のメッセージに返信してください。"));
+});
+
+test("buildSearchJudgeMessages: チャットログとJSON出力指示を含む", () => {
+  const messages = buildSearchJudgeMessages({
+    messages: [makeMessage({ body: "@AI 今日のニュースは?" })],
+  });
+
+  assert.equal(messages.length, 2);
+  assert.ok(messages[0]?.content.includes("分類器"));
+  assert.ok(messages[1]?.content.includes("@AI 今日のニュースは?"));
+  assert.ok(messages[1]?.content.includes('{"query": null}'));
+});
+
+test("extractSearchQuery: 判定出力からクエリを取り出す", () => {
+  assert.equal(extractSearchQuery('{"query": "RAG 最新動向"}'), "RAG 最新動向");
+  // 前後に説明文やコードフェンスが付いていても抽出する
+  assert.equal(extractSearchQuery('判定結果:\n```json\n{"query": "Nuxt 4"}\n```'), "Nuxt 4");
+});
+
+test("extractSearchQuery: 検索不要・解析不能はnull", () => {
+  assert.equal(extractSearchQuery('{"query": null}'), null);
+  assert.equal(extractSearchQuery('{"query": ""}'), null);
+  assert.equal(extractSearchQuery('{"query": "null"}'), null);
+  assert.equal(extractSearchQuery("検索は不要です"), null);
+  assert.equal(extractSearchQuery("{壊れたJSON}"), null);
+  assert.equal(extractSearchQuery(null), null);
 });
 
 test("extractChatCompletionText: 補完本文を取り出す", () => {
