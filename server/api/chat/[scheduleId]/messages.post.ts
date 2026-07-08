@@ -8,7 +8,6 @@ import {
   parseChatId,
   validateChatMessageBody,
 } from "~~/server/utils/chat";
-import { postChatAiReply } from "~~/server/utils/chat-ai";
 import {
   getResourceObjectPrefix,
   getResourcesBucket,
@@ -16,7 +15,7 @@ import {
   sanitizeFileName,
   validateResourceFile,
 } from "~~/server/utils/resources";
-import { getChatJstToday, hasChatAiMention, isChatReadOnly } from "~~/utils/chat";
+import { getChatJstToday, isChatReadOnly } from "~~/utils/chat";
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user as { email: string; isAdmin?: boolean } | undefined;
@@ -105,27 +104,8 @@ export default defineEventHandler(async (event) => {
     attachment,
   });
 
-  // @AI メンション付きテキストにはバックグラウンドで返信を生成する(投稿の応答は待たせない)
-  if (kind === "text" && hasChatAiMention(body)) {
-    const task = postChatAiReply(event, db, {
-      scheduleId,
-      schedule: { title: schedule.title, date: schedule.date },
-      replyToId: messageId,
-    }).catch((error) => {
-      console.error("chat AI background task failed:", error);
-    });
-
-    const cfContext = (
-      event.context.cloudflare as
-        | { context?: { waitUntil?: (promise: Promise<unknown>) => void } }
-        | undefined
-    )?.context;
-
-    if (cfContext?.waitUntil) {
-      cfContext.waitUntil(task);
-    }
-  }
-
+  // @AI メンション付きの場合、クライアントは messageId を使って ai-reply.post.ts を呼び出す
+  // (waitUntil でのバックグラウンド生成は isolate 破棄で完走しないことがあるため使わない)
   setResponseStatus(event, 201);
-  return { ok: true };
+  return { ok: true, messageId };
 });

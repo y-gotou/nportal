@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   createChatMessage,
   getChatRoomVersion,
+  hasChatAiReplyTo,
   listChatMessages,
   listChatReactions,
   listDeletedChatMessageIds,
@@ -118,6 +119,14 @@ function queryFirst(state: MockState, query: string, values: unknown[]): unknown
 
   if (query.includes("FROM chat_messages WHERE id = ?")) {
     return state.messages.find((row) => row.id === values[0]) ?? null;
+  }
+
+  if (query.includes("FROM chat_messages WHERE reply_to_id = ?")) {
+    return (
+      state.messages.find(
+        (row) => row.reply_to_id === values[0] && row.user_email === values[1],
+      ) ?? null
+    );
   }
 
   throw new Error(`Unexpected first query: ${query}`);
@@ -293,6 +302,22 @@ test("listChatReactions: メッセージ×絵文字でグルーピングされ�
   assert.equal(reactions.length, 2);
   const thumbsUp = reactions.find((r) => r.emoji === "👍");
   assert.deepEqual(thumbsUp?.userEmails, ["a@example.com", "b@example.com"]);
+});
+
+test("hasChatAiReplyTo: AI返信の有無を判定する", async () => {
+  const aiEmail = "ai-assistant@nportal.local";
+  const state = createState({
+    messages: [
+      makeMessageRow({ id: 1, schedule_id: 10, body: "@AI 質問" }),
+      makeMessageRow({ id: 2, schedule_id: 10, user_email: aiEmail, reply_to_id: 1 }),
+      makeMessageRow({ id: 3, schedule_id: 10, body: "@AI 別の質問" }),
+    ],
+    nextMessageId: 4,
+  });
+  const db = createMockDb(state);
+
+  assert.equal(await hasChatAiReplyTo(db, 1, aiEmail), true);
+  assert.equal(await hasChatAiReplyTo(db, 3, aiEmail), false);
 });
 
 test("listDeletedChatMessageIds: 削除済みIDのみ返す", async () => {

@@ -8,9 +8,11 @@
 
 ## 動作
 
-1. `POST /api/chat/:scheduleId/messages` で本文に `@AI` メンションを含むテキスト投稿を検知します(判定は `hasChatAiMention`。行頭・空白・記号の直後の `@AI` のみ反応し、メールアドレス等には反応しません)。
-2. 投稿自体は通常どおり保存・応答し、`waitUntil` によるバックグラウンド処理で LLM を呼び出します。
-3. 生成した返信を投稿者 `ai-assistant@nportal.local`(表示名「AI アシスタント」)のメッセージとして挿入し、`reply_to_id` で元投稿に紐付けます。ルームのバージョンが上がるため、クライアントには次回ポーリング(3 秒間隔)で表示されます。
+1. 本文に `@AI` メンションを含むテキストを投稿すると(判定は `hasChatAiMention`。行頭・空白・記号の直後の `@AI` のみ反応し、メールアドレス等には反応しません)、投稿したクライアントが `POST /api/chat/:scheduleId/ai-reply` を呼び出します。
+2. サーバーはリクエスト中に同期で LLM を呼び出して返信を生成します(生成中はクライアントに「AI アシスタントが返信を作成中です…」と表示。LLM の生成に数分かかることがあるため、投稿者はタブを開いたままにする必要があります)。
+   - `waitUntil` によるバックグラウンド生成は採用していません。レスポンス返却後の isolate は破棄されることがあり、生成が完走しない場合があるためです。
+   - 同じ投稿への AI 返信が既に存在する場合は再生成しません(`hasChatAiReplyTo` による重複ガード)。
+3. 生成した返信を投稿者 `ai-assistant@nportal.local`(表示名「AI アシスタント」)のメッセージとして挿入し、`reply_to_id` で元投稿に紐付けます。ルームのバージョンが上がるため、全クライアントにポーリング(3 秒間隔)で表示されます。
 4. 生成に失敗した場合は、その旨のメッセージを AI アシスタントとして投稿します(ユーザーを無応答で待たせない)。
 
 ## 入力補完
@@ -50,8 +52,9 @@
 | --- | --- |
 | `utils/chat.ts` | `CHAT_AI_EMAIL` / `CHAT_AI_DISPLAY_NAME` / `hasChatAiMention` / 入力補完判定 `findChatAiMentionCandidate`(クライアント・サーバー共有) |
 | `app/components/chat/ChatComposer.vue` | `@AI` 候補ポップアップの表示・確定・キー操作 |
-| `server/utils/chat-ai.ts` | コンテキスト整形・LLM 呼び出し・返信投稿(`postChatAiReply`) |
-| `server/api/chat/[scheduleId]/messages.post.ts` | メンション検知とバックグラウンド実行の起動 |
+| `app/components/chat/ChatRoom.vue` | 投稿後の `ai-reply` 呼び出しと生成中表示 |
+| `server/utils/chat-ai.ts` | コンテキスト整形・検索要否判定・Tavily 検索・LLM 呼び出し・返信投稿(`postChatAiReply`) |
+| `server/api/chat/[scheduleId]/ai-reply.post.ts` | AI 返信生成エンドポイント(メンション検証・重複ガード・同期実行) |
 
 ## 制約
 

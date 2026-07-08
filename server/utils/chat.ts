@@ -210,6 +210,20 @@ export async function getChatMessageRow(
     .first<ChatMessageRow>();
 }
 
+// 指定メッセージへの AI 返信が既に存在するか(ai-reply の重複実行防止)
+export async function hasChatAiReplyTo(
+  db: D1DatabaseLike,
+  messageId: number,
+  aiEmail: string,
+): Promise<boolean> {
+  const row = await db
+    .prepare("SELECT id FROM chat_messages WHERE reply_to_id = ? AND user_email = ? LIMIT 1")
+    .bind(messageId, aiEmail)
+    .first<{ id: number }>();
+
+  return row !== null;
+}
+
 export interface CreateChatMessagePayload {
   scheduleId: number;
   userEmail: string;
