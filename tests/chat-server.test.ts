@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   createChatMessage,
   getChatRoomVersion,
+  hasChatAiReplyTo,
   listChatMessages,
   listChatReactions,
   listDeletedChatMessageIds,
@@ -51,9 +52,10 @@ function makeMessageRow(overrides: Partial<ChatMessageRow> = {}): ChatMessageRow
 
 function execute(state: MockState, query: string, values: unknown[]): unknown {
   if (query.startsWith("INSERT INTO chat_messages")) {
+    const id = state.nextMessageId++;
     state.messages.push(
       makeMessageRow({
-        id: state.nextMessageId++,
+        id,
         schedule_id: values[0] as number,
         user_email: values[1] as string,
         kind: values[2] as string,
@@ -65,7 +67,7 @@ function execute(state: MockState, query: string, values: unknown[]): unknown {
         mime_type: values[8] as string | null,
       }),
     );
-    return null;
+    return id;
   }
 
   if (query.startsWith("UPDATE chat_messages SET deleted_at")) {
@@ -119,6 +121,14 @@ function queryFirst(state: MockState, query: string, values: unknown[]): unknown
     return state.messages.find((row) => row.id === values[0]) ?? null;
   }
 
+  if (query.includes("FROM chat_messages WHERE reply_to_id = ?")) {
+    return (
+      state.messages.find(
+        (row) => row.reply_to_id === values[0] && row.user_email === values[1],
+      ) ?? null
+    );
+  }
+
   throw new Error(`Unexpected first query: ${query}`);
 }
 
@@ -161,7 +171,7 @@ function createMockDb(state: MockState): D1DatabaseLike {
         return Promise.resolve({ results: queryAll(state, query, bound) as T[] });
       },
       execute() {
-        execute(state, query, bound);
+        return execute(state, query, bound);
       },
     };
 
@@ -171,10 +181,11 @@ function createMockDb(state: MockState): D1DatabaseLike {
   return {
     prepare,
     batch(statements: D1PreparedStatement[]) {
-      for (const statement of statements) {
-        (statement as { execute?: () => void }).execute?.();
-      }
-      return Promise.resolve([]);
+      const results = statements.map((statement) => {
+        const lastRowId = (statement as { execute?: () => unknown }).execute?.();
+        return { meta: { last_row_id: lastRowId } };
+      });
+      return Promise.resolve(results);
     },
   };
 }
@@ -188,10 +199,10 @@ test("getChatRoomVersion: 状態がなければ0、あればその値", async ()
 });
 
 test("createChatMessage: メッセージ追加と同時にバージョンが+1される", async () => {
-  const state = createState();
+  const state = createState({ nextMessageId: 7 });
   const db = createMockDb(state);
 
-  await createChatMessage(db, {
+  const messageId = await createChatMessage(db, {
     scheduleId: 10,
     userEmail: "member@example.com",
     kind: "text",
@@ -200,6 +211,7 @@ test("createChatMessage: メッセージ追加と同時にバージョンが+1�
     attachment: null,
   });
 
+  assert.equal(messageId, 7);
   assert.equal(state.messages.length, 1);
   assert.equal(state.messages[0]?.body, "こんにちは");
   assert.equal(state.versions.get(10), 1);
@@ -290,6 +302,22 @@ test("listChatReactions: メッセージ×絵文字でグルーピングされ�
   assert.equal(reactions.length, 2);
   const thumbsUp = reactions.find((r) => r.emoji === "👍");
   assert.deepEqual(thumbsUp?.userEmails, ["a@example.com", "b@example.com"]);
+});
+
+test("hasChatAiReplyTo: AI返信の有無を判定する", async () => {
+  const aiEmail = "ai-assistant@nportal.local";
+  const state = createState({
+    messages: [
+      makeMessageRow({ id: 1, schedule_id: 10, body: "@AI 質問" }),
+      makeMessageRow({ id: 2, schedule_id: 10, user_email: aiEmail, reply_to_id: 1 }),
+      makeMessageRow({ id: 3, schedule_id: 10, body: "@AI 別の質問" }),
+    ],
+    nextMessageId: 4,
+  });
+  const db = createMockDb(state);
+
+  assert.equal(await hasChatAiReplyTo(db, 1, aiEmail), true);
+  assert.equal(await hasChatAiReplyTo(db, 3, aiEmail), false);
 });
 
 test("listDeletedChatMessageIds: 削除済みIDのみ返す", async () => {

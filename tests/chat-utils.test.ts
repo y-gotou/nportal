@@ -7,9 +7,13 @@ import {
   type ChatMessageRow,
 } from "../server/utils/chat.ts";
 import {
+  CHAT_AI_DISPLAY_NAME,
+  CHAT_AI_EMAIL,
   MAX_CHAT_BODY_LENGTH,
   chatDisplayName,
   chatStickerLabel,
+  findChatAiMentionCandidate,
+  hasChatAiMention,
   isChatEmoji,
   isChatImageMimeType,
   isChatReadOnly,
@@ -136,6 +140,42 @@ test("splitChatBody: URLをリンクパートに分割する", () => {
 test("chatDisplayName: メールのローカル部を返す", () => {
   assert.equal(chatDisplayName("y-gotou@d2sol.co.jp"), "y-gotou");
   assert.equal(chatDisplayName("invalid"), "invalid");
+});
+
+test("chatDisplayName: AIアシスタントは専用の表示名を返す", () => {
+  assert.equal(chatDisplayName(CHAT_AI_EMAIL), CHAT_AI_DISPLAY_NAME);
+});
+
+test("findChatAiMentionCandidate: 入力途中の@AI候補を検出する", () => {
+  assert.deepEqual(findChatAiMentionCandidate("@"), { start: 0, query: "" });
+  assert.deepEqual(findChatAiMentionCandidate("こんにちは @A"), { start: 6, query: "A" });
+  assert.deepEqual(findChatAiMentionCandidate("どうですか?@a"), { start: 6, query: "a" });
+  // 2つ目の@トークンを対象にする
+  assert.deepEqual(findChatAiMentionCandidate("@AI テスト @"), { start: 8, query: "" });
+});
+
+test("findChatAiMentionCandidate: 対象外の入力には候補を出さない", () => {
+  // 入力が完成している場合は候補を出さない
+  assert.equal(findChatAiMentionCandidate("@AI"), null);
+  assert.equal(findChatAiMentionCandidate("@ai"), null);
+  // AIの前方一致でない
+  assert.equal(findChatAiMentionCandidate("@x"), null);
+  // メールアドレス等(直前が英数字)
+  assert.equal(findChatAiMentionCandidate("foo@a"), null);
+  // @の後に空白や日本語が続く(トークン終了)
+  assert.equal(findChatAiMentionCandidate("@A "), null);
+  assert.equal(findChatAiMentionCandidate("メンションなし"), null);
+  assert.equal(findChatAiMentionCandidate(""), null);
+});
+
+test("hasChatAiMention: @AIメンションを判定する", () => {
+  assert.equal(hasChatAiMention("@AI これを教えてください"), true);
+  assert.equal(hasChatAiMention("これはどうですか? @ai"), true);
+  assert.equal(hasChatAiMention("@AIに聞いてみます"), true);
+  assert.equal(hasChatAiMention("メンションなし"), false);
+  // 単語の一部やメールアドレスには反応しない
+  assert.equal(hasChatAiMention("@aircraft の話"), false);
+  assert.equal(hasChatAiMention("foo@ai.example.com 宛に送信"), false);
 });
 
 test("validateChatMessageBody: スタンプはプリセット絵文字のみ・添付不可", () => {

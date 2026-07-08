@@ -2,7 +2,7 @@
 
 Nuxt 4 と Cloudflare Pages/D1 で構成した、社内 AI 勉強会向けの軽量ポータルです。議事録、開催スケジュール、資料共有、アンケート、会議チャットを 1 つのアプリで管理します。
 
-会議チャットは会議(スケジュール)ごとのルームにテキスト・画像・ファイル・スタンプを投稿でき、ポーリング+バージョン番号方式(変更がなければ 204 応答)で通信量を抑えています。要件・設計は [docs/requirements-chat.md](docs/requirements-chat.md) を参照してください。
+会議チャットは会議(スケジュール)ごとのルームにテキスト・画像・ファイル・スタンプを投稿でき、ポーリング+バージョン番号方式(変更がなければ 204 応答)で通信量を抑えています。要件・設計は [docs/requirements-chat.md](docs/requirements-chat.md) を参照してください。本文に `@AI` を含めて投稿すると社内 LLM が返信します([docs/chat-ai.md](docs/chat-ai.md))。
 
 社内 LLM(OpenAI 互換 API)へのプロキシ API(`/api/llm/*`)を備えています。構成と運用は [docs/llm-proxy.md](docs/llm-proxy.md) を参照してください。
 

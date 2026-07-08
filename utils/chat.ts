@@ -1,5 +1,30 @@
 export const MAX_CHAT_BODY_LENGTH = 2000;
 
+// AI アシスタントの投稿者識別子(実在しないドメインで通常ユーザーと衝突しない)
+export const CHAT_AI_EMAIL = "ai-assistant@nportal.local";
+
+export const CHAT_AI_DISPLAY_NAME = "AI アシスタント";
+
+// 本文に @AI メンションが含まれるか(直前が行頭・空白・記号。メールアドレス等は除外)
+export function hasChatAiMention(body: string): boolean {
+  return /(^|[^\w@])@ai\b/i.test(body);
+}
+
+// 入力補完用: カーソル直前のテキストから入力途中の @AI 候補を検出する。
+// 「AI」の前方一致のみ対象とし、入力が完成している場合(@ai / @AI)は候補を出さない。
+export function findChatAiMentionCandidate(
+  textBeforeCaret: string,
+): { start: number; query: string } | null {
+  const match = /(^|[^\w@])@([A-Za-z]*)$/.exec(textBeforeCaret);
+  if (!match) return null;
+
+  const query = match[2] ?? "";
+  const lower = query.toLowerCase();
+  if (lower === "ai" || !"ai".startsWith(lower)) return null;
+
+  return { start: match.index + (match[1]?.length ?? 0), query };
+}
+
 export const CHAT_QUICK_REACTION_EMOJIS = ["👍", "😀", "😮", "😢"] as const;
 
 export const CHAT_EMOJIS = [
@@ -87,5 +112,6 @@ export function formatChatTime(createdAt: string): string {
 }
 
 export function chatDisplayName(email: string): string {
+  if (email === CHAT_AI_EMAIL) return CHAT_AI_DISPLAY_NAME;
   return email.split("@")[0] || email;
 }

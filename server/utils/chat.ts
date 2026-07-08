@@ -210,6 +210,20 @@ export async function getChatMessageRow(
     .first<ChatMessageRow>();
 }
 
+// 指定メッセージへの AI 返信が既に存在するか(ai-reply の重複実行防止)
+export async function hasChatAiReplyTo(
+  db: D1DatabaseLike,
+  messageId: number,
+  aiEmail: string,
+): Promise<boolean> {
+  const row = await db
+    .prepare("SELECT id FROM chat_messages WHERE reply_to_id = ? AND user_email = ? LIMIT 1")
+    .bind(messageId, aiEmail)
+    .first<{ id: number }>();
+
+  return row !== null;
+}
+
 export interface CreateChatMessagePayload {
   scheduleId: number;
   userEmail: string;
@@ -224,11 +238,12 @@ export interface CreateChatMessagePayload {
   } | null;
 }
 
+// 戻り値は挿入したメッセージの id(取得できない場合は null)
 export async function createChatMessage(
   db: D1DatabaseLike,
   payload: CreateChatMessagePayload,
-): Promise<void> {
-  await db.batch([
+): Promise<number | null> {
+  const results = (await db.batch([
     db
       .prepare(
         "INSERT INTO chat_messages (schedule_id, user_email, kind, body, reply_to_id, file_key, file_name, file_size, mime_type) " +
@@ -246,7 +261,10 @@ export async function createChatMessage(
         payload.attachment?.mimeType ?? null,
       ),
     bumpChatRoomVersionStatement(db, payload.scheduleId),
-  ]);
+  ])) as Array<{ meta?: { last_row_id?: number } } | null | undefined>;
+
+  const lastRowId = results?.[0]?.meta?.last_row_id;
+  return typeof lastRowId === "number" ? lastRowId : null;
 }
 
 export async function softDeleteChatMessage(

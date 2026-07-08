@@ -95,7 +95,7 @@ export default defineEventHandler(async (event) => {
     };
   }
 
-  await createChatMessage(db, {
+  const messageId = await createChatMessage(db, {
     scheduleId,
     userEmail: user.email,
     kind,
@@ -104,6 +104,8 @@ export default defineEventHandler(async (event) => {
     attachment,
   });
 
+  // @AI メンション付きの場合、クライアントは messageId を使って ai-reply.post.ts を呼び出す
+  // (waitUntil でのバックグラウンド生成は isolate 破棄で完走しないことがあるため使わない)
   setResponseStatus(event, 201);
-  return { ok: true };
+  return { ok: true, messageId };
 });

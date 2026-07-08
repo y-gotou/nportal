@@ -6,6 +6,7 @@ import type {
   ChatReaction,
   ChatRoomInfo,
 } from "~~/types/portal";
+import { hasChatAiMention } from "~~/utils/chat";
 import { formatDisplayDateTime } from "~~/utils/content";
 import { useCurrentUser } from "~/composables/useCurrentUser";
 
@@ -25,6 +26,7 @@ const loading = ref(true);
 const notFound = ref(false);
 const errorMessage = ref("");
 const sending = ref(false);
+const aiReplyPending = ref(false);
 const replyTo = ref<ChatMessage | null>(null);
 const modalImage = ref<{ src: string; fileName: string } | null>(null);
 
@@ -133,15 +135,20 @@ async function sendMessage(payload: { kind: "text" | "stamp" | "sticker"; body: 
     if (replyTo.value) form.set("replyToId", String(replyTo.value.id));
     if (payload.file) form.append("file", payload.file);
 
-    await $fetch(`/api/chat/${props.scheduleId}/messages`, {
-      method: "POST",
-      body: form,
-    });
+    const result = await $fetch<{ ok: boolean; messageId: number | null }>(
+      `/api/chat/${props.scheduleId}/messages`,
+      { method: "POST", body: form },
+    );
 
     replyTo.value = null;
     composerRef.value?.reset();
     await poll();
     listRef.value?.scrollToBottom();
+
+    // @AI メンションにはサーバーへ返信生成を依頼する(生成完了はポーリングで反映)
+    if (payload.kind === "text" && hasChatAiMention(payload.body) && result.messageId) {
+      void requestAiReply(result.messageId);
+    }
   } catch (error) {
     errorMessage.value =
       (error as { statusCode?: number }).statusCode === 403
@@ -149,6 +156,25 @@ async function sendMessage(payload: { kind: "text" | "stamp" | "sticker"; body: 
         : "送信に失敗しました。時間をおいて再度お試しください。";
   } finally {
     sending.value = false;
+  }
+}
+
+// AI 返信の生成をサーバーに依頼する。LLM 生成に数分かかることがあるため送信状態とは分離し、
+// このリクエストが完了するまでタブを開いたままにする必要がある
+async function requestAiReply(messageId: number) {
+  aiReplyPending.value = true;
+  try {
+    await $fetch(`/api/chat/${props.scheduleId}/ai-reply`, {
+      method: "POST",
+      body: { messageId },
+      timeout: 300_000,
+    });
+    await poll();
+    listRef.value?.scrollToBottom();
+  } catch {
+    errorMessage.value = "AI応答の生成リクエストに失敗しました。";
+  } finally {
+    aiReplyPending.value = false;
   }
 }
 
@@ -225,6 +251,10 @@ function setReplyTo(message: ChatMessage) {
 
       <p v-if="errorMessage" class="border-t border-border bg-red-50 px-4 py-2 text-xs text-red-600 dark:bg-red-900/20 dark:text-red-400">
         {{ errorMessage }}
+      </p>
+
+      <p v-if="aiReplyPending" class="border-t border-border bg-surface px-4 py-2 text-xs text-muted">
+        AI アシスタントが返信を作成中です(数分かかることがあります)…
       </p>
 
       <!-- 入力欄(読み取り専用時は非表示) -->
