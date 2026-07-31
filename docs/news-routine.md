@@ -4,7 +4,7 @@
 
 Claude Code の Routines から実行する日次・週次の掲載手順である。routine のプロンプトにはこのファイルを参照する短い指示だけを置き、手順の実体はここで管理する。
 
-要件の背景は [docs/requirements-news.md](requirements-news.md) を参照。
+本書は単体で完結している。**通常の実行で [docs/requirements-news.md](requirements-news.md) を読む必要はない**(毎回読むと入力量が増えるため)。仕様の背景を確認する必要が生じたときだけ参照する。
 
 ## 前提
 
@@ -33,8 +33,12 @@ docs/news-routine.md の「週次の手順」に従って、今週の週次ダ�
 ### 1. 候補を収集する
 
 ```bash
-node scripts/news-collect.mjs "$NPORTAL_BASE_URL" --days 3 --out /tmp/candidates.json
+node scripts/news-collect.mjs "$NPORTAL_BASE_URL" --out /tmp/candidates.json
 ```
+
+収集期間は自動で決まる(直近の掲載日以降)。実行が飛んだ日や休日明けも取りこぼさず、前日に評価して落とした候補を読み直すこともない。`--days N` で明示指定もできる。
+
+**当日分が掲載済みの場合、スクリプトはメッセージを出して終了する。** その場合は選定に進まず、掲載済みである旨だけを報告して終了すること。意図的に追加掲載する場合のみ `--force` を付けて再実行する。
 
 出力される JSON の構造は以下のとおり。
 
@@ -49,9 +53,21 @@ node scripts/news-collect.mjs "$NPORTAL_BASE_URL" --days 3 --out /tmp/candidates
 
 ### 2. 記事を選定する
 
-候補から **5〜8 件**を選ぶ。判断基準は requirements-news.md §5 に従う。
+候補から **5〜8 件**を選ぶ。
 
-1. 各候補に `ai_score`(0〜100)を付ける。観点ごとの目安は §5.1 の表のとおり
+**観点(`impact_axis`)**: 各記事に 1 つ選ぶ。判断の主体は勉強会の参加者であり、「参加者自身の業務・開発・学習にとって何を意味するか」で判断する。特定の共有基盤や全社的な導入状況を前提にしてはならない。
+
+| 観点 | 判断基準 | ai_score 目安 |
+| --- | --- | --- |
+| `tooling` | 業務や開発で使う(使いうる)LLM・SaaS・API の価格、性能、提供条件が変わる | 70–90 |
+| `risk` | 規制、ライセンス、情報漏洩、セキュリティなど、AI を業務で使う際の注意点に関わる | 70–95 |
+| `practice` | 実装パターンやプロンプト設計など、明日から真似できる知見がある | 60–85 |
+| `learning` | 勉強会の題材になる、手を動かして試せる | 50–75 |
+| `landscape` | 直接の行動は伴わないが、中期的な前提が変わる | 40–65 |
+
+**選定手順**
+
+1. 各候補に `ai_score`(0〜100)を付ける
 2. `adjusted = ai_score × weights.source × weights.category × weights.impact_axis` を計算する(積は 0.7〜1.4 に丸める)
 3. `adjusted` の高い順に選ぶ
 4. `feedback.tags` の傾向と `study_group_context` を、どの話題を優先するかの判断に使う

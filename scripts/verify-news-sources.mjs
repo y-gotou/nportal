@@ -29,7 +29,7 @@ function denyReason(response) {
 }
 
 async function checkFeeds() {
-  for (const [name, url] of FEEDS) {
+  for (const { name, url } of FEEDS) {
     try {
       const response = await fetchWithTimeout(url, {
         headers: { "user-agent": "nportal-news-bot" },
