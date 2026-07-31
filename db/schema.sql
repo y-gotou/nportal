@@ -155,7 +155,7 @@ CREATE TABLE IF NOT EXISTS news_articles (
   category       TEXT NOT NULL,
   impact_axis    TEXT NOT NULL,
   tags           TEXT NOT NULL DEFAULT '[]',
-  summary        TEXT NOT NULL DEFAULT '[]',
+  summary        TEXT NOT NULL DEFAULT '',
   why_important  TEXT NOT NULL DEFAULT '',
   glossary       TEXT NOT NULL DEFAULT '[]',
   ai_score       INTEGER NOT NULL DEFAULT 0,
@@ -165,7 +165,8 @@ CREATE TABLE IF NOT EXISTS news_articles (
 );
 -- published_date: 掲載日 (JST, YYYY-MM-DD) / url: 正規化済み URL
 -- impact_axis: 'tooling' / 'risk' / 'practice' / 'learning' / 'landscape'
--- summary: 箇条書き要約 (JSON配列) / glossary: 用語注 [{term, description}]
+-- summary: 要点まとめ本文。用語注に対応する語は [[用語]] で囲む
+-- glossary: 用語注 [{term, description}]
 
 CREATE TABLE IF NOT EXISTS news_votes (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -105,7 +105,7 @@ function toArticle(row: ArticleRow): NewsArticle {
     category: row.category,
     impactAxis: toImpactAxis(row.impact_axis),
     tags: parseStringArray(row.tags),
-    summary: parseStringArray(row.summary),
+    summary: row.summary,
     whyImportant: row.why_important,
     glossary: parseGlossary(row.glossary),
     aiScore: row.ai_score,

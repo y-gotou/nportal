@@ -255,7 +255,8 @@ export interface NewsArticle {
   category: string;
   impactAxis: NewsImpactAxis;
   tags: string[];
-  summary: string[];
+  // 要点まとめ。用語注に対応する語は [[用語]] で囲む
+  summary: string;
   whyImportant: string;
   glossary: NewsGlossaryTerm[];
   aiScore: number;

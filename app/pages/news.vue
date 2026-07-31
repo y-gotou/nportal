@@ -136,7 +136,7 @@ const tabClass = (tab: NewsTab) =>
     <div v-if="activeTab === 'daily'">
       <template v-if="articles.length">
         <p class="mb-4 text-sm text-muted">{{ formatDisplayDate(currentDate!) }} の掲載</p>
-        <div class="space-y-4">
+        <div class="space-y-3">
           <NewsArticleCard
             v-for="article in articles"
             :key="article.id"
@@ -160,7 +160,7 @@ const tabClass = (tab: NewsTab) =>
             {{ digest.overview }}
           </p>
         </section>
-        <div class="space-y-4">
+        <div class="space-y-3">
           <NewsArticleCard
             v-for="article in digest.articles"
             :key="article.id"
