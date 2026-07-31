@@ -145,3 +145,47 @@ CREATE TABLE IF NOT EXISTS chat_room_state (
 
 CREATE INDEX IF NOT EXISTS idx_chat_messages_schedule ON chat_messages(schedule_id, id);
 CREATE INDEX IF NOT EXISTS idx_chat_reactions_message ON chat_reactions(message_id);
+
+CREATE TABLE IF NOT EXISTS news_articles (
+  id             INTEGER PRIMARY KEY AUTOINCREMENT,
+  published_date TEXT NOT NULL,
+  url            TEXT NOT NULL UNIQUE,
+  title          TEXT NOT NULL,
+  source         TEXT NOT NULL,
+  category       TEXT NOT NULL,
+  impact_axis    TEXT NOT NULL,
+  tags           TEXT NOT NULL DEFAULT '[]',
+  summary        TEXT NOT NULL DEFAULT '',
+  why_important  TEXT NOT NULL DEFAULT '',
+  glossary       TEXT NOT NULL DEFAULT '[]',
+  ai_score       INTEGER NOT NULL DEFAULT 0,
+  article_date   TEXT,
+  hidden_at      TEXT,
+  created_at     TEXT DEFAULT (datetime('now'))
+);
+-- published_date: 掲載日 (JST, YYYY-MM-DD) / url: 正規化済み URL
+-- impact_axis: 'tooling' / 'risk' / 'practice' / 'learning' / 'landscape'
+-- summary: 要点まとめ本文。用語注に対応する語は [[用語]] で囲む
+-- glossary: 用語注 [{term, description}]
+
+CREATE TABLE IF NOT EXISTS news_votes (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  article_id INTEGER NOT NULL REFERENCES news_articles(id),
+  user_email TEXT NOT NULL,
+  value      INTEGER NOT NULL,
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now')),
+  UNIQUE(article_id, user_email)
+);
+-- value: 1（👍）/ -1（👎）
+
+CREATE TABLE IF NOT EXISTS news_digests (
+  id             INTEGER PRIMARY KEY AUTOINCREMENT,
+  published_date TEXT NOT NULL UNIQUE,
+  overview       TEXT NOT NULL DEFAULT '',
+  article_ids    TEXT NOT NULL DEFAULT '[]',
+  created_at     TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_news_articles_date ON news_articles(published_date);
+CREATE INDEX IF NOT EXISTS idx_news_votes_article ON news_votes(article_id);

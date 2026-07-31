@@ -12,6 +12,7 @@ const navItems = [
   { to: "/survey", label: "アンケート" },
   { to: "/resources", label: "資料共有" },
   { to: "/speakers", label: "発表募集" },
+  { to: "/news", label: "ニュース" },
 ];
 
 const mobileMenuId = "site-mobile-navigation";

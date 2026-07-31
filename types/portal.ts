@@ -232,6 +232,67 @@ export interface ChatMessagesResponse {
   deletedMessageIds: number[];
 }
 
+export type NewsImpactAxis =
+  | "tooling"
+  | "risk"
+  | "practice"
+  | "learning"
+  | "landscape";
+
+export type NewsVoteValue = 1 | -1 | 0;
+
+export interface NewsGlossaryTerm {
+  term: string;
+  description: string;
+}
+
+export interface NewsArticle {
+  id: number;
+  publishedDate: string;
+  url: string;
+  title: string;
+  source: string;
+  category: string;
+  impactAxis: NewsImpactAxis;
+  tags: string[];
+  // 要点まとめ。用語注に対応する語は [[用語]] で囲む
+  summary: string;
+  whyImportant: string;
+  glossary: NewsGlossaryTerm[];
+  aiScore: number;
+  articleDate: string | null;
+  upCount: number;
+  downCount: number;
+  myVote: NewsVoteValue;
+  finalScore: number;
+}
+
+export interface NewsDigest {
+  publishedDate: string;
+  overview: string;
+  articles: NewsArticle[];
+}
+
+export interface NewsListResponse {
+  date: string | null;
+  updatedAt: string | null;
+  prevDate: string | null;
+  nextDate: string | null;
+  articles: NewsArticle[];
+}
+
+export interface NewsVoteResponse {
+  upCount: number;
+  downCount: number;
+  myVote: NewsVoteValue;
+}
+
+export interface NewsWeeklyResponse {
+  digest: NewsDigest | null;
+  prevDate: string | null;
+  nextDate: string | null;
+}
+
 export interface D1PreparedStatement {
   bind(...values: unknown[]): D1PreparedStatement;
   first<T = unknown>(): Promise<T | null>;

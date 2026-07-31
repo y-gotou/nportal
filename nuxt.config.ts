@@ -11,6 +11,8 @@ export default defineNuxtConfig({
   modules: ["nitro-cloudflare-dev"],
   app: {
     head: {
+      // word-break: auto-phrase の文節解析は言語指定を前提とする
+      htmlAttrs: { lang: "ja" },
       script: [
         {
           innerHTML:
@@ -54,6 +56,7 @@ export default defineNuxtConfig({
     "/api/**": { prerender: false },
     "/survey": { prerender: false },
     "/survey/**": { prerender: false },
+    "/news": { prerender: false },
     "/minutes": { prerender: false },
     "/minutes/**": { prerender: false },
     "/schedule": { prerender: false },
