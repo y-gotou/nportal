@@ -68,6 +68,15 @@ Admin は、Cloudflare Pages Preview が成功していること、変更内容�
 
 `main` への merge を本番反映トリガーとします。Cloudflare Pages の Production デプロイ結果を確認し、失敗した場合は Admin が原因を確認します。
 
+**merge では反映されない作業が 2 つあります。いずれも Admin が手動で実施します。**
+
+| 作業 | タイミング | 手順 |
+| --- | --- | --- |
+| D1 スキーマの適用 | `db/schema.sql` を変更した PR を merge した後 | `D1_DATABASE_NAME=<本番DB名> npm run db:schema:prod` |
+| 環境変数の反映 | Pages の環境変数を追加・変更した後 | Cloudflare Pages で再デプロイ(環境変数はデプロイ時にバンドルされるため) |
+
+いずれも漏らすと、デプロイは成功しているのに実行時エラー(D1 は 500、環境変数は 401 や 503)になります。
+
 緊急修正でも、原則として Pull Request 経由で対応します。やむを得ず通常手順から外れる場合は、対応後に変更内容と理由を PR または運用記録に残します。
 
 ## 初期導入チェック
