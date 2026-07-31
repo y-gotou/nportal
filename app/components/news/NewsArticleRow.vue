@@ -43,7 +43,7 @@ const rank = computed(() => formatRank(props.index));
 
       <NewsSummary
         v-if="article.summary"
-        class="mt-[7px] max-w-[820px] text-[13.5px] leading-[1.85] text-slate-600 dark:text-slate-300"
+        class="mt-[7px] text-[13.5px] leading-[1.85] text-slate-600 dark:text-slate-300"
         :class="japaneseTextClass"
         :text="article.summary"
         :glossary="article.glossary"
@@ -71,7 +71,7 @@ const rank = computed(() => formatRank(props.index));
 
       <div
         v-if="isOpen && article.whyImportant"
-        class="mt-3 flex max-w-[820px] flex-col gap-2 border-l-2 border-border py-0.5 pl-4 sm:flex-row sm:gap-5"
+        class="mt-3 flex flex-col gap-2 border-l-2 border-border py-0.5 pl-4 sm:flex-row sm:gap-5"
       >
         <span
           class="shrink-0 pt-0.5 text-[11px] font-bold leading-[1.6] tracking-wide text-foreground sm:w-28"

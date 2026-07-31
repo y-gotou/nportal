@@ -200,7 +200,7 @@ const dateNavClass =
               今週の{{ digest.articles.length }}つの動き
             </h2>
             <div
-              class="mt-3 max-w-[860px] space-y-3 text-[15px] leading-[2] text-foreground"
+              class="mt-3 space-y-3 text-[15px] leading-[2] text-foreground"
               :class="japaneseTextClass"
             >
               <p v-for="(paragraph, index) in overviewParagraphs" :key="index">
