@@ -2,7 +2,10 @@
 // 選定・要約・スコアリングは routine 内の Claude が行うため、このスクリプトは判断をしない。
 //
 // 使い方:
-//   node scripts/news-collect.mjs <base-url> [--days 1] [--out candidates.json]
+//   node scripts/news-collect.mjs <base-url> [--days N] [--out candidates.json] [--force]
+//
+// --days を省略すると、直近の掲載日以降に公開された記事を対象にする。
+// 前日に評価して落とした候補を翌日以降も読み直す無駄を避けるため。
 //
 // 必要な環境変数:
 //   NEWS_INGEST_TOKEN / NPORTAL_CF_ACCESS_CLIENT_ID / NPORTAL_CF_ACCESS_CLIENT_SECRET
@@ -11,7 +14,7 @@
 // 掲載済み URL は feedback.recent_articles（直近14日）から除外する。
 
 import { writeFileSync } from "node:fs";
-import { FEEDS } from "./news-feeds.mjs";
+import { FEEDS, looksAiRelated } from "./news-feeds.mjs";
 import { normalizeUrl, parseFeed } from "./news-parse.mjs";
 
 const [, , baseUrlArg, ...flags] = process.argv;
@@ -22,13 +25,17 @@ function flagValue(name, fallback) {
 }
 
 if (!baseUrlArg) {
-  console.error("Usage: node scripts/news-collect.mjs <base-url> [--days 1] [--out path]");
+  console.error("Usage: node scripts/news-collect.mjs <base-url> [--days N] [--out path] [--force]");
   process.exit(1);
 }
 
 const baseUrl = baseUrlArg.replace(/\/$/, "");
-const days = Number(flagValue("--days", "1"));
+const daysFlag = flags.includes("--days") ? Number(flagValue("--days", "1")) : null;
 const outPath = flagValue("--out", "");
+const force = flags.includes("--force");
+
+// 収集期間の上限。長期間の停止後に候補が膨らみすぎるのを防ぐ。
+const MAX_WINDOW_DAYS = 7;
 const token = process.env.NEWS_INGEST_TOKEN?.trim();
 
 if (!token) {
@@ -42,8 +49,27 @@ const apiHeaders = {
   "CF-Access-Client-Secret": process.env.NPORTAL_CF_ACCESS_CLIENT_SECRET?.trim() ?? "",
 };
 
-const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 const warnings = [];
+
+function jstToday() {
+  return new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+
+// 直近の掲載日の 00:00 JST 以降を対象にする。掲載済み URL は別途除外されるため重複はしない。
+// これにより、実行が飛んだ日や休日明けも自動的に取りこぼしなく拾える。
+function resolveSince(recentArticles) {
+  if (daysFlag) {
+    return new Date(Date.now() - daysFlag * 24 * 60 * 60 * 1000);
+  }
+
+  const latest = recentArticles[0]?.published_date;
+  const limit = new Date(Date.now() - MAX_WINDOW_DAYS * 24 * 60 * 60 * 1000);
+
+  if (!latest) return new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+
+  const from = new Date(`${latest}T00:00:00+09:00`);
+  return from < limit ? limit : from;
+}
 
 async function fetchFeedbackSummary() {
   const response = await fetch(`${baseUrl}/api/news/feedback-summary`, {
@@ -58,29 +84,32 @@ async function fetchFeedbackSummary() {
   return response.json();
 }
 
-async function collectFromFeeds(publishedUrls) {
+async function collectFromFeeds(publishedUrls, since) {
   const candidates = [];
 
   const perFeed = await Promise.all(
-    FEEDS.map(async ([source, url]) => {
+    FEEDS.map(async ({ name, url, aiOnly }) => {
       try {
         const response = await fetch(url, {
           headers: { "user-agent": "nportal-news-bot" },
           signal: AbortSignal.timeout(20000),
         });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return { source, entries: parseFeed(await response.text()) };
+        return { source: name, aiOnly, entries: parseFeed(await response.text()) };
       } catch (error) {
-        warnings.push(`feed ${source}: ${error.message}`);
-        return { source, entries: [] };
+        warnings.push(`feed ${name}: ${error.message}`);
+        return { source: name, aiOnly, entries: [] };
       }
     }),
   );
 
-  for (const { source, entries } of perFeed) {
+  for (const { source, aiOnly, entries } of perFeed) {
     for (const entry of entries) {
       // 公開日が取れないフィードは新着判定ができないため、対象から外す
       if (!entry.publishedAt || entry.publishedAt < since) continue;
+
+      // 総合 IT メディアは AI 以外の記事も流れるため、関連語で絞る
+      if (!aiOnly && !looksAiRelated(`${entry.title} ${entry.body}`)) continue;
 
       const url = normalizeUrl(entry.url);
       if (publishedUrls.has(url)) continue;
@@ -99,7 +128,7 @@ async function collectFromFeeds(publishedUrls) {
   return candidates;
 }
 
-async function collectFromSearch(publishedUrls, seenUrls) {
+async function collectFromSearch(publishedUrls, seenUrls, days) {
   const apiKey = process.env.TAVILY_API_KEY?.trim();
   if (!apiKey) {
     warnings.push("TAVILY_API_KEY 未設定のため Web 検索を省略しました");
@@ -153,13 +182,27 @@ async function collectFromSearch(publishedUrls, seenUrls) {
 }
 
 const feedback = await fetchFeedbackSummary();
-const publishedUrls = new Set(
-  (feedback.recent_articles ?? []).map((article) => normalizeUrl(article.url)),
-);
+const recentArticles = feedback.recent_articles ?? [];
 
-const feedCandidates = await collectFromFeeds(publishedUrls);
+// 当日分が掲載済みなら、選定と執筆に入る前に終了する（重複発火での二重掲載を防ぐ）
+const today = jstToday();
+const publishedToday = recentArticles.filter((a) => a.published_date === today).length;
+
+if (publishedToday > 0 && !force) {
+  console.log(
+    `本日（${today}）分は掲載済みです（${publishedToday} 件）。掲載をスキップします。` +
+      "\n意図的に追加する場合は --force を付けて再実行してください。",
+  );
+  process.exit(0);
+}
+
+const publishedUrls = new Set(recentArticles.map((article) => normalizeUrl(article.url)));
+const since = resolveSince(recentArticles);
+const searchDays = Math.max(1, Math.ceil((Date.now() - since.getTime()) / (24 * 60 * 60 * 1000)));
+
+const feedCandidates = await collectFromFeeds(publishedUrls, since);
 const seenUrls = new Set(feedCandidates.map((candidate) => candidate.url));
-const searchCandidates = await collectFromSearch(publishedUrls, seenUrls);
+const searchCandidates = await collectFromSearch(publishedUrls, seenUrls, searchDays);
 
 const output = {
   collectedAt: new Date().toISOString(),
