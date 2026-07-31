@@ -7,6 +7,7 @@ const { isDark, toggleTheme } = useTheme();
 
 const navItems = [
   { to: "/", label: "ホーム" },
+  { to: "/news", label: "ニュース" },
   { to: "/minutes", label: "議事録" },
   { to: "/schedule", label: "スケジュール" },
   { to: "/survey", label: "アンケート" },
