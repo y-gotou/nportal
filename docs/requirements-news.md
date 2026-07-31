@@ -110,7 +110,8 @@ Custom 許可リストでは、Tavily の検索結果に出てきた任意の記
 
 ### 4.3 重複排除
 
-- URL を正規化(クエリパラメータ・フラグメント除去、末尾スラッシュ統一)して比較する
+- URL を正規化して比較する。フラグメントと計測用パラメータ(`utm_*` / `fbclid` / `gclid` / `mc_cid` / `mc_eid` / `ref` / `ref_src`)を除去し、ホスト名を小文字化、末尾スラッシュを統一する
+  - クエリ全体を除去すると `?p=123` のように記事 ID をクエリで表す URL を壊すため、除去は計測用パラメータに限定する
 - 過去 14 日以内に掲載済みの URL は候補から除外する(`feedback-summary` が掲載済み URL を返す)
 - 同一トピックの別ソース記事は、LLM が選定段階で 1 件に集約する
 
@@ -391,7 +392,7 @@ CREATE INDEX IF NOT EXISTS idx_news_votes_article ON news_votes(article_id);
 **認証方式**
 
 
-- `Authorization: Bearer <NEWS_INGEST_TOKEN>` で認証する
+- `Authorization: Bearer <NEWS_INGEST_TOKEN>` で認証する。比較は入力長に依存しない定数時間比較で行う
 - `NEWS_INGEST_TOKEN` は Cloudflare Pages の環境変数(Secret)として設定し、リポジトリには含めない
 - `server/middleware/auth.ts` は現在 `/api/` 配下すべてを Access 必須としているため、`/api/news/ingest` と `/api/news/feedback-summary` をトークン認証で通す例外分岐を追加する
 - クラウドタスクは Cloudflare Access の保護も通過する必要があるため、サービストークン(`CF-Access-Client-Id` / `CF-Access-Client-Secret`)を併用する。LLM プロキシと同じ方式(`server/utils/llm.ts` 参照)
@@ -417,12 +418,17 @@ CREATE INDEX IF NOT EXISTS idx_news_votes_article ON news_votes(article_id);
       "article_date": "2026-08-02"
     }
   ],
-  "overview": "…"               // type = "weekly" のときのみ
+  // type = "weekly" のときは articles ではなく以下を使う
+  "overview": "…",
+  "article_urls": ["https://…", "https://…"]
 }
 ```
 
-- 同一 `published_date` への再投入は冪等とする(既存レコードを置き換える)
-- URL 重複はスキップし、スキップ件数をレスポンスに含める
+週次は既存記事の再掲であるため、記事データを再送せず URL のみを渡す。サーバー側で URL から記事 ID を解決し、渡された順序のまま `news_digests.article_ids` に保存する。解決できなかった URL は `missingUrls` として返す。
+
+- 同一 `published_date` への再投入では**既存レコードを削除しない**。記事には投票が紐づくため、削除すると評価が失われる。URL 重複をスキップすることで冪等性を担保する
+- スキップ件数はレスポンス(`inserted` / `skipped`)に含める
+- 週次(`news_digests`)は `published_date` で UPSERT する(記事本体を持たないため置き換えて問題ない)
 - 入力は必須項目・型・配列長を検証し、不正な場合は 400 を返す。`impact_axis` が §5.1 の 5 分類以外の場合も 400 とする
 - `summary` 中の `[[…]]` に対応する `glossary` の項目がない場合も 400 とする(用語注の付け忘れを検出する)
 - `category` が §8.2 の 4 分類以外の場合も 400 とする
@@ -469,7 +475,7 @@ CREATE INDEX IF NOT EXISTS idx_news_votes_article ON news_votes(article_id);
 | 0 ✅ | 到達性検証(§3.2)とクラウド環境の作成 | 完了(2026-07-31、16/16 項目 OK) |
 | 1 ✅ | D1 スキーマ、閲覧 API、`/news` ページ | 完了(プレビュー D1 のサンプルデータで表示を確認) |
 | 2 ✅ | 投票 API と UI、`final_score` による並び替え | 完了(2026-07-31) |
-| 3 | `ingest` / `feedback-summary` API とトークン認証 | curl で投入・取得ができる |
+| 3 ✅ | `ingest` / `feedback-summary` API とトークン認証 | 完了(2026-07-31) |
 | 4 | クラウドタスク(日次)の作成と定期実行 | 平日朝に自動掲載される |
 | 5 | 週次ダイジェストの生成とタブ表示 | 木曜朝にダイジェストが公開される |
 

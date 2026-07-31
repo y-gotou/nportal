@@ -36,6 +36,24 @@ function validateJwtPayload(payload: JwtPayload, expectedAud?: string): boolean 
   return true;
 }
 
+// クラウドタスクから呼ばれる連携API（ユーザー認証ではなくトークン認証）
+const NEWS_MACHINE_PATHS = ["/api/news/ingest", "/api/news/feedback-summary"];
+
+// 比較時間を入力に依存させない
+function isValidIngestToken(header: string | undefined, expected: string | undefined) {
+  if (!expected) return false;
+
+  const presented = header?.startsWith("Bearer ") ? header.slice(7) : "";
+  if (presented.length !== expected.length) return false;
+
+  let diff = 0;
+  for (let i = 0; i < expected.length; i += 1) {
+    diff |= presented.charCodeAt(i) ^ expected.charCodeAt(i);
+  }
+
+  return diff === 0;
+}
+
 export default defineEventHandler((event) => {
   const path = event.path ?? "";
 
@@ -63,6 +81,15 @@ export default defineEventHandler((event) => {
     if (mockEmail) {
       event.context.user = { email: mockEmail, isAdmin: adminEmails.includes(mockEmail) };
     }
+  }
+
+  // ニュース連携APIはサービストークンで呼ばれ、Access JWT に email クレームがない。
+  // 代わりに Bearer トークンで認証する。
+  if (NEWS_MACHINE_PATHS.includes(path.split("?")[0] ?? "")) {
+    if (!isValidIngestToken(getHeader(event, "authorization"), env?.NEWS_INGEST_TOKEN)) {
+      throw createError({ statusCode: 401, statusMessage: "Invalid ingest token." });
+    }
+    return;
   }
 
   // APIルートと動的ページは認証必須
