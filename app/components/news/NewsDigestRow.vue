@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { categoryClass, formatRank, stripTermMarkers } from "~/utils/news";
+import { categoryClass, formatRank, japaneseTextClass, stripTermMarkers } from "~/utils/news";
 import type { NewsArticle } from "~~/types/portal";
 
 const props = defineProps<{
@@ -32,13 +32,19 @@ const summaryText = computed(() => stripTermMarkers(props.article.summary));
         </span>
       </div>
 
-      <h3 class="mt-2 text-pretty text-[19px] font-bold leading-[1.6] text-foreground">
+      <h3
+        class="mt-2 text-[19px] font-bold leading-[1.6] text-foreground"
+        :class="japaneseTextClass"
+      >
         <a :href="article.url" target="_blank" rel="noopener noreferrer" class="hover:underline">
           {{ article.title }}
         </a>
       </h3>
 
-      <p class="mt-[7px] text-pretty text-[13.5px] leading-[1.85] text-slate-600 dark:text-slate-300">
+      <p
+        class="mt-[7px] text-[13.5px] leading-[1.85] text-slate-600 dark:text-slate-300"
+        :class="japaneseTextClass"
+      >
         {{ summaryText }}
       </p>
     </div>

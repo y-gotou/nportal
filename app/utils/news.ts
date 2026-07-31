@@ -1,5 +1,10 @@
 import type { NewsImpactAxis } from "~~/types/portal";
 
+// 日本語は既定で文字単位に折り返せるため、単語の途中で改行される。
+// auto-phrase は文節単位で折り返し、strict は小書き仮名・長音符の行頭禁則を適用する。
+// auto-phrase 未対応のブラウザでは既定の折り返しにフォールバックする。
+export const japaneseTextClass = "[word-break:auto-phrase] [line-break:strict]";
+
 // 観点の見出し(docs/requirements-news.md §5.3)
 const IMPACT_AXIS_LABELS: Record<NewsImpactAxis, string> = {
   tooling: "業務での使いどころ",

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { categoryClass, formatRank, impactAxisLabel } from "~/utils/news";
+import { categoryClass, formatRank, impactAxisLabel, japaneseTextClass } from "~/utils/news";
 import type { NewsArticle } from "~~/types/portal";
 
 const props = defineProps<{
@@ -34,13 +34,17 @@ const rank = computed(() => formatRank(props.index));
         </span>
       </div>
 
-      <h3 class="mt-2 text-pretty text-[19px] font-bold leading-[1.6] tracking-tight text-foreground">
+      <h3
+        class="mt-2 text-[19px] font-bold leading-[1.6] tracking-tight text-foreground"
+        :class="japaneseTextClass"
+      >
         {{ article.title }}
       </h3>
 
       <NewsSummary
         v-if="article.summary"
-        class="mt-[7px] max-w-[820px] text-pretty text-[13.5px] leading-[1.85] text-slate-600 dark:text-slate-300"
+        class="mt-[7px] max-w-[820px] text-[13.5px] leading-[1.85] text-slate-600 dark:text-slate-300"
+        :class="japaneseTextClass"
         :text="article.summary"
         :glossary="article.glossary"
       />
@@ -74,7 +78,10 @@ const rank = computed(() => formatRank(props.index));
         >
           {{ impactAxisLabel(article.impactAxis) }}
         </span>
-        <p class="min-w-0 flex-1 text-pretty text-[13.5px] leading-[1.9] text-foreground">
+        <p
+          class="min-w-0 flex-1 text-[13.5px] leading-[1.9] text-foreground"
+          :class="japaneseTextClass"
+        >
           {{ article.whyImportant }}
         </p>
       </div>

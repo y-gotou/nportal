@@ -3,6 +3,7 @@ import {
   formatDateRange,
   formatDateWithWeekday,
   formatUpdatedAt,
+  japaneseTextClass,
 } from "~/utils/news";
 import type { NewsListResponse, NewsWeeklyResponse } from "~~/types/portal";
 
@@ -192,11 +193,15 @@ const dateNavClass =
         <div v-else class="px-6 pb-11 pt-8 md:px-12">
           <template v-if="digest">
             <p class="text-xs font-bold tracking-[0.16em] text-muted">{{ digestRange }}</p>
-            <h2 class="mt-2.5 text-[27px] font-bold tracking-tight text-foreground">
+            <h2
+              class="mt-2.5 text-[27px] font-bold tracking-tight text-foreground"
+              :class="japaneseTextClass"
+            >
               今週の{{ digest.articles.length }}つの動き
             </h2>
             <div
-              class="mt-3 max-w-[860px] space-y-3 text-[15px] leading-[2] text-foreground [line-break:strict]"
+              class="mt-3 max-w-[860px] space-y-3 text-[15px] leading-[2] text-foreground"
+              :class="japaneseTextClass"
             >
               <p v-for="(paragraph, index) in overviewParagraphs" :key="index">
                 {{ paragraph }}
