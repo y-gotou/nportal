@@ -253,6 +253,64 @@ export async function getNewsDigest(
   };
 }
 
+export interface NewsVoteCounts {
+  upCount: number;
+  downCount: number;
+  myVote: NewsVoteValue;
+}
+
+export async function newsArticleExists(
+  db: D1DatabaseLike,
+  articleId: number,
+): Promise<boolean> {
+  const row = await db
+    .prepare("SELECT id FROM news_articles WHERE id = ? AND hidden_at IS NULL")
+    .bind(articleId)
+    .first<{ id: number }>();
+
+  return Boolean(row);
+}
+
+// 1 ユーザー 1 記事 1 票。value が 0 のときは取り消しとして削除する。
+export async function saveNewsVote(
+  db: D1DatabaseLike,
+  articleId: number,
+  userEmail: string,
+  value: NewsVoteValue,
+): Promise<NewsVoteCounts> {
+  if (value === 0) {
+    await db
+      .prepare("DELETE FROM news_votes WHERE article_id = ? AND user_email = ?")
+      .bind(articleId, userEmail)
+      .first();
+  } else {
+    await db
+      .prepare(
+        `INSERT INTO news_votes (article_id, user_email, value) VALUES (?, ?, ?)
+         ON CONFLICT(article_id, user_email)
+         DO UPDATE SET value = excluded.value, updated_at = datetime('now')`,
+      )
+      .bind(articleId, userEmail, value)
+      .first();
+  }
+
+  const row = await db
+    .prepare(
+      `SELECT
+         COALESCE(SUM(CASE WHEN value = 1 THEN 1 ELSE 0 END), 0) AS up_count,
+         COALESCE(SUM(CASE WHEN value = -1 THEN 1 ELSE 0 END), 0) AS down_count
+       FROM news_votes WHERE article_id = ?`,
+    )
+    .bind(articleId)
+    .first<{ up_count: number; down_count: number }>();
+
+  return {
+    upCount: Number(row?.up_count ?? 0),
+    downCount: Number(row?.down_count ?? 0),
+    myVote: value,
+  };
+}
+
 export async function getAdjacentDigestDates(
   db: D1DatabaseLike,
   date: string,

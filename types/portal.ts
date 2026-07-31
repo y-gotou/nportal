@@ -281,6 +281,12 @@ export interface NewsListResponse {
   articles: NewsArticle[];
 }
 
+export interface NewsVoteResponse {
+  upCount: number;
+  downCount: number;
+  myVote: NewsVoteValue;
+}
+
 export interface NewsWeeklyResponse {
   digest: NewsDigest | null;
   prevDate: string | null;

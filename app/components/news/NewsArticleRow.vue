@@ -13,7 +13,7 @@ const rank = computed(() => formatRank(props.index));
 
 <template>
   <article
-    class="flex gap-7 border-b border-border py-5 transition-colors hover:bg-surface-hover/40"
+    class="flex flex-wrap gap-x-7 gap-y-3 border-b border-border py-5 transition-colors hover:bg-surface-hover/40"
   >
     <div class="w-13 shrink-0 pt-0.5">
       <span class="block text-[22px] font-bold leading-none tracking-tight text-slate-300 tabular-nums dark:text-slate-600">
@@ -87,10 +87,9 @@ const rank = computed(() => formatRank(props.index));
       </div>
     </div>
 
-    <div class="hidden w-25 shrink-0 justify-end pt-0.5 sm:flex">
-      <span class="text-xs text-muted tabular-nums">
-        👍 {{ article.upCount }}　👎 {{ article.downCount }}
-      </span>
+    <!-- 狭い画面では本文の下に折り返す(投票は全端末で操作できるようにする) -->
+    <div class="w-full shrink-0 pl-20 sm:flex sm:w-auto sm:justify-end sm:pl-0 sm:pt-0.5">
+      <NewsVoteButtons :article="article" />
     </div>
   </article>
 </template>
