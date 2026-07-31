@@ -61,12 +61,22 @@
 
 このため、ニュース収集用に **Custom** ネットワークアクセスの専用クラウド環境を作成し、収集元・Tavily・nportal のドメインを許可リストに登録する。
 
-### 3.2 前提検証(フェーズ 0)
+### 3.2 前提検証(フェーズ 0)— 完了
 
-`scripts/verify-news-sources.mjs` を routine 環境で実行し、到達性を確認する。
+`scripts/verify-news-sources.mjs` をクラウド環境で実行し、**16 項目すべて到達を確認済み**(2026-07-31)。
 
-- 実施済み(ローカル): 収集元 RSS 14 件すべて HTTP 200 で取得可能
-- 未実施(クラウド環境): 許可リスト設定後の RSS / Tavily / nportal への到達性
+| 対象 | 結果 |
+| --- | --- |
+| 収集元 RSS 14 件 | すべて HTTP 200、記事取得可 |
+| Tavily API | HTTP 200、検索結果を取得 |
+| nportal `/api/me` | HTTP 401(Access を通過しアプリまで到達。email クレームがないための 401 で想定どおり) |
+
+設定の要点は以下のとおり。
+
+- ニュース専用のクラウド環境を **Custom** ネットワークアクセスで作成し、収集元・`api.tavily.com`・nportal のドメインを許可リストに登録した
+- nportal の Access アプリに Service Auth ポリシーを追加し、ニュース用サービストークンを許可した(既存の allow ポリシーは変更していない)
+- セットアップスクリプトは不要。VM に Node.js が同梱されており、検証スクリプトは組み込み `fetch` のみを使う
+- 収集スクリプトも依存パッケージなしで実装する。`package.json` には Nuxt 一式が含まれるため、routine で `npm install` を実行すると不要な依存解決が毎回発生する
 
 ### 3.3 記事本文の取得方針
 
@@ -414,7 +424,7 @@ CREATE INDEX IF NOT EXISTS idx_news_votes_article ON news_votes(article_id);
 
 | フェーズ | 内容 | 完了条件 |
 | --- | --- | --- |
-| 0 | 到達性検証(§3.2)とクラウド環境の作成 | routine 環境で `verify-news-sources.mjs` が全項目 OK になる |
+| 0 ✅ | 到達性検証(§3.2)とクラウド環境の作成 | 完了(2026-07-31、16/16 項目 OK) |
 | 1 | D1 スキーマ、閲覧 API、`/news` ページ(手動投入データで表示) | 固定 JSON を投入し一覧が表示される |
 | 2 | 投票 API と UI、`final_score` による並び替え | 投票が保存され順位が動く |
 | 3 | `ingest` / `feedback-summary` API とトークン認証 | curl で投入・取得ができる |
