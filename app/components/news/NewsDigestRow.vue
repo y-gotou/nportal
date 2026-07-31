@@ -1,0 +1,46 @@
+<script setup lang="ts">
+import { categoryClass, formatRank, stripTermMarkers, truncate } from "~/utils/news";
+import type { NewsArticle } from "~~/types/portal";
+
+const props = defineProps<{
+  article: NewsArticle;
+  index: number;
+}>();
+
+const rank = computed(() => formatRank(props.index));
+const summaryShort = computed(() => truncate(stripTermMarkers(props.article.summary), 62));
+</script>
+
+<template>
+  <article class="flex gap-7 border-b border-border py-5">
+    <div class="w-13 shrink-0">
+      <span class="block text-[22px] font-bold leading-none text-border tabular-nums">
+        {{ rank }}
+      </span>
+    </div>
+
+    <div class="min-w-0 flex-1">
+      <div class="flex flex-wrap items-center gap-2.5">
+        <span
+          class="rounded px-2 py-0.5 text-[11px] font-bold tracking-wide whitespace-nowrap"
+          :class="categoryClass(article.category)"
+        >
+          {{ article.category }}
+        </span>
+        <span class="text-xs text-muted">
+          {{ article.source }}<template v-if="article.articleDate">・{{ article.articleDate.slice(5).replace("-", "/") }}</template>
+        </span>
+      </div>
+
+      <h3 class="mt-2 text-pretty text-[19px] font-bold leading-[1.6] text-foreground">
+        <a :href="article.url" target="_blank" rel="noopener noreferrer" class="hover:underline">
+          {{ article.title }}
+        </a>
+      </h3>
+
+      <p class="mt-[7px] text-pretty text-[13.5px] leading-[1.85] text-muted">
+        {{ summaryShort }}
+      </p>
+    </div>
+  </article>
+</template>

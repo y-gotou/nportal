@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { formatDisplayDate } from "~~/utils/content";
-import { secondaryButtonClass } from "~/utils/ui";
+import {
+  formatDateRange,
+  formatDateWithWeekday,
+  formatUpdatedAt,
+} from "~/utils/news";
 import type { NewsListResponse, NewsWeeklyResponse } from "~~/types/portal";
 
 type NewsTab = "daily" | "weekly";
@@ -22,7 +25,13 @@ const weeklyQuery = computed(() => ({
 
 const { data: dailyData } = await useFetch<NewsListResponse>("/api/news", {
   query: dailyQuery,
-  default: () => ({ date: null, prevDate: null, nextDate: null, articles: [] }),
+  default: () => ({
+    date: null,
+    updatedAt: null,
+    prevDate: null,
+    nextDate: null,
+    articles: [],
+  }),
 });
 
 const { data: weeklyData } = await useFetch<NewsWeeklyResponse>("/api/news/weekly", {
@@ -32,18 +41,34 @@ const { data: weeklyData } = await useFetch<NewsWeeklyResponse>("/api/news/weekl
 
 const articles = computed(() => dailyData.value?.articles ?? []);
 const digest = computed(() => weeklyData.value?.digest ?? null);
+const isDaily = computed(() => activeTab.value === "daily");
 
 const currentDate = computed(() =>
-  activeTab.value === "daily"
-    ? dailyData.value?.date ?? null
-    : digest.value?.publishedDate ?? null,
+  isDaily.value ? dailyData.value?.date ?? null : digest.value?.publishedDate ?? null,
 );
 const prevDate = computed(() =>
-  activeTab.value === "daily" ? dailyData.value?.prevDate : weeklyData.value?.prevDate,
+  isDaily.value ? dailyData.value?.prevDate : weeklyData.value?.prevDate,
 );
 const nextDate = computed(() =>
-  activeTab.value === "daily" ? dailyData.value?.nextDate : weeklyData.value?.nextDate,
+  isDaily.value ? dailyData.value?.nextDate : weeklyData.value?.nextDate,
 );
+
+// 過去日を表示しているときに「今日の」と称さない
+const heading = computed(() =>
+  isDaily.value && !dailyData.value?.nextDate ? "今日のAIニュース" : "AIニュース",
+);
+
+// 週次が対象とするのは掲載日から遡る 7 日間
+const digestRange = computed(() => {
+  const end = digest.value?.publishedDate;
+  if (!end) return "";
+  const start = new Date(`${end}T00:00:00`);
+  start.setDate(start.getDate() - 6);
+  return formatDateRange(
+    `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, "0")}-${String(start.getDate()).padStart(2, "0")}`,
+    end,
+  );
+});
 
 // タブごとに掲載日が異なるため、切り替え時は最新に戻す
 function selectTab(tab: NewsTab) {
@@ -57,12 +82,6 @@ function goToDate(date: string | null | undefined) {
   selectedDate.value = date;
 }
 
-// 指定日に掲載がない場合はサーバー側で直前の掲載日に解決される
-function onDateInput(event: Event) {
-  const value = (event.target as HTMLInputElement).value;
-  selectedDate.value = value || null;
-}
-
 watch([activeTab, selectedDate], () => {
   router.replace({
     query: {
@@ -74,27 +93,41 @@ watch([activeTab, selectedDate], () => {
 
 const tabClass = (tab: NewsTab) =>
   activeTab.value === tab
-    ? "border-blue-500 text-blue-600 dark:text-blue-400"
-    : "border-transparent text-muted hover:text-foreground";
+    ? "border-foreground font-bold text-foreground"
+    : "border-transparent font-medium text-muted hover:text-foreground";
+
+const dateNavClass =
+  "flex h-8 w-8 items-center justify-center rounded-md text-[15px] text-muted transition-colors hover:bg-surface-hover hover:text-foreground disabled:cursor-default disabled:text-border disabled:hover:bg-transparent";
 </script>
 
 <template>
   <PageContainer>
-    <SectionHeader
-      eyebrow="AI NEWS"
-      title="AI ニュース"
-      description="AI が毎朝ニュースを選定し、勉強会の関心に沿って並べています。👍 / 👎 の評価は次回の選定に反映されます。"
-    />
+    <header class="pt-2">
+      <p class="text-[11px] font-bold tracking-[0.2em] text-muted">AI NEWS</p>
+      <div class="mt-2.5 flex items-end justify-between gap-8">
+        <h1 class="text-[32px] font-bold leading-[1.25] tracking-tight text-foreground">
+          {{ heading }}
+        </h1>
+        <p v-if="dailyData?.updatedAt" class="text-right text-xs leading-relaxed text-muted">
+          最終更新<br>
+          <span class="text-[13px] font-semibold text-foreground">
+            {{ formatUpdatedAt(dailyData.updatedAt) }}
+          </span>
+        </p>
+      </div>
+    </header>
 
-    <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
-      <div class="flex gap-1 border-b border-border" role="tablist">
+    <div
+      class="sticky top-[73px] z-30 mt-5 flex items-center justify-between border-b border-border bg-background"
+    >
+      <div class="flex" role="tablist">
         <button
           v-for="tab in (['daily', 'weekly'] as const)"
           :key="tab"
           type="button"
           role="tab"
           :aria-selected="activeTab === tab"
-          class="border-b-2 px-4 py-2.5 text-sm font-medium transition-colors"
+          class="-mb-px mx-3 border-b-2 px-1 py-3.5 text-[14.5px] transition-colors"
           :class="tabClass(tab)"
           @click="selectTab(tab)"
         >
@@ -102,30 +135,26 @@ const tabClass = (tab: NewsTab) =>
         </button>
       </div>
 
-      <div v-if="currentDate" class="flex items-center gap-2">
+      <div v-if="currentDate" class="flex items-center gap-0.5 pb-1.5">
         <button
           type="button"
-          :class="secondaryButtonClass"
-          class="!px-3 !py-2"
+          :class="dateNavClass"
           :disabled="!prevDate"
-          :aria-label="'前の掲載日'"
+          aria-label="前の掲載日"
           @click="goToDate(prevDate)"
         >
           ←
         </button>
-        <input
-          type="date"
-          :value="currentDate"
-          class="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground"
-          aria-label="掲載日を指定"
-          @change="onDateInput"
+        <span
+          class="min-w-[150px] text-center text-[13px] font-semibold text-foreground tabular-nums"
         >
+          {{ formatDateWithWeekday(currentDate) }}
+        </span>
         <button
           type="button"
-          :class="secondaryButtonClass"
-          class="!px-3 !py-2"
+          :class="dateNavClass"
           :disabled="!nextDate"
-          :aria-label="'次の掲載日'"
+          aria-label="次の掲載日"
           @click="goToDate(nextDate)"
         >
           →
@@ -133,42 +162,41 @@ const tabClass = (tab: NewsTab) =>
       </div>
     </div>
 
-    <div v-if="activeTab === 'daily'">
+    <div v-if="isDaily" class="pb-11 pt-2">
       <template v-if="articles.length">
-        <p class="mb-4 text-sm text-muted">{{ formatDisplayDate(currentDate!) }} の掲載</p>
-        <div class="space-y-4">
-          <NewsArticleCard
-            v-for="article in articles"
-            :key="article.id"
-            :article="article"
-          />
-        </div>
+        <NewsArticleRow
+          v-for="(article, index) in articles"
+          :key="article.id"
+          :article="article"
+          :index="index"
+        />
       </template>
-      <p v-else class="rounded-xl border border-border bg-surface p-6 text-sm text-muted">
+      <p v-else class="py-16 text-center text-sm text-muted">
         本日のニュースはまだ公開されていません。
       </p>
     </div>
 
-    <div v-else>
+    <div v-else class="pb-11 pt-8">
       <template v-if="digest">
-        <section class="mb-6 rounded-xl border border-border bg-surface p-6 shadow-sm">
-          <p class="text-xs font-semibold tracking-[0.16em] text-muted">
-            {{ formatDisplayDate(digest.publishedDate) }}
-          </p>
-          <h2 class="mt-2 text-xl font-bold tracking-tight text-foreground">今週の AI 動向</h2>
-          <p class="mt-3 whitespace-pre-line text-sm leading-7 text-foreground">
-            {{ digest.overview }}
-          </p>
-        </section>
-        <div class="space-y-4">
-          <NewsArticleCard
-            v-for="article in digest.articles"
+        <p class="text-xs font-bold tracking-[0.16em] text-muted">{{ digestRange }}</p>
+        <h2 class="mt-2.5 text-[27px] font-bold tracking-tight text-foreground">
+          今週の{{ digest.articles.length }}つの動き
+        </h2>
+        <p
+          class="mt-3 max-w-[860px] text-pretty whitespace-pre-line text-[15px] leading-[2] text-foreground"
+        >
+          {{ digest.overview }}
+        </p>
+        <div class="mt-7 border-t border-border">
+          <NewsDigestRow
+            v-for="(article, index) in digest.articles"
             :key="article.id"
             :article="article"
+            :index="index"
           />
         </div>
       </template>
-      <p v-else class="rounded-xl border border-border bg-surface p-6 text-sm text-muted">
+      <p v-else class="py-16 text-center text-sm text-muted">
         週次ダイジェストはまだ公開されていません。
       </p>
     </div>

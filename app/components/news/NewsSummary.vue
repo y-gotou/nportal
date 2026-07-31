@@ -27,7 +27,7 @@ const segments = computed(() => {
 </script>
 
 <template>
-  <p class="text-sm leading-6 text-foreground">
+  <p>
     <template v-for="segment in segments" :key="segment.key">
       <NewsTerm
         v-if="segment.description"

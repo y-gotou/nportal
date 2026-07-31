@@ -275,6 +275,7 @@ export interface NewsDigest {
 
 export interface NewsListResponse {
   date: string | null;
+  updatedAt: string | null;
   prevDate: string | null;
   nextDate: string | null;
   articles: NewsArticle[];

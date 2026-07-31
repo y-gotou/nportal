@@ -144,6 +144,21 @@ export async function resolveNewsDate(
   return row?.date ?? null;
 }
 
+// 掲載時刻(最終更新)は当日分の投入時刻の最大値とする
+export async function getNewsUpdatedAt(
+  db: D1DatabaseLike,
+  date: string,
+): Promise<string | null> {
+  const row = await db
+    .prepare(
+      "SELECT MAX(created_at) AS updated_at FROM news_articles WHERE published_date = ? AND hidden_at IS NULL",
+    )
+    .bind(date)
+    .first<{ updated_at: string | null }>();
+
+  return row?.updated_at ?? null;
+}
+
 export async function getAdjacentNewsDates(
   db: D1DatabaseLike,
   date: string,

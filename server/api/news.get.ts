@@ -2,6 +2,7 @@ import { createError, getQuery } from "h3";
 import { getDb } from "~~/server/utils/survey";
 import {
   getAdjacentNewsDates,
+  getNewsUpdatedAt,
   listNewsArticles,
   resolveNewsDate,
 } from "~~/server/utils/news";
@@ -18,13 +19,14 @@ export default defineEventHandler(async (event) => {
   const date = await resolveNewsDate(db, parseNewsDate(getQuery(event).date));
 
   if (!date) {
-    return { date: null, prevDate: null, nextDate: null, articles: [] };
+    return { date: null, updatedAt: null, prevDate: null, nextDate: null, articles: [] };
   }
 
-  const [articles, adjacent] = await Promise.all([
+  const [articles, adjacent, updatedAt] = await Promise.all([
     listNewsArticles(db, date, user.email),
     getAdjacentNewsDates(db, date),
+    getNewsUpdatedAt(db, date),
   ]);
 
-  return { date, ...adjacent, articles };
+  return { date, updatedAt, ...adjacent, articles };
 });
