@@ -488,6 +488,7 @@ CREATE INDEX IF NOT EXISTS idx_news_votes_article ON news_votes(article_id);
 | フェーズ | 内容 | 完了条件 |
 | --- | --- | --- |
 | 0 ✅ | 到達性検証(§3.2)とクラウド環境の作成 | 完了(2026-07-31、16/16 項目 OK) |
+| — | **`main` merge 後に本番 D1 へ `npm run db:schema:prod` を実行する** | `news_*` の 3 テーブルが本番に存在する |
 | 1 ✅ | D1 スキーマ、閲覧 API、`/news` ページ | 完了(プレビュー D1 のサンプルデータで表示を確認) |
 | 2 ✅ | 投票 API と UI、`final_score` による並び替え | 完了(2026-07-31) |
 | 3 ✅ | `ingest` / `feedback-summary` API とトークン認証 | 完了(2026-07-31) |
