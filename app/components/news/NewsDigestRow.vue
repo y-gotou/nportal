@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { categoryClass, formatRank, stripTermMarkers, truncate } from "~/utils/news";
+import { categoryClass, formatRank, stripTermMarkers } from "~/utils/news";
 import type { NewsArticle } from "~~/types/portal";
 
 const props = defineProps<{
@@ -8,7 +8,7 @@ const props = defineProps<{
 }>();
 
 const rank = computed(() => formatRank(props.index));
-const summaryShort = computed(() => truncate(stripTermMarkers(props.article.summary), 62));
+const summaryText = computed(() => stripTermMarkers(props.article.summary));
 </script>
 
 <template>
@@ -39,7 +39,7 @@ const summaryShort = computed(() => truncate(stripTermMarkers(props.article.summ
       </h3>
 
       <p class="mt-[7px] text-pretty text-[13.5px] leading-[1.85] text-slate-600 dark:text-slate-300">
-        {{ summaryShort }}
+        {{ summaryText }}
       </p>
     </div>
   </article>

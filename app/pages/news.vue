@@ -58,6 +58,14 @@ const heading = computed(() =>
   isDaily.value && !dailyData.value?.nextDate ? "今日のAIニュース" : "AIニュース",
 );
 
+// 本文中の改行は段落の区切りとして扱う(pre-line だと 1 行だけ不自然に切れる)
+const overviewParagraphs = computed(() =>
+  (digest.value?.overview ?? "")
+    .split(/\n+/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean),
+);
+
 // 週次が対象とするのは掲載日から遡る 7 日間
 const digestRange = computed(() => {
   const end = digest.value?.publishedDate;
@@ -187,11 +195,13 @@ const dateNavClass =
             <h2 class="mt-2.5 text-[27px] font-bold tracking-tight text-foreground">
               今週の{{ digest.articles.length }}つの動き
             </h2>
-            <p
-              class="mt-3 max-w-[860px] text-pretty whitespace-pre-line text-[15px] leading-[2] text-foreground"
+            <div
+              class="mt-3 max-w-[860px] space-y-3 text-[15px] leading-[2] text-foreground [line-break:strict]"
             >
-              {{ digest.overview }}
-            </p>
+              <p v-for="(paragraph, index) in overviewParagraphs" :key="index">
+                {{ paragraph }}
+              </p>
+            </div>
             <div class="mt-7 border-t border-border">
               <NewsDigestRow
                 v-for="(article, index) in digest.articles"
