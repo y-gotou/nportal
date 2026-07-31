@@ -58,7 +58,22 @@ node scripts/news-collect.mjs "$NPORTAL_BASE_URL" --days 3 --out /tmp/candidates
 5. 同一トピックの重複記事は 1 件に集約する。一次情報(ベンダー公式)を優先する
 6. **どの観点にも当てはめられない記事は落とす**。件数が 5 件に満たなくてもよい
 
-### 3. 掲載データを組み立てる
+この時点では本文が不足していてもよい。本文は次の手順で取得する。
+
+### 3. 不足している本文を取得する
+
+候補の `body` は RSS の要約から取っているため、本文を含まないフィード(Hacker News など)や要約が空のフィードでは、正確な要約を書けない。選定した記事のうち `body` が空、または 100 字未満のものについて本文を取得する。
+
+```bash
+node scripts/news-extract.mjs /tmp/bodies.json "https://…" "https://…"
+```
+
+- Tavily 側が本文を取りに行くため、収集元以外のドメインを許可リストに追加する必要はない
+- **選定後の記事に限って呼ぶ**。全候補に対して実行するとクレジットを無駄に消費する
+- 1 回あたり 20 URL まで
+- `failed` に入った URL は本文を取得できていない。その記事は掲載候補から落とす
+
+### 4. 掲載データを組み立てる
 
 `/tmp/payload.json` に以下の形式で書き出す。`published_date` は実行日(JST)。
 
@@ -98,7 +113,7 @@ node scripts/news-collect.mjs "$NPORTAL_BASE_URL" --days 3 --out /tmp/candidates
 
 記事本文をそのまま転載しない。要約は自分の言葉で書く。
 
-### 4. 投入する
+### 5. 投入する
 
 ```bash
 node scripts/news-publish.mjs "$NPORTAL_BASE_URL" /tmp/payload.json
