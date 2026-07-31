@@ -91,7 +91,7 @@ Custom 許可リストでは、Tavily の検索結果に出てきた任意の記
 
 ### 4.1 収集ソース
 
-固定 RSS を主軸とし、Tavily Web 検索で取りこぼしを補完するハイブリッド構成とする。フィード一覧は `scripts/verify-news-sources.mjs` の `FEEDS` に定義し、到達性検証と収集で同じ定義を使う。
+固定 RSS を主軸とし、Tavily Web 検索で取りこぼしを補完するハイブリッド構成とする。フィード一覧は `scripts/news-feeds.mjs` に定義し、到達性検証(`verify-news-sources.mjs`)と収集(`news-collect.mjs`)で同じ定義を使う。
 
 | 区分 | フィード(到達確認済み) |
 | --- | --- |
@@ -476,7 +476,7 @@ CREATE INDEX IF NOT EXISTS idx_news_votes_article ON news_votes(article_id);
 | 1 ✅ | D1 スキーマ、閲覧 API、`/news` ページ | 完了(プレビュー D1 のサンプルデータで表示を確認) |
 | 2 ✅ | 投票 API と UI、`final_score` による並び替え | 完了(2026-07-31) |
 | 3 ✅ | `ingest` / `feedback-summary` API とトークン認証 | 完了(2026-07-31) |
-| 4 | クラウドタスク(日次)の作成と定期実行 | 平日朝に自動掲載される |
+| 4 | クラウドタスク(日次)の作成と定期実行 | 手順書 [docs/news-routine.md](news-routine.md) とスクリプトを用意済み。routine の登録待ち |
 | 5 | 週次ダイジェストの生成とタブ表示 | 木曜朝にダイジェストが公開される |
 
 ## 15. 未決事項
