@@ -14,7 +14,7 @@ const summaryShort = computed(() => truncate(stripTermMarkers(props.article.summ
 <template>
   <article class="flex gap-7 border-b border-border py-5">
     <div class="w-13 shrink-0">
-      <span class="block text-[22px] font-bold leading-none text-border tabular-nums">
+      <span class="block text-[22px] font-bold leading-none text-slate-300 tabular-nums dark:text-slate-600">
         {{ rank }}
       </span>
     </div>
@@ -38,7 +38,7 @@ const summaryShort = computed(() => truncate(stripTermMarkers(props.article.summ
         </a>
       </h3>
 
-      <p class="mt-[7px] text-pretty text-[13.5px] leading-[1.85] text-muted">
+      <p class="mt-[7px] text-pretty text-[13.5px] leading-[1.85] text-slate-600 dark:text-slate-300">
         {{ summaryShort }}
       </p>
     </div>

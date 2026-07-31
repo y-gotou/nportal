@@ -16,7 +16,7 @@ const rank = computed(() => formatRank(props.index));
     class="flex gap-7 border-b border-border py-5 transition-colors hover:bg-surface-hover/40"
   >
     <div class="w-13 shrink-0 pt-0.5">
-      <span class="block text-[22px] font-bold leading-none tracking-tight text-border tabular-nums">
+      <span class="block text-[22px] font-bold leading-none tracking-tight text-slate-300 tabular-nums dark:text-slate-600">
         {{ rank }}
       </span>
     </div>
@@ -40,7 +40,7 @@ const rank = computed(() => formatRank(props.index));
 
       <NewsSummary
         v-if="article.summary"
-        class="mt-[7px] max-w-[820px] text-pretty text-[13.5px] leading-[1.85] text-muted"
+        class="mt-[7px] max-w-[820px] text-pretty text-[13.5px] leading-[1.85] text-slate-600 dark:text-slate-300"
         :text="article.summary"
         :glossary="article.glossary"
       />
