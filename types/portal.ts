@@ -274,16 +274,15 @@ export interface NewsDigest {
 
 export interface NewsListResponse {
   date: string | null;
+  prevDate: string | null;
+  nextDate: string | null;
   articles: NewsArticle[];
 }
 
 export interface NewsWeeklyResponse {
   digest: NewsDigest | null;
-}
-
-export interface NewsDatesResponse {
-  daily: string[];
-  weekly: string[];
+  prevDate: string | null;
+  nextDate: string | null;
 }
 
 export interface D1PreparedStatement {

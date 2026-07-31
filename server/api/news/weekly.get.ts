@@ -1,6 +1,6 @@
 import { createError, getQuery } from "h3";
 import { getDb } from "~~/server/utils/survey";
-import { getNewsDigest } from "~~/server/utils/news";
+import { getAdjacentDigestDates, getNewsDigest } from "~~/server/utils/news";
 import { parseNewsDate } from "~~/server/utils/news-date";
 
 export default defineEventHandler(async (event) => {
@@ -11,7 +11,15 @@ export default defineEventHandler(async (event) => {
   }
 
   const db = getDb(event);
-  const date = parseNewsDate(getQuery(event).date) ?? null;
+  const digest = await getNewsDigest(
+    db,
+    parseNewsDate(getQuery(event).date),
+    user.email,
+  );
 
-  return { digest: await getNewsDigest(db, date, user.email) };
+  if (!digest) {
+    return { digest: null, prevDate: null, nextDate: null };
+  }
+
+  return { digest, ...(await getAdjacentDigestDates(db, digest.publishedDate)) };
 });

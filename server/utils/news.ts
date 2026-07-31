@@ -18,6 +18,11 @@ export const NEWS_IMPACT_AXES: NewsImpactAxis[] = [
   "landscape",
 ];
 
+export interface AdjacentDates {
+  prevDate: string | null;
+  nextDate: string | null;
+}
+
 interface ArticleRow {
   id: number;
   published_date: string;
@@ -117,16 +122,48 @@ function byFinalScore(a: NewsArticle, b: NewsArticle) {
   return b.finalScore - a.finalScore || b.aiScore - a.aiScore || a.id - b.id;
 }
 
-export async function getLatestNewsDate(
+// 掲載日は日々増えるため一覧は返さず、指定日を実在する掲載日へ解決して前後だけを返す。
+// 指定日に掲載がない場合は直前の掲載日にフォールバックする。
+export async function resolveNewsDate(
   db: D1DatabaseLike,
+  requestedDate: string | undefined,
 ): Promise<string | null> {
-  const row = await db
-    .prepare(
-      "SELECT MAX(published_date) AS date FROM news_articles WHERE hidden_at IS NULL",
-    )
-    .first<{ date: string | null }>();
+  const row = requestedDate
+    ? await db
+        .prepare(
+          "SELECT MAX(published_date) AS date FROM news_articles WHERE published_date <= ? AND hidden_at IS NULL",
+        )
+        .bind(requestedDate)
+        .first<{ date: string | null }>()
+    : await db
+        .prepare(
+          "SELECT MAX(published_date) AS date FROM news_articles WHERE hidden_at IS NULL",
+        )
+        .first<{ date: string | null }>();
 
   return row?.date ?? null;
+}
+
+export async function getAdjacentNewsDates(
+  db: D1DatabaseLike,
+  date: string,
+): Promise<AdjacentDates> {
+  const [prev, next] = await Promise.all([
+    db
+      .prepare(
+        "SELECT MAX(published_date) AS date FROM news_articles WHERE published_date < ? AND hidden_at IS NULL",
+      )
+      .bind(date)
+      .first<{ date: string | null }>(),
+    db
+      .prepare(
+        "SELECT MIN(published_date) AS date FROM news_articles WHERE published_date > ? AND hidden_at IS NULL",
+      )
+      .bind(date)
+      .first<{ date: string | null }>(),
+  ]);
+
+  return { prevDate: prev?.date ?? null, nextDate: next?.date ?? null };
 }
 
 export async function listNewsArticles(
@@ -146,15 +183,15 @@ export async function listNewsArticles(
 
 export async function getNewsDigest(
   db: D1DatabaseLike,
-  date: string | null,
+  requestedDate: string | undefined,
   userEmail: string,
 ): Promise<NewsDigest | null> {
-  const digest = date
+  const digest = requestedDate
     ? await db
         .prepare(
-          "SELECT published_date, overview, article_ids FROM news_digests WHERE published_date = ?",
+          "SELECT published_date, overview, article_ids FROM news_digests WHERE published_date <= ? ORDER BY published_date DESC LIMIT 1",
         )
-        .bind(date)
+        .bind(requestedDate)
         .first<{ published_date: string; overview: string; article_ids: string }>()
     : await db
         .prepare(
@@ -201,24 +238,24 @@ export async function getNewsDigest(
   };
 }
 
-export async function listNewsDates(
+export async function getAdjacentDigestDates(
   db: D1DatabaseLike,
-): Promise<{ daily: string[]; weekly: string[] }> {
-  const [daily, weekly] = await Promise.all([
+  date: string,
+): Promise<AdjacentDates> {
+  const [prev, next] = await Promise.all([
     db
       .prepare(
-        "SELECT DISTINCT published_date AS date FROM news_articles WHERE hidden_at IS NULL ORDER BY published_date DESC",
+        "SELECT MAX(published_date) AS date FROM news_digests WHERE published_date < ?",
       )
-      .all<{ date: string }>(),
+      .bind(date)
+      .first<{ date: string | null }>(),
     db
       .prepare(
-        "SELECT published_date AS date FROM news_digests ORDER BY published_date DESC",
+        "SELECT MIN(published_date) AS date FROM news_digests WHERE published_date > ?",
       )
-      .all<{ date: string }>(),
+      .bind(date)
+      .first<{ date: string | null }>(),
   ]);
 
-  return {
-    daily: daily.results.map((row) => row.date),
-    weekly: weekly.results.map((row) => row.date),
-  };
+  return { prevDate: prev?.date ?? null, nextDate: next?.date ?? null };
 }

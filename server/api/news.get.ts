@@ -1,6 +1,10 @@
 import { createError, getQuery } from "h3";
 import { getDb } from "~~/server/utils/survey";
-import { getLatestNewsDate, listNewsArticles } from "~~/server/utils/news";
+import {
+  getAdjacentNewsDates,
+  listNewsArticles,
+  resolveNewsDate,
+} from "~~/server/utils/news";
 import { parseNewsDate } from "~~/server/utils/news-date";
 
 export default defineEventHandler(async (event) => {
@@ -11,12 +15,16 @@ export default defineEventHandler(async (event) => {
   }
 
   const db = getDb(event);
-  const requestedDate = parseNewsDate(getQuery(event).date);
-  const date = requestedDate ?? (await getLatestNewsDate(db));
+  const date = await resolveNewsDate(db, parseNewsDate(getQuery(event).date));
 
   if (!date) {
-    return { date: null, articles: [] };
+    return { date: null, prevDate: null, nextDate: null, articles: [] };
   }
 
-  return { date, articles: await listNewsArticles(db, date, user.email) };
+  const [articles, adjacent] = await Promise.all([
+    listNewsArticles(db, date, user.email),
+    getAdjacentNewsDates(db, date),
+  ]);
+
+  return { date, ...adjacent, articles };
 });

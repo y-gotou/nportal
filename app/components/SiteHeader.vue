@@ -7,12 +7,12 @@ const { isDark, toggleTheme } = useTheme();
 
 const navItems = [
   { to: "/", label: "ホーム" },
-  { to: "/news", label: "ニュース" },
   { to: "/minutes", label: "議事録" },
   { to: "/schedule", label: "スケジュール" },
   { to: "/survey", label: "アンケート" },
   { to: "/resources", label: "資料共有" },
   { to: "/speakers", label: "発表募集" },
+  { to: "/news", label: "ニュース" },
 ];
 
 const mobileMenuId = "site-mobile-navigation";
