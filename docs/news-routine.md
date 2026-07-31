@@ -41,7 +41,7 @@ node scripts/news-collect.mjs "$NPORTAL_BASE_URL" --days 3 --out /tmp/candidates
 - `feedback.weights` — 出典 / カテゴリ / 観点それぞれの重み(0.7〜1.3)
 - `feedback.tags.liked` / `disliked` — 直近 30 日のタグ別評価
 - `feedback.study_group_context` — 直近の議事録トピック、資料タグ、発表予定
-- `feedback.published_urls` — 直近 14 日の掲載済み URL(収集時点で除外済み)
+- `feedback.recent_articles` — 直近 14 日の掲載記事(評価付き。収集時点で重複除外済み)
 - `candidates[]` — `source` / `url` / `title` / `publishedAt` / `body` / `origin`
 - `warnings[]` — 取得に失敗したフィードなど
 
@@ -112,22 +112,23 @@ HTTP 400 が返った場合はメッセージに従って `/tmp/payload.json` �
 
 木曜の朝、日次より先に実行する。
 
-### 1. 直近 1 週間の掲載記事を取得する
+### 1. 直近の掲載記事と評価を取得する
 
 ```bash
-curl -s "$NPORTAL_BASE_URL/api/news/feedback-summary" \
-  -H "Authorization: Bearer $NEWS_INGEST_TOKEN" \
-  -H "CF-Access-Client-Id: $NPORTAL_CF_ACCESS_CLIENT_ID" \
-  -H "CF-Access-Client-Secret: $NPORTAL_CF_ACCESS_CLIENT_SECRET"
+node scripts/news-collect.mjs "$NPORTAL_BASE_URL" --days 1 --out /tmp/weekly-input.json
 ```
 
-`published_urls` に直近 14 日の掲載済み URL が入る。各掲載日の記事と評価は `/api/news?date=YYYY-MM-DD` では取得できない(閲覧 API は Access のユーザー認証が必要)ため、対象記事は `published_urls` と当週の日次実行時の記録から判断する。
+`feedback.recent_articles` に直近 14 日の掲載記事が、掲載日の新しい順・`final_score` の高い順で入る。各要素は `url` / `title` / `published_date` / `source` / `category` / `impact_axis` / `tags` / `up` / `down` / `final_score` を持つ。
+
+候補の収集結果(`candidates`)は週次では使わない。
 
 ### 2. 上位を選び、まとめを書く
 
-- 直近 7 日の掲載記事から **5〜8 件**を選ぶ
-- 「今週の AI 動向」を 3〜5 文で書く。個別の記事紹介ではなく、週全体の流れを述べる
+- `recent_articles` のうち **掲載日が直近 7 日以内**のものに絞る
+- `final_score` の高い順に **5〜8 件**を選ぶ
+- 「今週の AI 動向」を 3〜5 文で書く。個別の記事紹介ではなく、週全体の流れを述べる。`category` と `impact_axis` の分布から、その週に何が起きていたかを読み取る
 - 木曜 16:00 の会議で画面共有する前提のため、会議の導入として読める文章にする
+- 段落を分ける場合は本文中で改行する(画面側で段落として組まれる)
 
 ### 3. 投入する
 

@@ -386,7 +386,7 @@ CREATE INDEX IF NOT EXISTS idx_news_votes_article ON news_votes(article_id);
 
 | メソッド | パス | 概要 |
 | --- | --- | --- |
-| GET | `/api/news/feedback-summary` | 出典 / カテゴリ / 観点別の重み、タグ別の 👍👎 集計、勉強会の文脈(§5.4)、直近 14 日の掲載済み URL を返す |
+| GET | `/api/news/feedback-summary` | 出典 / カテゴリ / 観点別の重み、タグ別の 👍👎 集計、勉強会の文脈(§5.4)、直近 14 日の掲載記事(評価付き)を返す |
 | POST | `/api/news/ingest` | 日次記事または週次ダイジェストを投入する |
 
 **認証方式**
@@ -451,9 +451,24 @@ CREATE INDEX IF NOT EXISTS idx_news_votes_article ON news_votes(article_id);
     "resource_tags":     ["Claude", "Cloudflare", "評価"],
     "upcoming_sessions": ["Workers での RAG 実装を試した話"]
   },
-  "published_urls": ["https://…"]
+  "recent_articles": [
+    {
+      "url": "https://…",
+      "title": "…",
+      "published_date": "2026-08-03",
+      "source": "ITmedia AI+",
+      "category": "プロダクト",
+      "impact_axis": "tooling",
+      "tags": ["推論", "コスト"],
+      "up": 12,
+      "down": 1,
+      "final_score": 126
+    }
+  ]
 }
 ```
+
+`recent_articles` は直近 14 日の掲載記事を、掲載日の新しい順・`final_score` の高い順で返す。日次では重複除外に、週次では上位再掲の選定に用いる。
 
 ## 12. 管理機能
 
@@ -477,7 +492,7 @@ CREATE INDEX IF NOT EXISTS idx_news_votes_article ON news_votes(article_id);
 | 2 ✅ | 投票 API と UI、`final_score` による並び替え | 完了(2026-07-31) |
 | 3 ✅ | `ingest` / `feedback-summary` API とトークン認証 | 完了(2026-07-31) |
 | 4 | クラウドタスク(日次)の作成と定期実行 | 手順書 [docs/news-routine.md](news-routine.md) とスクリプトを用意済み。routine の登録待ち |
-| 5 | 週次ダイジェストの生成とタブ表示 | 木曜朝にダイジェストが公開される |
+| 5 | 週次ダイジェストの生成とタブ表示 | タブ表示と生成手順は実装済み。routine の登録とマージ後の初回実行で確認する |
 
 ## 15. 未決事項
 

@@ -1,4 +1,5 @@
 import type { D1DatabaseLike } from "../../types/portal.ts";
+import { VOTE_COEFFICIENT } from "./news.ts";
 
 // docs/requirements-news.md §7.2 の重み式
 const WEIGHT_STRENGTH = 0.3;
@@ -7,16 +8,19 @@ const WEIGHT_MIN = 0.7;
 const WEIGHT_MAX = 1.3;
 
 const TAG_WINDOW_DAYS = 30;
-const PUBLISHED_URL_WINDOW_DAYS = 14;
+const RECENT_ARTICLE_WINDOW_DAYS = 14;
 const TAG_LIMIT = 10;
 const CONTEXT_LIMIT = 20;
 
 interface ArticleStatsRow {
+  url: string;
+  title: string;
   source: string;
   category: string;
   impact_axis: string;
   tags: string;
   published_date: string;
+  ai_score: number;
   up_count: number;
   down_count: number;
 }
@@ -76,13 +80,25 @@ export interface FeedbackSummary {
     resource_tags: string[];
     upcoming_sessions: string[];
   };
-  published_urls: string[];
+  // 直近の掲載記事。日次は重複除外、週次は上位再掲の選定に使う
+  recent_articles: Array<{
+    url: string;
+    title: string;
+    published_date: string;
+    source: string;
+    category: string;
+    impact_axis: string;
+    tags: string[];
+    up: number;
+    down: number;
+    final_score: number;
+  }>;
 }
 
 async function loadArticleStats(db: D1DatabaseLike): Promise<ArticleStatsRow[]> {
   const { results } = await db
     .prepare(
-      `SELECT a.source, a.category, a.impact_axis, a.tags, a.published_date,
+      `SELECT a.url, a.title, a.source, a.category, a.impact_axis, a.tags, a.published_date, a.ai_score,
               COALESCE(SUM(CASE WHEN v.value = 1 THEN 1 ELSE 0 END), 0) AS up_count,
               COALESCE(SUM(CASE WHEN v.value = -1 THEN 1 ELSE 0 END), 0) AS down_count
        FROM news_articles a
@@ -124,13 +140,9 @@ async function loadStudyGroupContext(db: D1DatabaseLike) {
 }
 
 export async function buildFeedbackSummary(db: D1DatabaseLike): Promise<FeedbackSummary> {
-  const [stats, context, publishedUrls] = await Promise.all([
+  const [stats, context] = await Promise.all([
     loadArticleStats(db),
     loadStudyGroupContext(db),
-    db
-      .prepare("SELECT url FROM news_articles WHERE published_date >= ?")
-      .bind(daysAgo(PUBLISHED_URL_WINDOW_DAYS))
-      .all<{ url: string }>(),
   ]);
 
   const sources = new Map<string, Tally>();
@@ -164,6 +176,26 @@ export async function buildFeedbackSummary(db: D1DatabaseLike): Promise<Feedback
   }
 
   const tagEntries = [...tags].map(([tag, tally]) => ({ tag, up: tally.up, down: tally.down }));
+  const recentWindowStart = daysAgo(RECENT_ARTICLE_WINDOW_DAYS);
+  const recentArticles = stats
+    .filter((row) => row.published_date >= recentWindowStart)
+    .map((row) => ({
+      url: row.url,
+      title: row.title,
+      published_date: row.published_date,
+      source: row.source,
+      category: row.category,
+      impact_axis: row.impact_axis,
+      tags: parseTags(row.tags),
+      up: Number(row.up_count),
+      down: Number(row.down_count),
+      final_score:
+        Number(row.ai_score) + VOTE_COEFFICIENT * (Number(row.up_count) - Number(row.down_count)),
+    }))
+    .sort(
+      (a, b) =>
+        b.published_date.localeCompare(a.published_date) || b.final_score - a.final_score,
+    );
 
   return {
     weights: {
@@ -182,6 +214,6 @@ export async function buildFeedbackSummary(db: D1DatabaseLike): Promise<Feedback
         .slice(0, TAG_LIMIT),
     },
     study_group_context: context,
-    published_urls: publishedUrls.results.map((row) => row.url),
+    recent_articles: recentArticles,
   };
 }

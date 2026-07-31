@@ -7,6 +7,8 @@
 // 必要な環境変数:
 //   NEWS_INGEST_TOKEN / NPORTAL_CF_ACCESS_CLIENT_ID / NPORTAL_CF_ACCESS_CLIENT_SECRET
 //   TAVILY_API_KEY（未設定なら Web 検索を省略する）
+//
+// 掲載済み URL は feedback.recent_articles（直近14日）から除外する。
 
 import { writeFileSync } from "node:fs";
 import { FEEDS } from "./news-feeds.mjs";
@@ -151,7 +153,9 @@ async function collectFromSearch(publishedUrls, seenUrls) {
 }
 
 const feedback = await fetchFeedbackSummary();
-const publishedUrls = new Set((feedback.published_urls ?? []).map(normalizeUrl));
+const publishedUrls = new Set(
+  (feedback.recent_articles ?? []).map((article) => normalizeUrl(article.url)),
+);
 
 const feedCandidates = await collectFromFeeds(publishedUrls);
 const seenUrls = new Set(feedCandidates.map((candidate) => candidate.url));

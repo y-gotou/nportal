@@ -89,13 +89,13 @@ async function checkFeedbackSummary() {
     Boolean(json?.weights?.source) &&
     Boolean(json?.tags) &&
     Boolean(json?.study_group_context) &&
-    Array.isArray(json?.published_urls);
+    Array.isArray(json?.recent_articles);
 
   record(
     "GET /api/news/feedback-summary",
     shapeOk,
     shapeOk
-      ? `HTTP 200, 掲載済みURL ${json.published_urls.length} 件`
+      ? `HTTP 200, 直近の掲載記事 ${json.recent_articles.length} 件`
       : `HTTP ${status}, ${text.slice(0, 120)}`,
   );
 }
