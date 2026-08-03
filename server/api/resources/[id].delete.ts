@@ -13,10 +13,12 @@ export default defineEventHandler(async (event) => {
   }
 
   const id = parseResourceId(event.context.params?.id);
-  const { fileKey } = await deleteResourceItem(getDb(event), id, user);
+  const { fileKey, imageKeys } = await deleteResourceItem(getDb(event), id, user);
 
-  if (fileKey) {
-    await getResourcesBucket(event).delete(fileKey).catch(() => undefined);
+  const keys = [...(fileKey ? [fileKey] : []), ...imageKeys];
+  if (keys.length > 0) {
+    const bucket = getResourcesBucket(event);
+    await Promise.all(keys.map((key) => bucket.delete(key).catch(() => undefined)));
   }
 
   return { success: true };

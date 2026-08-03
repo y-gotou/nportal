@@ -22,6 +22,15 @@ interface ResourceRow {
   submitted_by: string | null;
 }
 
+export interface ResourceImageRow {
+  id: number;
+  resource_id: number;
+  file_key: string;
+  file_name: string;
+  file_size: number;
+  mime_type: string;
+}
+
 export interface ResourceUser {
   email: string;
   isAdmin?: boolean;
@@ -92,8 +101,14 @@ const MIME_TYPES_BY_EXTENSION: Record<string, string[]> = {
   zip: ["application/zip", "application/x-zip-compressed", "application/octet-stream"],
 };
 
+const RESOURCE_IMAGE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "gif", "webp"]);
+
 function getBaseMimeType(value: string | null | undefined): string {
   return value?.split(";")[0]?.trim().toLowerCase() ?? "";
+}
+
+export function isResourceImageFileName(fileName: string | null | undefined): boolean {
+  return RESOURCE_IMAGE_EXTENSIONS.has(getFileExtension(fileName ?? ""));
 }
 
 export function isMarkdownFileName(fileName: string | null | undefined): boolean {
@@ -116,6 +131,39 @@ export function getResourceFileUrl(resourceId: number, fileName?: string | null)
   return isMarkdownFileName(fileName)
     ? `/resources/${resourceId}`
     : `/api/resources/${resourceId}/file`;
+}
+
+export function getResourceImageUrl(resourceId: number, imageId: number): string {
+  return `/api/resources/${resourceId}/images/${imageId}`;
+}
+
+function normalizeImageRefName(value: string): string {
+  const basename = value.replace(/&amp;/g, "&").split("/").pop() ?? "";
+  let decoded = basename;
+  try {
+    decoded = decodeURIComponent(basename);
+  } catch {
+    // percent-decode できない参照は原文のまま照合する
+  }
+  return sanitizeFileName(decoded).toLowerCase();
+}
+
+export function resolveMarkdownImageSources(
+  html: string,
+  resourceId: number,
+  images: Pick<ResourceImageRow, "id" | "file_name">[],
+): string {
+  if (images.length === 0) return html;
+
+  const urlByName = new Map(
+    images.map((image) => [image.file_name.toLowerCase(), getResourceImageUrl(resourceId, image.id)]),
+  );
+
+  return html.replace(/(<img\b[^>]*\bsrc=")([^"]*)(")/g, (match, before, src, after) => {
+    if (/^([a-z][a-z0-9+.-]*:|[/#?])/i.test(src)) return match;
+    const url = urlByName.get(normalizeImageRefName(src));
+    return url ? `${before}${url}${after}` : match;
+  });
 }
 
 function toResourceItem(row: ResourceRow, user?: ResourceUser): ResourceItem {
@@ -548,7 +596,7 @@ export async function deleteResourceItem(
   db: D1DatabaseLike,
   id: number,
   user?: ResourceUser,
-): Promise<{ fileKey: string | null }> {
+): Promise<{ fileKey: string | null; imageKeys: string[] }> {
   const existing = user
     ? await getEditableResourceRow(db, id, user)
     : await getResourceRow(db, id);
@@ -557,6 +605,49 @@ export async function deleteResourceItem(
     throw createError({ statusCode: 404, statusMessage: "Resource not found." });
   }
 
+  const imageKeys = (await listResourceImages(db, id)).map((image) => image.file_key);
+  await db.prepare("DELETE FROM resource_images WHERE resource_id = ?").bind(id).first();
   await db.prepare("DELETE FROM resources WHERE id = ?").bind(id).first();
-  return { fileKey: existing.file_key };
+  return { fileKey: existing.file_key, imageKeys };
+}
+
+export async function listResourceImages(
+  db: D1DatabaseLike,
+  resourceId: number,
+): Promise<ResourceImageRow[]> {
+  const { results } = await db
+    .prepare("SELECT * FROM resource_images WHERE resource_id = ? ORDER BY id")
+    .bind(resourceId)
+    .all<ResourceImageRow>();
+  return results;
+}
+
+export async function getResourceImage(
+  db: D1DatabaseLike,
+  resourceId: number,
+  imageId: number,
+): Promise<ResourceImageRow | null> {
+  return await db
+    .prepare("SELECT * FROM resource_images WHERE id = ? AND resource_id = ?")
+    .bind(imageId, resourceId)
+    .first<ResourceImageRow>();
+}
+
+export async function createResourceImage(
+  db: D1DatabaseLike,
+  payload: {
+    resourceId: number;
+    fileKey: string;
+    fileName: string;
+    fileSize: number;
+    mimeType: string;
+  },
+): Promise<void> {
+  await db
+    .prepare(
+      `INSERT INTO resource_images (resource_id, file_key, file_name, file_size, mime_type)
+       VALUES (?, ?, ?, ?, ?)`,
+    )
+    .bind(payload.resourceId, payload.fileKey, payload.fileName, payload.fileSize, payload.mimeType)
+    .first();
 }

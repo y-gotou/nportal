@@ -6,7 +6,9 @@ import {
   buildResourceContentDisposition,
   getResourceFileUrl,
   inferResourceType,
+  isResourceImageFileName,
   normalizeResourceMimeType,
+  resolveMarkdownImageSources,
   sanitizeFileName,
   validateResourceFile,
   validateResourceUrl,
@@ -118,6 +120,9 @@ test("resources page and shared form expose user submission controls", async () 
   assert.doesNotMatch(page, /target="_blank"/);
   assert.match(markdownApi, /renderMarkdown/);
   assert.match(markdownApi, /isMarkdownFileName/);
+  assert.match(markdownApi, /resolveMarkdownImageSources/);
+  assert.match(form, /resource-images/);
+  assert.match(form, /showImageField/);
   assert.match(form, /sourceMode/);
   assert.match(form, /dirty-change/);
   assert.match(form, /isDirty/);
@@ -129,6 +134,34 @@ test("resources page and shared form expose user submission controls", async () 
   assert.match(form, /zipは管理者のみ投稿できます/);
   assert.doesNotMatch(form, /onUrlInput/);
   assert.doesNotMatch(form, /form\.url = ""/);
+});
+
+test("markdown image references resolve to the image delivery API", async () => {
+  assert.equal(isResourceImageFileName("shot.png"), true);
+  assert.equal(isResourceImageFileName("shot.webp"), true);
+  assert.equal(isResourceImageFileName("notes.md"), false);
+
+  const images = [
+    { id: 5, file_name: "codex-01.png" },
+    { id: 6, file_name: "図1.png" },
+  ];
+  const html = await renderMarkdown(
+    [
+      "![設定画面](screenshots/codex-01.png)",
+      "![外部](https://example.com/pic.png)",
+      "![日本語名](図1.png)",
+      "![未添付](missing.png)",
+    ].join("\n\n"),
+  );
+  const resolved = resolveMarkdownImageSources(html, 10, images);
+
+  assert.match(resolved, /src="\/api\/resources\/10\/images\/5"/);
+  assert.match(resolved, /src="\/api\/resources\/10\/images\/6"/);
+  assert.match(resolved, /src="https:\/\/example\.com\/pic\.png"/);
+  assert.match(resolved, /src="missing\.png"/);
+  assert.doesNotMatch(resolved, /src="screenshots\/codex-01\.png"/);
+
+  assert.equal(resolveMarkdownImageSources(html, 10, []), html);
 });
 
 test("markdown renderer converts Japanese markdown and sanitizes raw HTML", async () => {

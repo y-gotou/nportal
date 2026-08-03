@@ -15,6 +15,8 @@ const emit = defineEmits<{
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const selectedFile = ref<File | null>(null);
+const imageInput = ref<HTMLInputElement | null>(null);
+const selectedImages = ref<File[]>([]);
 const isSubmitting = ref(false);
 const serverError = ref<string | null>(null);
 const sourceMode = ref<"url" | "file">("url");
@@ -64,13 +66,18 @@ const isEditing = computed(() => Boolean(props.resource));
 const existingFileName = computed(() =>
   props.resource?.sourceType === "file" ? props.resource.fileName : null,
 );
+const isMarkdownSelected = computed(() =>
+  selectedFile.value?.name.toLowerCase().endsWith(".md") ?? false,
+);
+const showImageField = computed(() => !isEditing.value && isMarkdownSelected.value);
 const isDirty = computed(() =>
   form.title !== initialState.value.title ||
   form.url !== initialState.value.url ||
   form.tags !== initialState.value.tags ||
   form.relatedMinutesSlug !== initialState.value.relatedMinutesSlug ||
   sourceMode.value !== initialState.value.sourceMode ||
-  selectedFile.value !== null,
+  selectedFile.value !== null ||
+  selectedImages.value.length > 0,
 );
 
 function resetForm(resource?: ResourceItem | null) {
@@ -87,9 +94,11 @@ function resetForm(resource?: ResourceItem | null) {
     sourceMode: sourceMode.value,
   };
   selectedFile.value = null;
+  selectedImages.value = [];
   serverError.value = null;
   Object.keys(errors).forEach((key) => delete errors[key]);
   if (fileInput.value) fileInput.value.value = "";
+  if (imageInput.value) imageInput.value.value = "";
   emit("dirty-change", false);
 }
 
@@ -106,8 +115,24 @@ function onFileChange(event: Event) {
   selectedFile.value = input.files?.[0] ?? null;
 }
 
+function onImagesChange(event: Event) {
+  const input = event.target as HTMLInputElement;
+  selectedImages.value = Array.from(input.files ?? []);
+}
+
+watch(showImageField, (visible) => {
+  if (!visible) {
+    selectedImages.value = [];
+    if (imageInput.value) imageInput.value.value = "";
+  }
+});
+
 function isZipFile(file: File): boolean {
   return file.name.toLowerCase().endsWith(".zip");
+}
+
+function isImageFile(file: File): boolean {
+  return /\.(png|jpe?g|gif|webp)$/i.test(file.name);
 }
 
 function validate() {
@@ -133,6 +158,10 @@ function validate() {
     nextErrors.source = "zipは管理者のみ投稿できます。";
   }
 
+  if (showImageField.value && selectedImages.value.some((file) => !isImageFile(file))) {
+    nextErrors.images = "画像は png / jpg / jpeg / gif / webp のみ添付できます。";
+  }
+
   Object.keys(errors).forEach((key) => delete errors[key]);
   Object.assign(errors, nextErrors);
   return Object.keys(nextErrors).length === 0;
@@ -148,6 +177,9 @@ async function submit() {
 
   if (sourceMode.value === "file" && selectedFile.value) {
     body.append("file", selectedFile.value);
+    if (showImageField.value) {
+      selectedImages.value.forEach((image) => body.append("images", image));
+    }
   } else if (sourceMode.value === "url") {
     body.append("url", form.url.trim());
   }
@@ -240,6 +272,27 @@ async function submit() {
         >
         <p v-if="existingFileName && !selectedFile" class="text-xs text-muted">
           現在のファイル: {{ existingFileName }}
+        </p>
+      </AdminFormField>
+
+      <AdminFormField
+        v-if="sourceMode === 'file' && showImageField"
+        label="添付画像（任意）"
+        field-id="resource-images"
+        :error="errors.images"
+        hint="Markdown本文から相対パス（例: screenshots/画像名.png）で参照している画像を選択します。ファイル名で照合されます。"
+      >
+        <input
+          id="resource-images"
+          ref="imageInput"
+          type="file"
+          multiple
+          accept=".png,.jpg,.jpeg,.gif,.webp"
+          class="block w-full text-sm text-foreground file:mr-4 file:rounded-lg file:border-0 file:bg-surface-hover file:px-4 file:py-2 file:text-sm file:font-medium file:text-foreground hover:file:bg-border"
+          @change="onImagesChange"
+        >
+        <p v-if="selectedImages.length" class="text-xs text-muted">
+          選択中: {{ selectedImages.length }}枚（{{ selectedImages.map((image) => image.name).join(", ") }}）
         </p>
       </AdminFormField>
     </div>
