@@ -115,6 +115,9 @@ async function collectFromFeeds(publishedUrls, since) {
     }),
   );
 
+  // ITmedia AI+ と ITmedia NEWS のように、同一記事が複数フィードへ流れることがある
+  const seenInFeeds = new Set();
+
   for (const { source, aiOnly, entries } of perFeed) {
     for (const entry of entries) {
       // 公開日が取れないフィードは新着判定ができないため、対象から外す
@@ -124,7 +127,8 @@ async function collectFromFeeds(publishedUrls, since) {
       if (!aiOnly && !looksAiRelated(`${entry.title} ${entry.body}`)) continue;
 
       const url = normalizeUrl(entry.url);
-      if (publishedUrls.has(url)) continue;
+      if (publishedUrls.has(url) || seenInFeeds.has(url)) continue;
+      seenInFeeds.add(url);
 
       candidates.push({
         source,
