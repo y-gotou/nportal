@@ -5,7 +5,6 @@
 export const FEEDS = [
   { name: "ITmedia AI+", url: "https://rss.itmedia.co.jp/rss/2.0/aiplus.xml", aiOnly: true },
   { name: "Publickey", url: "https://www.publickey1.jp/atom.xml", aiOnly: false },
-  { name: "CodeZine", url: "https://codezine.jp/rss/new/20/index.xml", aiOnly: false },
   { name: "gihyo.jp", url: "https://gihyo.jp/feed/rss2", aiOnly: false },
   { name: "PC Watch", url: "https://www.watch.impress.co.jp/data/rss/1.0/ipw/feed.rdf", aiOnly: false },
   { name: "OpenAI", url: "https://openai.com/news/rss.xml", aiOnly: true },
