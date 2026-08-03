@@ -6,7 +6,9 @@ import {
   getResourceRow,
   getResourcesBucket,
   isMarkdownFileName,
+  listResourceImages,
   parseResourceId,
+  resolveMarkdownImageSources,
 } from "~~/server/utils/resources";
 
 export default defineEventHandler(async (event) => {
@@ -39,8 +41,10 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: "Markdown resource not found." });
   }
 
+  const images = await listResourceImages(db, id);
+
   return {
     resource,
-    contentHtml: await renderMarkdown(markdown),
+    contentHtml: resolveMarkdownImageSources(await renderMarkdown(markdown), id, images),
   };
 });

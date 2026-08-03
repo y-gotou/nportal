@@ -2,9 +2,12 @@ import { createError, readMultipartFormData } from "h3";
 import { getDb } from "~~/server/utils/survey";
 import {
   buildResourceContentDisposition,
+  createResourceImage,
   createResourceObjectKey,
   createSubmittedResource,
   getResourcesBucket,
+  isMarkdownFileName,
+  isResourceImageFileName,
   normalizeResourceTags,
   normalizeResourceMimeType,
   requireResourceTitle,
@@ -24,6 +27,10 @@ function getTags(value: string): string[] {
 
 function getFilePart(parts: Awaited<ReturnType<typeof readMultipartFormData>>) {
   return parts?.find((item) => item.name === "file" && item.filename && item.data.byteLength > 0);
+}
+
+function getImageParts(parts: Awaited<ReturnType<typeof readMultipartFormData>>) {
+  return parts?.filter((item) => item.name === "images" && item.filename && item.data.byteLength > 0) ?? [];
 }
 
 export default defineEventHandler(async (event) => {
@@ -67,8 +74,33 @@ export default defineEventHandler(async (event) => {
   const size = file?.data.byteLength ?? 0;
   validateResourceFile({ fileName, size, mimeType: submittedMimeType }, { allowZip: user.isAdmin === true });
 
+  const imageParts = getImageParts(parts);
+  if (imageParts.length > 0 && !isMarkdownFileName(fileName)) {
+    throw createError({ statusCode: 400, statusMessage: "images can only be attached to a markdown file." });
+  }
+
+  const images = imageParts.map((part) => {
+    const imageFileName = sanitizeFileName(part.filename);
+    const imageMimeType = part.type || "application/octet-stream";
+
+    if (!isResourceImageFileName(imageFileName)) {
+      throw createError({ statusCode: 400, statusMessage: "attached images must be png, jpg, jpeg, gif, or webp." });
+    }
+    validateResourceFile({ fileName: imageFileName, size: part.data.byteLength, mimeType: imageMimeType });
+
+    return {
+      data: part.data,
+      fileName: imageFileName,
+      fileSize: part.data.byteLength,
+      mimeType: normalizeResourceMimeType(imageFileName, imageMimeType),
+    };
+  });
+
+  const db = getDb(event);
   const bucket = getResourcesBucket(event);
   const fileKey = createResourceObjectKey(event, fileName);
+  const uploadedKeys: string[] = [];
+  let createdResourceId: number | null = null;
 
   try {
     await bucket.put(fileKey, file?.data ?? null, {
@@ -81,8 +113,31 @@ export default defineEventHandler(async (event) => {
         originalFileName: fileName,
       },
     });
+    uploadedKeys.push(fileKey);
 
-    const resource = await createSubmittedResource(getDb(event), {
+    const imageRecords: { fileKey: string; fileName: string; fileSize: number; mimeType: string }[] = [];
+    for (const image of images) {
+      const imageKey = createResourceObjectKey(event, image.fileName);
+      await bucket.put(imageKey, image.data, {
+        httpMetadata: {
+          contentType: image.mimeType,
+          contentDisposition: buildResourceContentDisposition(image.fileName),
+        },
+        customMetadata: {
+          submittedBy: user.email,
+          originalFileName: image.fileName,
+        },
+      });
+      uploadedKeys.push(imageKey);
+      imageRecords.push({
+        fileKey: imageKey,
+        fileName: image.fileName,
+        fileSize: image.fileSize,
+        mimeType: image.mimeType,
+      });
+    }
+
+    const resource = await createSubmittedResource(db, {
       ...common,
       sourceType: "file",
       fileKey,
@@ -90,9 +145,18 @@ export default defineEventHandler(async (event) => {
       fileSize: size,
       mimeType,
     });
+    createdResourceId = resource.id;
+
+    for (const image of imageRecords) {
+      await createResourceImage(db, { resourceId: resource.id, ...image });
+    }
     return { resource };
   } catch (error) {
-    await bucket.delete(fileKey).catch(() => undefined);
+    await Promise.all(uploadedKeys.map((key) => bucket.delete(key).catch(() => undefined)));
+    if (createdResourceId !== null) {
+      await db.prepare("DELETE FROM resource_images WHERE resource_id = ?").bind(createdResourceId).first().catch(() => undefined);
+      await db.prepare("DELETE FROM resources WHERE id = ?").bind(createdResourceId).first().catch(() => undefined);
+    }
     throw error;
   }
 });

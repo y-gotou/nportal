@@ -81,9 +81,21 @@ CREATE TABLE IF NOT EXISTS resources (
   updated_at           TEXT DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS resource_images (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  resource_id INTEGER NOT NULL REFERENCES resources(id),
+  file_key    TEXT NOT NULL,
+  file_name   TEXT NOT NULL,
+  file_size   INTEGER NOT NULL,
+  mime_type   TEXT NOT NULL,
+  created_at  TEXT DEFAULT (datetime('now'))
+);
+-- Markdown 資料に添付した画像。本文の相対パス参照を file_name で照合して解決する
+
 CREATE INDEX IF NOT EXISTS idx_minutes_date ON minutes(date);
 CREATE INDEX IF NOT EXISTS idx_schedule_date ON schedule(date);
 CREATE INDEX IF NOT EXISTS idx_resources_date ON resources(date);
+CREATE INDEX IF NOT EXISTS idx_resource_images_resource ON resource_images(resource_id);
 
 CREATE TABLE IF NOT EXISTS speaker_applications (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
