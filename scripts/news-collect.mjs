@@ -84,18 +84,30 @@ async function fetchFeedbackSummary() {
   return response.json();
 }
 
+// フィードは 5xx やタイムアウトの一時障害を起こすことがあるため、失敗時は少し待って 1 回だけ再試行する。
+async function fetchFeedText(url) {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const response = await fetch(url, {
+        headers: { "user-agent": "nportal-news-bot" },
+        signal: AbortSignal.timeout(20000),
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return await response.text();
+    } catch (error) {
+      if (attempt >= 1) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+    }
+  }
+}
+
 async function collectFromFeeds(publishedUrls, since) {
   const candidates = [];
 
   const perFeed = await Promise.all(
     FEEDS.map(async ({ name, url, aiOnly }) => {
       try {
-        const response = await fetch(url, {
-          headers: { "user-agent": "nportal-news-bot" },
-          signal: AbortSignal.timeout(20000),
-        });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return { source: name, aiOnly, entries: parseFeed(await response.text()) };
+        return { source: name, aiOnly, entries: parseFeed(await fetchFeedText(url)) };
       } catch (error) {
         warnings.push(`feed ${name}: ${error.message}`);
         return { source: name, aiOnly, entries: [] };

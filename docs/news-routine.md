@@ -11,10 +11,11 @@ Claude Code の Routines から実行する日次・週次の掲載手順であ�
 - 実行環境はニュース専用のクラウド環境(Custom ネットワークアクセス)
 - 必要な環境変数: `NPORTAL_BASE_URL` / `NEWS_INGEST_TOKEN` / `NPORTAL_CF_ACCESS_CLIENT_ID` / `NPORTAL_CF_ACCESS_CLIENT_SECRET` / `TAVILY_API_KEY`
 - 依存パッケージのインストールは不要(`npm install` は実行しない)
+- 各スクリプトの使い方・入出力・観点定義は本書に記載のとおりである。**スクリプトのソースやリポジトリ内の定義を読み直して再確認しない**(入力量の無駄になる)
 
 ## routine に設定するプロンプト
 
-### 日次(平日 07:00)
+### 日次(毎日 07:00)
 
 ```text
 docs/news-routine.md の「日次の手順」に従って、本日分の AI ニュースを掲載してください。
@@ -32,7 +33,7 @@ docs/news-routine.md の「週次の手順」に従って、今週の週次ダ�
 
 ### 正常に終わったとき
 
-以下だけを出す。選定理由、落とした候補、候補件数の内訳は書かない。
+以下だけを出す。選定理由、落とした候補、候補件数の内訳は書かない。一覧は掲載した全件を 1 からの連番で列挙する。
 
 ```text
 2026-08-03 分を 7 件掲載しました。警告なし。
@@ -50,7 +51,7 @@ docs/news-routine.md の「週次の手順」に従って、今週の週次ダ�
 ```text
 ⚠ フィード 2 件が取得できませんでした
   - Hacker News: HTTP 502
-  - CodeZine: HTTP 404
+  - gihyo.jp: HTTP 404
 
 2026-08-03 分を 6 件掲載しました。
 …
@@ -85,6 +86,8 @@ node scripts/news-collect.mjs "$NPORTAL_BASE_URL" --out /tmp/candidates.json
 
 候補から **5〜8 件**を選ぶ。
 
+**候補の確認は 2 段階で行う。** まず一覧をタイトル・出典・公開日時のみで表示して当たりを付け、本文(`body`)はスコア上位の短リスト(15 件程度)に絞って表示する。全候補の本文を一括表示しない(入力量の無駄になる)。
+
 **観点(`impact_axis`)**: 各記事に 1 つ選ぶ。判断の主体は勉強会の参加者であり、「参加者自身の業務・開発・学習にとって何を意味するか」で判断する。特定の共有基盤や全社的な導入状況を前提にしてはならない。
 
 | 観点 | 判断基準 | ai_score 目安 |
@@ -117,7 +120,9 @@ node scripts/news-extract.mjs /tmp/bodies.json "https://…" "https://…"
 - Tavily 側が本文を取りに行くため、収集元以外のドメインを許可リストに追加する必要はない
 - **選定後の記事に限って呼ぶ**。全候補に対して実行するとクレジットを無駄に消費する
 - 1 回あたり 20 URL まで
+- 出力は `{ "extracted": [{ "url", "content" }], "failed": ["url"] }`。`content` は空白正規化済みで最大 4,000 字
 - `failed` に入った URL は本文を取得できていない。その記事は掲載候補から落とす
+- github.com と qiita.com はナビゲーション等の定型部分が大半を占め、本文がほとんど取れない。RSS の `body` で要約を書けるなら、これらのドメインには extract を使わない
 
 ### 4. 掲載データを組み立てる
 
@@ -159,6 +164,12 @@ node scripts/news-extract.mjs /tmp/bodies.json "https://…" "https://…"
 
 記事本文をそのまま転載しない。要約は自分の言葉で書く。
 
+組み立てたら投入前に検証する。`NG` が出た場合は修正して再実行する(検証コードを自作しない)。
+
+```bash
+node scripts/news-validate.mjs /tmp/payload.json
+```
+
 ### 5. 投入する
 
 ```bash
@@ -193,7 +204,7 @@ node scripts/news-collect.mjs "$NPORTAL_BASE_URL" --days 1 --out /tmp/weekly-inp
 
 ### 3. 投入する
 
-`/tmp/weekly.json` に以下を書き出して投入する。記事データは再送せず URL のみを渡す。
+`/tmp/weekly.json` に以下を書き出し、検証(`node scripts/news-validate.mjs /tmp/weekly.json`)してから投入する。記事データは再送せず URL のみを渡す。
 
 ```jsonc
 {
