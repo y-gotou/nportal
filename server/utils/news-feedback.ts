@@ -7,6 +7,7 @@ const WEIGHT_SMOOTHING = 5;
 const WEIGHT_MIN = 0.7;
 const WEIGHT_MAX = 1.3;
 
+const WEIGHT_WINDOW_DAYS = 90;
 const TAG_WINDOW_DAYS = 30;
 const RECENT_ARTICLE_WINDOW_DAYS = 14;
 const TAG_LIMIT = 10;
@@ -150,19 +151,23 @@ export async function buildFeedbackSummary(db: D1DatabaseLike): Promise<Feedback
   const axes = new Map<string, Tally>();
   const tags = new Map<string, Tally>();
   const tagWindowStart = daysAgo(TAG_WINDOW_DAYS);
+  const weightWindowStart = daysAgo(WEIGHT_WINDOW_DAYS);
 
   for (const row of stats) {
     const up = Number(row.up_count);
     const down = Number(row.down_count);
 
-    for (const [map, key] of [
-      [sources, row.source],
-      [categories, row.category],
-      [axes, row.impact_axis],
-    ] as const) {
-      const tally = tallyOf(map, key);
-      tally.up += up;
-      tally.down += down;
+    // 重みの集計は直近 90 日に限定する（票数の蓄積で平滑化項が効かなくなり、初期の評価が固定化するのを防ぐ）
+    if (row.published_date >= weightWindowStart) {
+      for (const [map, key] of [
+        [sources, row.source],
+        [categories, row.category],
+        [axes, row.impact_axis],
+      ] as const) {
+        const tally = tallyOf(map, key);
+        tally.up += up;
+        tally.down += down;
+      }
     }
 
     // タグの傾向は直近 30 日に限定する
@@ -209,7 +214,7 @@ export async function buildFeedbackSummary(db: D1DatabaseLike): Promise<Feedback
         .sort((a, b) => b.up - a.up - (b.down - a.down))
         .slice(0, TAG_LIMIT),
       disliked: tagEntries
-        .filter((entry) => entry.down > 0)
+        .filter((entry) => entry.down > entry.up)
         .sort((a, b) => b.down - a.down)
         .slice(0, TAG_LIMIT),
     },

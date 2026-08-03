@@ -17,6 +17,9 @@ if (!payloadPath) {
 
 const CATEGORIES = ["プロダクト", "規制・リスク", "研究", "事例"];
 const IMPACT_AXES = ["tooling", "risk", "practice", "learning", "landscape"];
+const SOURCE_TYPES = ["media", "personal"];
+// 個人ブログ・体験記の 1 日あたり上限（docs/news-routine.md §2 出典バランス）
+const PERSONAL_SOURCE_LIMIT = 3;
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 const payload = JSON.parse(readFileSync(payloadPath, "utf8"));
@@ -44,6 +47,7 @@ if (payload.type === "daily") {
     c(typeof article.source === "string" && article.source.length > 0, "source が空");
     c(CATEGORIES.includes(article.category), `category が不正: ${article.category}`);
     c(IMPACT_AXES.includes(article.impact_axis), `impact_axis が不正: ${article.impact_axis}`);
+    c(SOURCE_TYPES.includes(article.source_type), `source_type が不正: ${article.source_type}(media / personal のいずれか)`);
 
     const tags = Array.isArray(article.tags) ? article.tags : [];
     c(tags.length >= 2 && tags.length <= 4, `tags は 2〜4 件: ${tags.length} 件`);
@@ -66,6 +70,9 @@ if (payload.type === "daily") {
     c(typeof article.ai_score === "number" && article.ai_score >= 0 && article.ai_score <= 100, `ai_score が 0〜100 の数値ではない: ${article.ai_score}`);
     c(DATE_PATTERN.test(article.article_date ?? ""), `article_date が YYYY-MM-DD ではない: ${article.article_date}`);
   });
+
+  const personalCount = articles.filter((article) => article.source_type === "personal").length;
+  check(personalCount <= PERSONAL_SOURCE_LIMIT, `個人ブログ・体験記(source_type: personal)は 1 日 ${PERSONAL_SOURCE_LIMIT} 件まで: ${personalCount} 件`);
 } else if (payload.type === "weekly") {
   check(typeof payload.overview === "string" && payload.overview.length > 0, "overview が空");
   const urls = Array.isArray(payload.article_urls) ? payload.article_urls : [];
