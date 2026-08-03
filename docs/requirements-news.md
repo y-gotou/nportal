@@ -98,8 +98,8 @@ RSS が本文を含まない収集元(Hacker News など)は、抽出 API を使
 
 | 区分 | フィード(到達確認済み) |
 | --- | --- |
-| 国内 IT メディア | ITmedia AI+、Publickey、gihyo.jp、PC Watch |
-| ベンダー公式ブログ | OpenAI、Google(The Keyword)、Google DeepMind、AWS ML Blog、Azure Blog |
+| 国内 IT メディア | ITmedia AI+、ITmedia NEWS、Publickey、gihyo.jp、PC Watch、MIT Tech Review Japan |
+| ベンダー公式ブログ | OpenAI、Google(The Keyword)、Google DeepMind、AWS ML Blog、GitHub Blog(AI/ML)、Azure Blog |
 | 技術コミュニティ | はてなブックマーク(AI 検索)、Zenn(ai)、Qiita(ai)、Hacker News(AI/LLM) |
 
 - Anthropic と Meta AI は公開 RSS が存在しないことを確認したため、Tavily 検索で補完する
