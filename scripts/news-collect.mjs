@@ -144,27 +144,52 @@ async function collectFromFeeds(publishedUrls, since) {
   return candidates;
 }
 
-async function collectFromSearch(publishedUrls, seenUrls, days) {
+// 一次ドメインはハブ・製品・ドキュメントページが混ざるため、個別記事のパスに限定する
+const PRIMARY_ARTICLE_PATHS = new Map([
+  ["anthropic.com", ["/news/", "/research/", "/engineering/"]],
+  ["ai.meta.com", ["/blog/"]],
+]);
+
+function isArticleUrl(url) {
+  const { hostname, pathname } = new URL(url);
+  if (pathname === "/") return false;
+  const host = hostname.replace(/^www\./, "");
+  for (const [domain, prefixes] of PRIMARY_ARTICLE_PATHS) {
+    if (host === domain || host.endsWith(`.${domain}`)) {
+      return prefixes.some((prefix) => pathname.startsWith(prefix) && pathname.length > prefix.length);
+    }
+  }
+  return true;
+}
+
+async function collectFromSearch(publishedUrls, seenUrls, since) {
   const apiKey = process.env.TAVILY_API_KEY?.trim();
   if (!apiKey) {
     warnings.push("TAVILY_API_KEY 未設定のため Web 検索を省略しました");
     return [];
   }
 
-  // RSS を公開していない提供元（Anthropic / Meta AI）の取りこぼしを補う
-  const queries = [
-    "Anthropic Claude 最新発表",
-    "Meta AI 最新発表",
-    "生成AI 企業 導入事例 最新",
+  const startDate = new Date(since.getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+  // RSS を公開していない提供元（Anthropic / Meta AI）の取りこぼしを補う。
+  // 報道は topic: "news"（published_date 付き、start_date で新着に限定）で拾い、
+  // 一次ページは include_domains で直接引く。一次ページは日付メタデータを持たないため
+  // time_range で近似的に絞り、isArticleUrl でハブページを除外する。
+  const requests = [
+    { query: "Anthropic Claude 最新発表", topic: "news", start_date: startDate },
+    { query: "Meta AI 最新発表", topic: "news", start_date: startDate },
+    { query: "生成AI 導入 企業 発表", topic: "news", start_date: startDate },
+    { query: "Claude 発表", include_domains: ["anthropic.com"], time_range: "week" },
+    { query: "Meta AI 発表", include_domains: ["ai.meta.com"], time_range: "week" },
   ];
 
   const results = await Promise.all(
-    queries.map(async (query) => {
+    requests.map(async ({ query, ...params }) => {
       try {
         const response = await fetch("https://api.tavily.com/search", {
           method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ api_key: apiKey, query, max_results: 5, days }),
+          headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
+          body: JSON.stringify({ query, max_results: 5, ...params }),
           signal: AbortSignal.timeout(20000),
         });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -181,14 +206,19 @@ async function collectFromSearch(publishedUrls, seenUrls, days) {
 
   for (const result of results.flat()) {
     const url = normalizeUrl(result.url ?? "");
-    if (!url || publishedUrls.has(url) || seenUrls.has(url)) continue;
+    if (!url || publishedUrls.has(url) || seenUrls.has(url) || !isArticleUrl(url)) continue;
+
+    const parsedDate = result.published_date ? new Date(result.published_date) : null;
+    const publishedAt = parsedDate && !Number.isNaN(parsedDate.getTime()) ? parsedDate : null;
+    if (publishedAt && publishedAt < since) continue;
+
     seenUrls.add(url);
 
     candidates.push({
       source: new URL(url).hostname.replace(/^www\./, ""),
       url,
       title: result.title ?? "",
-      publishedAt: result.published_date ?? null,
+      publishedAt: publishedAt ? publishedAt.toISOString() : null,
       body: (result.content ?? "").slice(0, 800),
       origin: "search",
     });
@@ -214,11 +244,10 @@ if (publishedToday > 0 && !force) {
 
 const publishedUrls = new Set(recentArticles.map((article) => normalizeUrl(article.url)));
 const since = resolveSince(recentArticles);
-const searchDays = Math.max(1, Math.ceil((Date.now() - since.getTime()) / (24 * 60 * 60 * 1000)));
 
 const feedCandidates = await collectFromFeeds(publishedUrls, since);
 const seenUrls = new Set(feedCandidates.map((candidate) => candidate.url));
-const searchCandidates = await collectFromSearch(publishedUrls, seenUrls, searchDays);
+const searchCandidates = await collectFromSearch(publishedUrls, seenUrls, since);
 
 const output = {
   collectedAt: new Date().toISOString(),

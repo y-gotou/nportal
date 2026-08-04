@@ -57,12 +57,12 @@ async function checkTavily() {
   try {
     const response = await fetchWithTimeout("https://api.tavily.com/search", {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({
-        api_key: apiKey,
         query: "AI ニュース",
         max_results: 1,
-        days: 7,
+        topic: "news",
+        time_range: "week",
       }),
     });
     const body = response.ok ? await response.json() : null;

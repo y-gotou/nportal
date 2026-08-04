@@ -102,7 +102,8 @@ RSS が本文を含まない収集元(Hacker News など)は、抽出 API を使
 | ベンダー公式ブログ | OpenAI、Google(The Keyword)、Google DeepMind、AWS ML Blog、GitHub Blog(AI/ML)、Azure Blog |
 | 技術コミュニティ | はてなブックマーク(AI 検索)、Zenn(ai)、Qiita(ai)、Hacker News(AI/LLM) |
 
-- Anthropic と Meta AI は公開 RSS が存在しないことを確認したため、Tavily 検索で補完する
+- Anthropic と Meta AI は公開 RSS が存在しないことを確認したため、Tavily 検索で補完する。補完は 2 系統: 報道記事は `topic: "news"` + `start_date`(`published_date` で新着判定)、一次ページは `include_domains` + `time_range`(日付メタデータが取得できないため、個別記事パスのみ候補化しハブ・製品ページを除外する)。認証は `Authorization: Bearer` ヘッダーを使う(旧 `days` パラメータとボディ `api_key` は現行 API 仕様に不適合)
+- 検索補完では海外メディアの報道記事が候補に入りうる。採否は選定時の判断に委ねる(フィード収集元としての海外メディア・論文は引き続きスコープ外)
 - ZDNet Japan は AI 単独のフィードが見つからず、記事数も他媒体と重複するため除外した
 - 海外メディア・論文(TechCrunch、arXiv 等)は今回のスコープに含めない
 
