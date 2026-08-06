@@ -251,6 +251,7 @@ const searchCandidates = await collectFromSearch(publishedUrls, seenUrls, since)
 
 const output = {
   collectedAt: new Date().toISOString(),
+  publishDate: today,
   since: since.toISOString(),
   feedback,
   candidates: [...feedCandidates, ...searchCandidates],

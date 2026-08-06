@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { normalizeUrl, parseIngestArticle } from "../server/utils/news-ingest.ts";
+import {
+  jstToday,
+  normalizeUrl,
+  parseIngestArticle,
+  requireCurrentJstDate,
+} from "../server/utils/news-ingest.ts";
 
 function makeArticle(overrides: Record<string, unknown> = {}) {
   return {
@@ -73,4 +78,29 @@ test("parseIngestArticle は用語注が対応していれば受け入れる", (
 
 test("parseIngestArticle は必須項目の欠落を拒否する", () => {
   assert.throws(() => parseIngestArticle(makeArticle({ title: "" })), /title is required/);
+});
+
+// 日次 routine の実行時刻(07:00 JST)は UTC では前日 22:00 のため、UTC と JST で日付がずれる時刻で検証する
+const DAILY_RUN_AT = Date.parse("2026-08-05T22:06:00Z"); // = 2026-08-06 07:06 JST
+
+test("jstToday は UTC の時刻から JST の日付を返す", () => {
+  assert.equal(jstToday(DAILY_RUN_AT), "2026-08-06");
+});
+
+test("requireCurrentJstDate は JST 当日を受け入れる", () => {
+  assert.equal(requireCurrentJstDate("2026-08-06", "published_date", DAILY_RUN_AT), "2026-08-06");
+});
+
+test("requireCurrentJstDate は UTC 日付(JST の前日)を拒否する", () => {
+  assert.throws(
+    () => requireCurrentJstDate("2026-08-05", "published_date", DAILY_RUN_AT),
+    /must be today in JST \(2026-08-06\), got: 2026-08-05/,
+  );
+});
+
+test("requireCurrentJstDate は書式不正を拒否する", () => {
+  assert.throws(
+    () => requireCurrentJstDate("2026/08/06", "published_date", DAILY_RUN_AT),
+    /must be in YYYY-MM-DD format/,
+  );
 });
