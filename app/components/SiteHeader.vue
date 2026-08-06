@@ -13,6 +13,7 @@ const navItems = [
   { to: "/resources", label: "資料共有" },
   { to: "/speakers", label: "発表募集" },
   { to: "/news", label: "ニュース" },
+  { to: "https://nsp-channel.pages.dev/", label: "BBS", external: true },
 ];
 
 const mobileMenuId = "site-mobile-navigation";
@@ -121,6 +122,8 @@ onUnmounted(() => {
             v-for="item in navItems"
             :key="item.to"
             :to="item.to"
+            :target="item.external ? '_blank' : undefined"
+            :rel="item.external ? 'noopener noreferrer' : undefined"
             class="rounded-lg px-3 py-2 text-sm font-medium text-muted transition-colors hover:bg-surface-hover hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
             :class="isActive(item.to) ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' : ''"
           >
@@ -330,6 +333,8 @@ onUnmounted(() => {
           v-for="item in navItems"
           :key="item.to"
           :to="item.to"
+          :target="item.external ? '_blank' : undefined"
+          :rel="item.external ? 'noopener noreferrer' : undefined"
           class="flex items-center rounded-xl px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-surface-hover"
           :class="isActive(item.to) ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' : ''"
           @click="closeMobileMenu"
