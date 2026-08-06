@@ -38,6 +38,8 @@ export interface MinutesMeta {
 export interface Minutes extends MinutesMeta {
   contentMd: string;
   contentHtml: string;
+  scheduleId?: number | null;
+  hasChat?: boolean;
 }
 
 export interface MinutesPayload {

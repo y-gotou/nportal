@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   createMinutes,
+  getMinutesDetail,
   getMinutesSlugFromDate,
   updateMinutes,
 } from "../server/utils/minutes.ts";
@@ -33,6 +34,7 @@ interface ScheduleRow {
 interface TestDbState {
   minutes: MinutesRow[];
   schedule: ScheduleRow[];
+  chatMessages?: Array<{ schedule_id: number }>;
 }
 
 function createDb(state: TestDbState): D1DatabaseLike {
@@ -46,8 +48,18 @@ function createDb(state: TestDbState): D1DatabaseLike {
           return this;
         },
         async first<T = unknown>(): Promise<T | null> {
-          if (query.includes("SELECT * FROM minutes WHERE slug = ?")) {
-            return (state.minutes.find((row) => row.slug === boundValues[0]) ?? null) as T | null;
+          if (query.includes("LEFT JOIN schedule ON schedule.date = minutes.date")) {
+            const row = state.minutes.find((item) => item.slug === boundValues[0]);
+            if (!row) return null;
+            const schedule = state.schedule.find((item) => item.date === row.date);
+            const hasChat = schedule
+              ? (state.chatMessages ?? []).some((m) => m.schedule_id === schedule.id)
+              : false;
+            return {
+              ...row,
+              schedule_id: schedule?.id ?? null,
+              has_chat: hasChat ? 1 : 0,
+            } as T;
           }
 
           if (query.includes("SELECT * FROM minutes WHERE date = ?")) {
@@ -170,6 +182,54 @@ test("updateMinutes rejects date changes", async () => {
       }),
     /Minutes date cannot be changed/,
   );
+});
+
+test("getMinutesDetail resolves scheduleId and hasChat from schedule with the same date", async () => {
+  const minutesRow = {
+    id: 1,
+    slug: "2026-04-23",
+    title: "議事録",
+    date: "2026-04-23",
+    attendees: "[]",
+    topics: "[]",
+    content_md: "",
+    content_html: "",
+  };
+  const scheduleRow = {
+    id: 5,
+    date: "2026-04-23",
+    time: "19:00",
+    title: "開催済み",
+    meeting_url: null,
+    minutes_slug: null,
+    topics: "[]",
+    location: null,
+  };
+
+  const withChat = await getMinutesDetail(
+    createDb({
+      minutes: [minutesRow],
+      schedule: [scheduleRow],
+      chatMessages: [{ schedule_id: 5 }],
+    }),
+    "2026-04-23",
+  );
+  assert.equal(withChat?.scheduleId, 5);
+  assert.equal(withChat?.hasChat, true);
+
+  const withoutChat = await getMinutesDetail(
+    createDb({ minutes: [minutesRow], schedule: [scheduleRow] }),
+    "2026-04-23",
+  );
+  assert.equal(withoutChat?.scheduleId, 5);
+  assert.equal(withoutChat?.hasChat, false);
+
+  const withoutSchedule = await getMinutesDetail(
+    createDb({ minutes: [minutesRow], schedule: [] }),
+    "2026-04-23",
+  );
+  assert.equal(withoutSchedule?.scheduleId, null);
+  assert.equal(withoutSchedule?.hasChat, false);
 });
 
 test("listSchedule derives minutesSlug from minutes with the same date", async () => {
