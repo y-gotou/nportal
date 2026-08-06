@@ -3,6 +3,7 @@
 - 作成日: 2026-06-12
 - 対応する要件: [requirements-chat.md](./requirements-chat.md)
 - ブランチ: `feature/meeting-chat`(main から作成、PR で main へマージ)
+- ステータス: 全フェーズ完了(2026-06-12 に main へマージ済み)
 
 ## 実装方針
 
