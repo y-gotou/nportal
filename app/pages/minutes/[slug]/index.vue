@@ -31,6 +31,13 @@ useSeoMeta({
         <IconArrowLeft />
         一覧へ戻る
       </NuxtLink>
+      <NuxtLink
+        v-if="minutes.hasChat && minutes.scheduleId"
+        :to="`/chat/${minutes.scheduleId}`"
+        :class="secondaryButtonClass"
+      >
+        チャットを見る
+      </NuxtLink>
     </div>
 
     <div class="mb-6">

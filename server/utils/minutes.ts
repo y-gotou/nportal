@@ -59,10 +59,22 @@ export async function getMinutesDetail(
   slug: string,
 ): Promise<Minutes | null> {
   const row = await db
-    .prepare("SELECT * FROM minutes WHERE slug = ?")
+    .prepare(
+      `SELECT minutes.*, schedule.id AS schedule_id,
+        EXISTS(SELECT 1 FROM chat_messages WHERE chat_messages.schedule_id = schedule.id AND chat_messages.deleted_at IS NULL) AS has_chat
+       FROM minutes
+       LEFT JOIN schedule ON schedule.date = minutes.date
+       WHERE minutes.slug = ?
+       LIMIT 1`,
+    )
     .bind(slug)
-    .first<MinutesRow>();
-  return row ? toMinutes(row) : null;
+    .first<MinutesRow & { schedule_id: number | null; has_chat: number | null }>();
+  if (!row) return null;
+  return {
+    ...toMinutes(row),
+    scheduleId: row.schedule_id,
+    hasChat: (row.has_chat ?? 0) === 1,
+  };
 }
 
 export async function getMinutesDetailById(
