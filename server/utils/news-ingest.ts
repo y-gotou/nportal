@@ -208,6 +208,46 @@ export interface DigestResult {
   missingUrls: string[];
 }
 
+// 週次の選定窓は「実行日の 7 日前(前週木曜)以上、実行日より前」。
+// 週次は日次より先に実行されるため木曜の日次掲載分は窓に入らず、翌週のダイジェストが扱う。
+export function digestWindowStart(publishedDate: string): string {
+  const date = new Date(`${publishedDate}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() - 7);
+  return date.toISOString().slice(0, 10);
+}
+
+// practice / learning は観点別のスコア目安レンジが低く、final_score 順だけでは毎週選から漏れるため最低枠を設ける
+const DIGEST_REQUIRED_AXES = ["practice", "learning"];
+
+export interface DigestSelectionArticle {
+  url: string;
+  publishedDate: string;
+  impactAxis: string;
+}
+
+// 手順逸脱(窓外の記事、最低枠の欠落)をサーバ側でも止める。published_date ガードと同じ方針
+export function validateDigestSelection(
+  publishedDate: string,
+  articles: DigestSelectionArticle[],
+  requiredAxisAvailable: boolean,
+): void {
+  const windowStart = digestWindowStart(publishedDate);
+
+  for (const article of articles) {
+    if (article.publishedDate < windowStart || article.publishedDate >= publishedDate) {
+      invalid(
+        `article_urls must be published between ${windowStart} and the day before ${publishedDate}: ${article.url} (published ${article.publishedDate})`,
+      );
+    }
+  }
+
+  if (requiredAxisAvailable && !articles.some((a) => DIGEST_REQUIRED_AXES.includes(a.impactAxis))) {
+    invalid(
+      `article_urls must include at least one article whose impact_axis is ${DIGEST_REQUIRED_AXES.join(" or ")}.`,
+    );
+  }
+}
+
 // 週次は既存記事の再掲のため、URL から記事 ID を解決して並び順ごと保存する
 export async function saveNewsDigest(
   db: D1DatabaseLike,
@@ -217,20 +257,35 @@ export async function saveNewsDigest(
 ): Promise<DigestResult> {
   const articleIds: number[] = [];
   const missingUrls: string[] = [];
+  const selection: DigestSelectionArticle[] = [];
 
   for (const rawUrl of articleUrls) {
     const url = normalizeUrl(rawUrl);
     const row = await db
-      .prepare("SELECT id FROM news_articles WHERE url = ? AND hidden_at IS NULL")
+      .prepare(
+        "SELECT id, published_date, impact_axis FROM news_articles WHERE url = ? AND hidden_at IS NULL",
+      )
       .bind(url)
-      .first<{ id: number }>();
+      .first<{ id: number; published_date: string; impact_axis: string }>();
 
     if (row) {
       articleIds.push(row.id);
+      selection.push({ url, publishedDate: row.published_date, impactAxis: row.impact_axis });
     } else {
       missingUrls.push(url);
     }
   }
+
+  const eligible = await db
+    .prepare(
+      `SELECT COUNT(*) AS count FROM news_articles
+        WHERE published_date >= ? AND published_date < ?
+          AND impact_axis IN ('practice', 'learning') AND hidden_at IS NULL`,
+    )
+    .bind(digestWindowStart(publishedDate), publishedDate)
+    .first<{ count: number }>();
+
+  validateDigestSelection(publishedDate, selection, Number(eligible?.count ?? 0) > 0);
 
   await db
     .prepare(

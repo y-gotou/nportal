@@ -16,6 +16,7 @@
 import { writeFileSync } from "node:fs";
 import { FEEDS, looksAiRelated } from "./news-feeds.mjs";
 import { normalizeUrl, parseFeed } from "./news-parse.mjs";
+import { findSimilarTitles } from "./news-similarity.mjs";
 
 const [, , baseUrlArg, ...flags] = process.argv;
 
@@ -248,13 +249,20 @@ const since = resolveSince(recentArticles);
 const feedCandidates = await collectFromFeeds(publishedUrls, since);
 const seenUrls = new Set(feedCandidates.map((candidate) => candidate.url));
 const searchCandidates = await collectFromSearch(publishedUrls, seenUrls, since);
+const candidates = [...feedCandidates, ...searchCandidates];
+
+// 掲載済み記事(直近14日)と同一話題とみられる候補に注意喚起を付ける。再掲・続報の判断は選定側が行う
+for (const candidate of candidates) {
+  const similar = findSimilarTitles(candidate.title, recentArticles);
+  if (similar.length > 0) candidate.similar_recent = similar;
+}
 
 const output = {
   collectedAt: new Date().toISOString(),
   publishDate: today,
   since: since.toISOString(),
   feedback,
-  candidates: [...feedCandidates, ...searchCandidates],
+  candidates,
   warnings,
 };
 

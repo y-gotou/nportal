@@ -84,6 +84,17 @@ if (payload.type === "daily") {
   check(personalCount <= PERSONAL_SOURCE_LIMIT, `個人ブログ・体験記(source_type: personal)は 1 日 ${PERSONAL_SOURCE_LIMIT} 件まで: ${personalCount} 件`);
 } else if (payload.type === "weekly") {
   check(typeof payload.overview === "string" && payload.overview.length > 0, "overview が空");
+
+  const overview = String(payload.overview ?? "");
+  if (overview.length > 0) {
+    // 観点コードは内部の識別子。読者向けの概況文には画面の日本語ラベル(「すぐ試せること」等)か平易な言い換えを使う
+    const axisMention = overview.match(/\b(tooling|risk|practice|learning|landscape)\b/i);
+    check(!axisMention, `overview に観点コード名が含まれる: ${axisMention?.[0]}(画面の日本語ラベルか平易な言い換えにする)`);
+
+    const sentenceCount = overview.split("。").filter((part) => part.trim().length > 0).length;
+    check(sentenceCount >= 3 && sentenceCount <= 6, `overview は 3〜6 文: ${sentenceCount} 文`);
+  }
+
   const urls = Array.isArray(payload.article_urls) ? payload.article_urls : [];
   check(Array.isArray(payload.article_urls), "article_urls が配列ではない");
   check(urls.length >= 5 && urls.length <= 8, `article_urls は 5〜8 件: ${urls.length} 件`);

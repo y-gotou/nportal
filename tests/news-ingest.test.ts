@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  digestWindowStart,
   jstToday,
   normalizeUrl,
   parseIngestArticle,
   requireCurrentJstDate,
+  validateDigestSelection,
 } from "../server/utils/news-ingest.ts";
 
 function makeArticle(overrides: Record<string, unknown> = {}) {
@@ -102,5 +104,84 @@ test("requireCurrentJstDate は書式不正を拒否する", () => {
   assert.throws(
     () => requireCurrentJstDate("2026/08/06", "published_date", DAILY_RUN_AT),
     /must be in YYYY-MM-DD format/,
+  );
+});
+
+// 週次ダイジェストの選定検証(選定窓と practice / learning の最低枠)
+
+function selectionArticle(overrides: Record<string, string> = {}) {
+  return {
+    url: "https://example.com/news/1",
+    publishedDate: "2026-08-03",
+    impactAxis: "tooling",
+    ...overrides,
+  };
+}
+
+test("digestWindowStart は実行日の 7 日前(前週木曜)を返す", () => {
+  assert.equal(digestWindowStart("2026-08-13"), "2026-08-06");
+  assert.equal(digestWindowStart("2026-09-03"), "2026-08-27"); // 月またぎ
+});
+
+test("validateDigestSelection は窓内かつ最低枠を満たす選定を受け入れる", () => {
+  validateDigestSelection(
+    "2026-08-13",
+    [
+      selectionArticle({ publishedDate: "2026-08-06" }), // 窓の下端(前週木曜)
+      selectionArticle({ publishedDate: "2026-08-12", impactAxis: "practice" }), // 窓の上端(前日)
+    ],
+    true,
+  );
+});
+
+test("validateDigestSelection は窓より前の記事を拒否する", () => {
+  assert.throws(
+    () =>
+      validateDigestSelection(
+        "2026-08-13",
+        [selectionArticle({ publishedDate: "2026-08-05", impactAxis: "practice" })],
+        true,
+      ),
+    /must be published between 2026-08-06/,
+  );
+});
+
+test("validateDigestSelection は実行日当日の記事を拒否する", () => {
+  assert.throws(
+    () =>
+      validateDigestSelection(
+        "2026-08-13",
+        [selectionArticle({ publishedDate: "2026-08-13", impactAxis: "practice" })],
+        true,
+      ),
+    /must be published between/,
+  );
+});
+
+test("validateDigestSelection は practice / learning の欠落を拒否する", () => {
+  assert.throws(
+    () =>
+      validateDigestSelection(
+        "2026-08-13",
+        [selectionArticle({ publishedDate: "2026-08-08" }), selectionArticle({ publishedDate: "2026-08-09", impactAxis: "risk" })],
+        true,
+      ),
+    /at least one article whose impact_axis is practice or learning/,
+  );
+});
+
+test("validateDigestSelection は learning でも最低枠を満たす", () => {
+  validateDigestSelection(
+    "2026-08-13",
+    [selectionArticle({ publishedDate: "2026-08-08", impactAxis: "learning" })],
+    true,
+  );
+});
+
+test("validateDigestSelection は窓内に該当記事がなければ最低枠を適用しない", () => {
+  validateDigestSelection(
+    "2026-08-13",
+    [selectionArticle({ publishedDate: "2026-08-08" })],
+    false,
   );
 });
