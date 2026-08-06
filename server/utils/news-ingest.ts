@@ -94,6 +94,21 @@ export function requireDate(value: unknown, field: string): string {
   return date;
 }
 
+export function jstToday(now: number = Date.now()): string {
+  return new Date(now + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+
+// routine のクラウド環境は UTC で動くため、UTC 日付をそのまま書くと JST の前日になる。
+// 掲載日は受信時点の JST 当日との一致を必須とし、誤日付の掲載をサーバ側で阻止する。
+export function requireCurrentJstDate(value: unknown, field: string, now?: number): string {
+  const date = requireDate(value, field);
+  const today = jstToday(now);
+  if (date !== today) {
+    invalid(`${field} must be today in JST (${today}), got: ${date}`);
+  }
+  return date;
+}
+
 export function parseIngestArticle(raw: unknown): IngestArticle {
   const input = raw as Record<string, unknown>;
 

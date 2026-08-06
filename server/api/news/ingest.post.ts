@@ -3,7 +3,7 @@ import { getDb } from "~~/server/utils/survey";
 import {
   insertNewsArticles,
   parseIngestArticle,
-  requireDate,
+  requireCurrentJstDate,
   saveNewsDigest,
 } from "~~/server/utils/news-ingest";
 
@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'type must be "daily" or "weekly".' });
   }
 
-  const publishedDate = requireDate(body?.published_date, "published_date");
+  const publishedDate = requireCurrentJstDate(body?.published_date, "published_date");
   const db = getDb(event);
 
   if (type === "weekly") {

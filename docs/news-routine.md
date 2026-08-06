@@ -73,6 +73,7 @@ node scripts/news-collect.mjs "$NPORTAL_BASE_URL" --out /tmp/candidates.json
 
 出力される JSON の構造は以下のとおり。
 
+- `publishDate` — 実行日(JST)。payload の `published_date` にはこの値をそのまま転記する
 - `feedback.weights` — 出典 / カテゴリ / 観点それぞれの重み(0.7〜1.3)
 - `feedback.tags.liked` / `disliked` — 直近 30 日のタグ別評価
 - `feedback.study_group_context` — 直近の議事録トピック、資料タグ、発表予定
@@ -130,7 +131,7 @@ node scripts/news-extract.mjs /tmp/bodies.json "https://…" "https://…"
 
 ### 4. 掲載データを組み立てる
 
-`/tmp/payload.json` に以下の形式で書き出す。`published_date` は実行日(JST)。
+`/tmp/payload.json` に以下の形式で書き出す。`published_date` は収集結果(`/tmp/candidates.json`)の `publishDate` をそのまま転記する。**自分で日付を算出しない**(routine の実行環境は UTC のため、時計から求めると JST の前日になる)。検証と投入 API も実行日(JST)との一致を確認しており、不一致は拒否される。
 
 ```jsonc
 {
@@ -210,7 +211,7 @@ node scripts/news-collect.mjs "$NPORTAL_BASE_URL" --days 1 --out /tmp/weekly-inp
 
 ### 3. 投入する
 
-`/tmp/weekly.json` に以下を書き出し、検証(`node scripts/news-validate.mjs /tmp/weekly.json`)してから投入する。記事データは再送せず URL のみを渡す。
+`/tmp/weekly.json` に以下を書き出し、検証(`node scripts/news-validate.mjs /tmp/weekly.json`)してから投入する。記事データは再送せず URL のみを渡す。`published_date` は手順 1 の出力(`/tmp/weekly-input.json`)の `publishDate` をそのまま転記する(日次と同じく、自分で日付を算出しない)。
 
 ```jsonc
 {

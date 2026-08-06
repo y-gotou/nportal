@@ -32,6 +32,15 @@ function check(condition, message) {
 
 check(DATE_PATTERN.test(payload.published_date ?? ""), `published_date が YYYY-MM-DD ではない: ${payload.published_date}`);
 
+// routine のクラウド環境は UTC のため、UTC 日付をそのまま書くと JST の前日になる(2026-08-06 に発生)
+const jstToday = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+if (DATE_PATTERN.test(payload.published_date ?? "")) {
+  check(
+    payload.published_date === jstToday,
+    `published_date が実行日(JST)と一致しない: ${payload.published_date}(正: ${jstToday}。collect 出力の publishDate を転記すること)`,
+  );
+}
+
 if (payload.type === "daily") {
   const articles = Array.isArray(payload.articles) ? payload.articles : [];
   check(Array.isArray(payload.articles), "articles が配列ではない");
