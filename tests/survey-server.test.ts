@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   deleteUserResponses,
+  duplicateSurvey,
   getSurvey,
   hasSurveyResponseData,
   listSurveys,
@@ -352,6 +353,76 @@ function createRecordingDb(): { db: D1DatabaseLike; calls: QueryCall[] } {
   };
   return { db, calls };
 }
+
+function createDuplicateDb(newSurveyId: number): {
+  db: D1DatabaseLike;
+  surveyInserts: unknown[][];
+  questionInserts: unknown[][];
+} {
+  const surveyInserts: unknown[][] = [];
+  const questionInserts: unknown[][] = [];
+  const db: D1DatabaseLike = {
+    prepare(query: string) {
+      let bound: unknown[] = [];
+      const stmt: D1PreparedStatement = {
+        bind(...values: unknown[]) {
+          bound = values;
+          if (query.includes("INSERT INTO questions")) {
+            questionInserts.push(values);
+          }
+          return stmt;
+        },
+        async first() {
+          if (query.includes("SELECT * FROM surveys WHERE id = ?")) {
+            return defaultSurveyRows.find((row) => row.id === bound[0]) ?? null;
+          }
+          if (query.includes("INSERT INTO surveys")) {
+            surveyInserts.push(bound);
+            return { id: newSurveyId };
+          }
+          return null;
+        },
+        async all() {
+          if (query.includes("SELECT * FROM questions WHERE survey_id = ?")) {
+            return {
+              results: defaultQuestionRows.filter((row) => row.survey_id === bound[0]),
+            };
+          }
+          return { results: [] };
+        },
+      };
+      return stmt;
+    },
+    async batch() {
+      return [];
+    },
+  };
+  return { db, surveyInserts, questionInserts };
+}
+
+test("duplicateSurvey creates a draft copy with title prefix and questions", async () => {
+  const { db, surveyInserts, questionInserts } = createDuplicateDb(99);
+
+  const surveyId = await duplicateSurvey(db, 2);
+
+  assert.equal(surveyId, 99);
+  assert.deepEqual(surveyInserts, [
+    ["(コピー) 今後のテーマ希望アンケート", "次回以降の勉強会で取り上げてほしいテーマを教えてください"],
+  ]);
+  assert.deepEqual(questionInserts, [
+    [99, "テーマ", "multiple_choice", "[\"RAG\",\"MLOps\"]", 1, 0],
+  ]);
+});
+
+test("duplicateSurvey rejects with 404 when the source survey does not exist", async () => {
+  const { db, surveyInserts } = createDuplicateDb(99);
+
+  await assert.rejects(duplicateSurvey(db, 999), (error: unknown) => {
+    assert.equal((error as { statusCode?: number }).statusCode, 404);
+    return true;
+  });
+  assert.equal(surveyInserts.length, 0);
+});
 
 test("deleteUserResponses scopes the delete by survey and user", async () => {
   const { db, calls } = createRecordingDb();

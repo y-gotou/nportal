@@ -255,6 +255,64 @@ export async function getSurvey(
   return toSurvey(surveyRow, questionRows, responseCountBySurveyId.get(id) ?? 0);
 }
 
+export async function duplicateSurvey(
+  db: D1DatabaseLike,
+  sourceSurveyId: number,
+): Promise<number> {
+  const sourceRow = await db
+    .prepare("SELECT * FROM surveys WHERE id = ?")
+    .bind(sourceSurveyId)
+    .first<SurveyRow>();
+
+  if (!sourceRow) {
+    throw createError({
+      statusCode: 404,
+      statusMessage: "Survey not found.",
+    });
+  }
+
+  const { results: questionRows } = await db
+    .prepare("SELECT * FROM questions WHERE survey_id = ? ORDER BY sort_order ASC")
+    .bind(sourceSurveyId)
+    .all<QuestionRow>();
+
+  const created = await db
+    .prepare(
+      `INSERT INTO surveys (title, description, status)
+       VALUES (?, ?, 'draft')
+       RETURNING id`,
+    )
+    .bind(`(コピー) ${sourceRow.title}`, sourceRow.description ?? "")
+    .first<{ id: number }>();
+
+  if (!created) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: "Failed to duplicate survey.",
+    });
+  }
+
+  if (questionRows.length > 0) {
+    const statement = db.prepare(
+      "INSERT INTO questions (survey_id, question_text, question_type, options, allow_other_text, sort_order) VALUES (?, ?, ?, ?, ?, ?)",
+    );
+    await db.batch(
+      questionRows.map((question, index) =>
+        statement.bind(
+          created.id,
+          question.question_text,
+          question.question_type,
+          question.options,
+          question.allow_other_text,
+          index,
+        ),
+      ),
+    );
+  }
+
+  return created.id;
+}
+
 export async function getRequiredSurvey(
   db: D1DatabaseLike,
   id: number,
