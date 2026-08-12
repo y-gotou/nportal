@@ -15,14 +15,46 @@ AI ニュースは Claude の routine が毎朝自動で収集・選定・要約
 - Cloudflare D1
 - 最小限の Markdown ビルドスクリプト
 
-## セットアップ
+## セットアップ(ローカル確認環境)
 
 ```bash
 npm install
-npm run content:build
-npm run db:seed:local
-npm run dev
+# ローカル専用の wrangler.jsonc を作成(下記参照。Git 管理外)
+npm run db:seed:local   # ローカル D1 を初期化
+npm run dev             # http://localhost:3000
 ```
+
+リポジトリ直下に次の内容で `wrangler.jsonc` を作成します(`.gitignore` 済み)。D1 / R2 はローカルエミュレーションで動くため実 ID は不要です。
+
+```jsonc
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "nportal-local",
+  "pages_build_output_dir": "dist",
+  "compatibility_date": "2026-03-31",
+  "compatibility_flags": ["nodejs_compat"],
+  "vars": {
+    "MOCK_USER_EMAIL": "dev@example.com",
+    "ADMIN_EMAILS": "dev@example.com",
+    "RESOURCE_OBJECT_PREFIX": "local"
+  },
+  "r2_buckets": [
+    { "binding": "RESOURCES_BUCKET", "bucket_name": "nportal-resources-local" }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "nportal-local",
+      "database_id": "00000000-0000-0000-0000-000000000000"
+    }
+  ]
+}
+```
+
+- 認証は `MOCK_USER_EMAIL` によるモックログインで通過します(`.dev.vars` に同名の設定があればそちらが優先)。
+- `db:seed:local` は `wrangler.jsonc` の `database_name`(`nportal-local`)を既定で使います。
+- 社内 LLM を使う機能(`/api/llm/*`、会議チャットの `@AI`)をローカルで動かすには `.dev.vars` に `LLM_API_BASE_URL` / `LLM_CF_ACCESS_CLIENT_ID` / `LLM_CF_ACCESS_CLIENT_SECRET` を設定します([docs/llm-proxy.md](docs/llm-proxy.md))。ニュース取込 API の検証には `NEWS_INGEST_TOKEN`(ローカルでは任意の値)を設定します。
+- 本番相当の構成で確認する場合は `npm run preview` を使います。
 
 ## 主要コマンド
 

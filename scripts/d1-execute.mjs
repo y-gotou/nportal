@@ -5,6 +5,8 @@ const [, , target, file] = process.argv;
 const targetConfig = {
   local: {
     databaseEnv: "D1_DATABASE_NAME",
+    // wrangler.jsonc(ローカル専用)の database_name と一致させる
+    defaultDatabase: "nportal-local",
     scopeArg: "--local",
   },
   prod: {
@@ -33,7 +35,7 @@ if (config.scopeArg === "--remote" && /seed/i.test(file)) {
   process.exit(1);
 }
 
-const databaseName = process.env[config.databaseEnv];
+const databaseName = process.env[config.databaseEnv] ?? config.defaultDatabase;
 
 if (!databaseName) {
   console.error(`Missing required environment variable: ${config.databaseEnv}`);
