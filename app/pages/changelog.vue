@@ -4,10 +4,24 @@ import {
   changelogCategoryClasses,
   changelogCategoryLabels,
   changelogEntries,
+  type ChangelogEntry,
 } from "~/utils/changelog";
 
-const entries = [...changelogEntries].sort((a, b) =>
+const sorted = [...changelogEntries].sort((a, b) =>
   b.date.localeCompare(a.date),
+);
+
+const groups = sorted.reduce<{ date: string; entries: ChangelogEntry[] }[]>(
+  (acc, entry) => {
+    const last = acc[acc.length - 1];
+    if (last && last.date === entry.date) {
+      last.entries.push(entry);
+    } else {
+      acc.push({ date: entry.date, entries: [entry] });
+    }
+    return acc;
+  },
+  [],
 );
 
 useSeoMeta({
@@ -23,31 +37,35 @@ useSeoMeta({
       description="N Portal の新機能・改善のお知らせです。"
     />
 
-    <ol v-if="entries.length" class="space-y-3">
-      <li
-        v-for="entry in entries"
-        :key="`${entry.date}-${entry.title}`"
-        class="rounded-xl border border-border bg-surface p-5 shadow-sm"
-      >
-        <div class="flex flex-wrap items-center gap-3">
-          <time :datetime="entry.date" class="text-sm text-muted">
-            {{ formatDisplayDate(entry.date) }}
-          </time>
-          <span
-            class="rounded-full px-2.5 py-1 text-xs font-medium"
-            :class="changelogCategoryClasses[entry.category]"
-          >
-            {{ changelogCategoryLabels[entry.category] }}
-          </span>
-        </div>
-        <h2 class="mt-2 text-pretty text-lg font-semibold tracking-tight text-foreground">
-          {{ entry.title }}
+    <div v-if="groups.length" class="space-y-10">
+      <section v-for="group in groups" :key="group.date" class="space-y-4">
+        <h2 class="border-b border-border pb-2 text-base font-semibold tracking-tight text-foreground">
+          <time :datetime="group.date">{{ formatDisplayDate(group.date) }}</time>
         </h2>
-        <p v-if="entry.description" class="mt-1 text-sm leading-6 text-muted">
-          {{ entry.description }}
-        </p>
-      </li>
-    </ol>
+        <ul class="space-y-4">
+          <li
+            v-for="entry in group.entries"
+            :key="entry.title"
+            class="flex items-start gap-3"
+          >
+            <span
+              class="mt-0.5 inline-flex w-20 shrink-0 justify-center rounded-full px-2 py-1 text-xs font-medium"
+              :class="changelogCategoryClasses[entry.category]"
+            >
+              {{ changelogCategoryLabels[entry.category] }}
+            </span>
+            <div class="min-w-0">
+              <h3 class="text-pretty text-sm font-semibold tracking-tight text-foreground">
+                {{ entry.title }}
+              </h3>
+              <p v-if="entry.description" class="mt-1 text-sm leading-6 text-muted">
+                {{ entry.description }}
+              </p>
+            </div>
+          </li>
+        </ul>
+      </section>
+    </div>
 
     <p
       v-else
