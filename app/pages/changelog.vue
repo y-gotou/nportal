@@ -2,6 +2,7 @@
 import { formatDisplayDate } from "~~/utils/content";
 import { surfaceCardClass } from "~/utils/ui";
 import {
+  changelogCategoryBadgeClass,
   changelogCategoryClasses,
   changelogCategoryLabels,
   changelogEntries,
@@ -50,12 +51,12 @@ useSeoMeta({
             class="flex items-start gap-3"
           >
             <span
-              class="mt-0.5 inline-flex w-20 shrink-0 justify-center rounded-full px-2 py-1 text-xs font-medium"
-              :class="changelogCategoryClasses[entry.category]"
+              :class="[changelogCategoryBadgeClass, changelogCategoryClasses[entry.category]]"
             >
               {{ changelogCategoryLabels[entry.category] }}
             </span>
-            <div class="min-w-0">
+            <!-- バッジ(高さ約24px)とタイトル行(20px)の中心を揃えるためのオフセット -->
+            <div class="mt-0.5 min-w-0">
               <h3 class="text-pretty text-sm font-semibold tracking-tight text-foreground">
                 {{ entry.title }}
               </h3>

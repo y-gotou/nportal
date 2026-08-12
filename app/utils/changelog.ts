@@ -13,6 +13,10 @@ export const changelogCategoryLabels: Record<ChangelogCategory, string> = {
   fix: "不具合修正",
 };
 
+// w-20 は最長ラベル「不具合修正」が収まる幅。ラベルを変更する場合は幅も見直す
+export const changelogCategoryBadgeClass =
+  "inline-flex w-20 shrink-0 justify-center rounded-full px-2 py-1 text-xs font-medium";
+
 export const changelogCategoryClasses: Record<ChangelogCategory, string> = {
   feature: "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400",
   improvement:
