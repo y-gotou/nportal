@@ -33,7 +33,7 @@ useSeoMeta({
 </script>
 
 <template>
-  <PageContainer size="medium">
+  <PageContainer size="wide">
     <SectionHeader
       title="更新情報"
       description="N Portal の新機能・改善のお知らせです。"
