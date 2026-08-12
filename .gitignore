@@ -25,3 +25,5 @@ logs
 !.env.example
 .dev.vars
 .wrangler
+# ローカル開発専用(実環境の bindings は Cloudflare Pages 側で管理)
+wrangler.jsonc
