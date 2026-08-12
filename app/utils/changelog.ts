@@ -13,6 +13,13 @@ export const changelogCategoryLabels: Record<ChangelogCategory, string> = {
   fix: "不具合修正",
 };
 
+// 同じ日の中でのカテゴリの表示順
+export const changelogCategoryOrder: ChangelogCategory[] = [
+  "feature",
+  "improvement",
+  "fix",
+];
+
 // w-20 は最長ラベル「不具合修正」が収まる幅。ラベルを変更する場合は幅も見直す
 export const changelogCategoryBadgeClass =
   "inline-flex w-20 shrink-0 justify-center rounded-full px-2 py-1 text-xs font-medium";
@@ -24,7 +31,8 @@ export const changelogCategoryClasses: Record<ChangelogCategory, string> = {
   fix: "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400",
 };
 
-// 運用ルール: ユーザーの体験が変わる変更のみ記載し、内部変更(ドキュメント・運用改善等)は記載しない。
+// 運用ルール: 一般ユーザーの体験が変わる変更のみ記載する。
+// 内部変更(ドキュメント・運用改善等)と、管理者向け機能(管理画面のみで完結する変更)は記載しない。
 // 機能追加・変更の PR で、この配列の先頭に 1 項目を追記する。
 export const changelogEntries: ChangelogEntry[] = [
   {
@@ -52,12 +60,6 @@ export const changelogEntries: ChangelogEntry[] = [
     title: "議事録からチャットへ移動できるように",
     description:
       "議事録詳細画面に、対応する回のチャットへの遷移ボタンを追加しました。",
-  },
-  {
-    date: "2026-08-06",
-    category: "feature",
-    title: "アンケートの複製機能(管理者向け)",
-    description: "既存のアンケートを複製して新しい回を作成できるようにしました。",
   },
   {
     date: "2026-08-03",
@@ -176,13 +178,6 @@ export const changelogEntries: ChangelogEntry[] = [
     title: "ログインとアカウントメニューに対応",
     description:
       "Cloudflare Access によるログインに対応し、ヘッダーにアカウントメニューを追加しました。",
-  },
-  {
-    date: "2026-04-14",
-    category: "feature",
-    title: "管理画面を追加(管理者向け)",
-    description:
-      "議事録・スケジュール・アンケートなどを管理画面から編集できるようにしました。",
   },
   {
     date: "2026-03-31",

@@ -5,6 +5,7 @@ import {
   changelogCategoryBadgeClass,
   changelogCategoryClasses,
   changelogCategoryLabels,
+  changelogCategoryOrder,
   changelogEntries,
   type ChangelogEntry,
 } from "~/utils/changelog";
@@ -26,6 +27,15 @@ const groups = sorted.reduce<{ date: string; entries: ChangelogEntry[] }[]>(
   [],
 );
 
+// 日付グループ内はカテゴリの表示順に並べる(同カテゴリ内は元の順序を保持)
+for (const group of groups) {
+  group.entries.sort(
+    (a, b) =>
+      changelogCategoryOrder.indexOf(a.category) -
+      changelogCategoryOrder.indexOf(b.category),
+  );
+}
+
 useSeoMeta({
   title: "更新情報",
   description: "N Portal の新機能・改善のお知らせを確認できます。",
@@ -46,15 +56,18 @@ useSeoMeta({
         </h2>
         <ul class="space-y-4">
           <li
-            v-for="entry in group.entries"
+            v-for="(entry, index) in group.entries"
             :key="entry.title"
             class="flex items-start gap-3"
           >
+            <!-- 同じカテゴリが続く場合、バッジは先頭の 1 件のみ表示する -->
             <span
+              v-if="index === 0 || group.entries[index - 1]?.category !== entry.category"
               :class="[changelogCategoryBadgeClass, changelogCategoryClasses[entry.category]]"
             >
               {{ changelogCategoryLabels[entry.category] }}
             </span>
+            <span v-else class="w-20 shrink-0" aria-hidden="true" />
             <!-- バッジ(高さ約24px)とタイトル行(20px)の中心を揃えるためのオフセット -->
             <div class="mt-0.5 min-w-0">
               <h3 class="text-pretty text-sm font-semibold tracking-tight text-foreground">
