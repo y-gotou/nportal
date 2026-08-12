@@ -49,8 +49,8 @@ useSeoMeta({
       description="N Portal の新機能・改善のお知らせです。"
     />
 
-    <div v-if="groups.length" class="space-y-10" :class="surfaceCardClass">
-      <section v-for="group in groups" :key="group.date" class="space-y-4">
+    <div v-if="groups.length" class="space-y-4">
+      <section v-for="group in groups" :key="group.date" class="space-y-4" :class="surfaceCardClass">
         <h2 class="border-b border-border pb-2 text-base font-semibold tracking-tight text-foreground">
           <time :datetime="group.date">{{ formatDisplayDate(group.date) }}</time>
         </h2>
