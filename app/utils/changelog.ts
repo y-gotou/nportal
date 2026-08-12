@@ -36,6 +36,13 @@ export const changelogCategoryClasses: Record<ChangelogCategory, string> = {
 // 機能追加・変更の PR で、この配列の先頭に 1 項目を追記する。
 export const changelogEntries: ChangelogEntry[] = [
   {
+    date: "2026-08-12",
+    category: "feature",
+    title: "更新情報ページを公開",
+    description:
+      "アカウントメニューから、サイトの新機能・改善のお知らせを確認できるようにしました。",
+  },
+  {
     date: "2026-08-06",
     category: "improvement",
     title: "ヘッダーに BBS へのリンクを追加",
