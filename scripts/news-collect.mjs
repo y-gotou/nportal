@@ -15,7 +15,7 @@
 
 import { writeFileSync } from "node:fs";
 import { FEEDS, looksAiRelated } from "./news-feeds.mjs";
-import { normalizeUrl, parseFeed } from "./news-parse.mjs";
+import { isArticleUrl, normalizeUrl, parseFeed } from "./news-parse.mjs";
 import { findSimilarTitles } from "./news-similarity.mjs";
 
 const [, , baseUrlArg, ...flags] = process.argv;
@@ -143,24 +143,6 @@ async function collectFromFeeds(publishedUrls, since) {
   }
 
   return candidates;
-}
-
-// 一次ドメインはハブ・製品・ドキュメントページが混ざるため、個別記事のパスに限定する
-const PRIMARY_ARTICLE_PATHS = new Map([
-  ["anthropic.com", ["/news/", "/research/", "/engineering/"]],
-  ["ai.meta.com", ["/blog/"]],
-]);
-
-function isArticleUrl(url) {
-  const { hostname, pathname } = new URL(url);
-  if (pathname === "/") return false;
-  const host = hostname.replace(/^www\./, "");
-  for (const [domain, prefixes] of PRIMARY_ARTICLE_PATHS) {
-    if (host === domain || host.endsWith(`.${domain}`)) {
-      return prefixes.some((prefix) => pathname.startsWith(prefix) && pathname.length > prefix.length);
-    }
-  }
-  return true;
 }
 
 async function collectFromSearch(publishedUrls, seenUrls, since) {

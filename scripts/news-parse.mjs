@@ -87,3 +87,29 @@ export function normalizeUrl(rawUrl) {
     return rawUrl;
   }
 }
+
+// 一次ドメインはハブ・製品・ドキュメントページが混ざるため、個別記事のパスに限定する
+const PRIMARY_ARTICLE_PATHS = new Map([
+  ["anthropic.com", ["/news/", "/research/", "/engineering/"]],
+  ["ai.meta.com", ["/blog/"]],
+]);
+
+export function isArticleUrl(url) {
+  // 検索結果には相対 URL（リダイレクタのパスなど）が混ざることがある。
+  // normalizeUrl は解析に失敗した文字列をそのまま返すため、ここで弾く。
+  let parsed;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return false;
+  }
+  const { hostname, pathname } = parsed;
+  if (pathname === "/") return false;
+  const host = hostname.replace(/^www\./, "");
+  for (const [domain, prefixes] of PRIMARY_ARTICLE_PATHS) {
+    if (host === domain || host.endsWith(`.${domain}`)) {
+      return prefixes.some((prefix) => pathname.startsWith(prefix) && pathname.length > prefix.length);
+    }
+  }
+  return true;
+}

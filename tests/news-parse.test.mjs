@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { normalizeUrl, parseFeed } from "../scripts/news-parse.mjs";
+import { isArticleUrl, normalizeUrl, parseFeed } from "../scripts/news-parse.mjs";
 
 const RSS = `<?xml version="1.0"?>
 <rss version="2.0"><channel>
@@ -62,4 +62,20 @@ test("normalizeUrl は計測用パラメータを除去し、記事IDのクエ�
 
 test("normalizeUrl は不正なURLをそのまま返す", () => {
   assert.equal(normalizeUrl("not a url"), "not a url");
+});
+
+test("isArticleUrl は解析できないURLを除外する（検索結果に混ざる相対URL）", () => {
+  assert.equal(isArticleUrl(normalizeUrl("/goto?url=CAESqgEB7keqTQWMdY87HErz")), false);
+  assert.equal(isArticleUrl(""), false);
+});
+
+test("isArticleUrl はトップページを除外し、一般ドメインの記事は通す", () => {
+  assert.equal(isArticleUrl("https://example.com/"), false);
+  assert.equal(isArticleUrl("https://example.com/news/1"), true);
+});
+
+test("isArticleUrl は一次ドメインを記事パスに限定する", () => {
+  assert.equal(isArticleUrl("https://www.anthropic.com/news/claude"), true);
+  assert.equal(isArticleUrl("https://www.anthropic.com/pricing"), false);
+  assert.equal(isArticleUrl("https://ai.meta.com/blog/"), false);
 });
