@@ -1,5 +1,6 @@
 import { readBody } from "h3";
 import { getDb } from "~~/server/utils/db";
+import { parsePositiveIntParam } from "~~/server/utils/params";
 import { parseSurveyStatus } from "~~/server/utils/survey";
 import { assertAdmin } from "~~/server/utils/admin";
 import type { SurveyStatus } from "~~/types/portal";
@@ -13,8 +14,7 @@ interface UpdateSurveyBody {
 export default defineEventHandler(async (event) => {
   assertAdmin(event);
 
-  const id = Number(event.context.params?.id);
-  if (!Number.isInteger(id) || id < 1) throw createError({ statusCode: 400, statusMessage: "Invalid id" });
+  const id = parsePositiveIntParam(event.context.params?.id, "Invalid id");
 
   const body = await readBody<UpdateSurveyBody>(event);
 

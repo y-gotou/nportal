@@ -88,6 +88,21 @@ export async function getMinutesDetailByDate(
   return row ? toMinutes(row) : null;
 }
 
+// post/put で共通のボディ検証と整形
+export function parseMinutesPayload(body: Partial<MinutesPayload>): MinutesPayload {
+  if (!body.title || !body.date) {
+    throw createError({ statusCode: 400, statusMessage: "title, date are required" });
+  }
+
+  return {
+    title: body.title,
+    date: body.date,
+    attendees: Array.isArray(body.attendees) ? body.attendees : [],
+    topics: Array.isArray(body.topics) ? body.topics : [],
+    contentMd: body.contentMd ?? "",
+  };
+}
+
 export async function createMinutes(
   db: D1DatabaseLike,
   payload: MinutesPayload,

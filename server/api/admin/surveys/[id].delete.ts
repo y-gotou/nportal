@@ -1,11 +1,11 @@
 import { getDb } from "~~/server/utils/db";
+import { parsePositiveIntParam } from "~~/server/utils/params";
 import { assertAdmin } from "~~/server/utils/admin";
 
 export default defineEventHandler(async (event) => {
   assertAdmin(event);
 
-  const id = Number(event.context.params?.id);
-  if (!Number.isInteger(id) || id < 1) throw createError({ statusCode: 400, statusMessage: "Invalid id" });
+  const id = parsePositiveIntParam(event.context.params?.id, "Invalid id");
 
   const db = getDb(event);
 

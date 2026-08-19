@@ -1,6 +1,7 @@
 import { createError } from "h3";
 import type { D1DatabaseLike, ResourceItem } from "../../types/portal.ts";
 import { inferResourceType, isMarkdownFileName } from "./upload.ts";
+import { parsePositiveIntParam } from "./params.ts";
 
 export type ResourceSourceType = "url" | "file";
 
@@ -79,13 +80,7 @@ function canEditResource(row: ResourceRow, user?: ResourceUser): boolean {
 }
 
 export function parseResourceId(value: unknown): number {
-  const id = Number(value);
-
-  if (!Number.isInteger(id) || id < 1) {
-    throw createError({ statusCode: 400, statusMessage: "Invalid resource ID." });
-  }
-
-  return id;
+  return parsePositiveIntParam(value, "Invalid resource ID.");
 }
 
 export function normalizeResourceTags(value: unknown): string[] {

@@ -1,5 +1,6 @@
 import { createError } from "h3";
 import type { D1DatabaseLike, SpeakerApplication, SpeakerApplicationStatus } from "../../types/portal.ts";
+import { parsePositiveIntParam } from "./params.ts";
 
 function parseStatus(value: string): SpeakerApplicationStatus {
   if (value === "pending" || value === "scheduled" || value === "done") {
@@ -34,6 +35,32 @@ export async function listSpeakerApplications(
     .all<Record<string, unknown>>();
 
   return results.map(toApplication);
+}
+
+export interface SpeakerApplicationBody {
+  title?: string;
+  duration?: number;
+  note?: string | null;
+}
+
+// post/put で共通のボディ検証と整形
+export function parseSpeakerApplicationBody(
+  body: SpeakerApplicationBody,
+): { title: string; duration: number; note: string | null } {
+  if (!body.title || typeof body.title !== "string" || body.title.trim() === "") {
+    throw createError({ statusCode: 400, statusMessage: "title is required." });
+  }
+
+  const duration = Number(body.duration);
+  if (!Number.isInteger(duration) || duration < 1) {
+    throw createError({ statusCode: 400, statusMessage: "duration must be a positive integer." });
+  }
+
+  return {
+    title: body.title.trim(),
+    duration,
+    note: typeof body.note === "string" ? body.note.trim() || null : null,
+  };
 }
 
 export async function createSpeakerApplication(
@@ -170,9 +197,5 @@ export async function adminDeleteSpeakerApplication(
 }
 
 export function parseSpeakerId(value: unknown): number {
-  const id = Number(value);
-  if (!Number.isInteger(id) || id < 1) {
-    throw createError({ statusCode: 400, statusMessage: "Invalid application ID." });
-  }
-  return id;
+  return parsePositiveIntParam(value, "Invalid application ID.");
 }

@@ -7,6 +7,7 @@ import type {
   SurveyStatus,
   SurveyResponse,
 } from "../../types/portal.ts";
+import { parsePositiveIntParam } from "./params.ts";
 
 interface SurveyRow {
   id: number;
@@ -57,16 +58,7 @@ export function parseSurveyId(
   value: unknown,
   message = "surveyId is required.",
 ): number {
-  const surveyId = Number(value);
-
-  if (!Number.isInteger(surveyId) || surveyId < 1) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: message,
-    });
-  }
-
-  return surveyId;
+  return parsePositiveIntParam(value, message);
 }
 
 export function parseSurveyStatus(
