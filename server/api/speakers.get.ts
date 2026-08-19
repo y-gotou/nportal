@@ -1,4 +1,4 @@
-import { getDb } from "~~/server/utils/survey";
+import { getDb } from "~~/server/utils/db";
 import { listSpeakerApplications } from "~~/server/utils/speakers";
 
 export default defineEventHandler(async (event) => {

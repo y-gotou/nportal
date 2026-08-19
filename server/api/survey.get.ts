@@ -1,6 +1,6 @@
 import { getQuery } from "h3";
+import { getDb } from "~~/server/utils/db";
 import {
-  getDb,
   getRequiredSurvey,
   getResponses,
   getUserAnswers,

@@ -1,4 +1,5 @@
-import { getDb, listSurveys } from "~~/server/utils/survey";
+import { getDb } from "~~/server/utils/db";
+import { listSurveys } from "~~/server/utils/survey";
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user as { email: string; isAdmin?: boolean } | undefined;

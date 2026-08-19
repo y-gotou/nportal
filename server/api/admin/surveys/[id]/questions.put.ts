@@ -1,5 +1,6 @@
 import { createError, readBody } from "h3";
-import { getDb, hasSurveyResponseData } from "~~/server/utils/survey";
+import { getDb } from "~~/server/utils/db";
+import { hasSurveyResponseData } from "~~/server/utils/survey";
 import { assertAdmin } from "~~/server/utils/admin";
 import type { SurveyQuestionType } from "~~/types/portal";
 

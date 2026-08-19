@@ -1,4 +1,4 @@
-import { createError, type H3Event } from "h3";
+import { createError } from "h3";
 import type {
   D1DatabaseLike,
   Survey,
@@ -103,21 +103,6 @@ function toSurveyQuestion(question: QuestionRow): SurveyQuestion {
     options: parseSurveyOptions(question.options),
     allowOtherText: question.allow_other_text === 1,
   };
-}
-
-export function getDb(event: H3Event): D1DatabaseLike {
-  const db = (
-    event.context.cloudflare as { env?: { DB?: D1DatabaseLike } } | undefined
-  )?.env?.DB;
-
-  if (!db) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: "Cloudflare D1 binding `DB` is not configured.",
-    });
-  }
-
-  return db;
 }
 
 function toSurvey(

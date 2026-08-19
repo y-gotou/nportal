@@ -1,5 +1,6 @@
 import { readBody } from "h3";
-import { getDb, parseSurveyStatus } from "~~/server/utils/survey";
+import { getDb } from "~~/server/utils/db";
+import { parseSurveyStatus } from "~~/server/utils/survey";
 import { assertAdmin } from "~~/server/utils/admin";
 import type { SurveyQuestionType, SurveyStatus } from "~~/types/portal";
 

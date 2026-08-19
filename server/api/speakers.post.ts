@@ -1,5 +1,5 @@
 import { createError, readBody } from "h3";
-import { getDb } from "~~/server/utils/survey";
+import { getDb } from "~~/server/utils/db";
 import { createSpeakerApplication } from "~~/server/utils/speakers";
 
 interface CreateSpeakerBody {

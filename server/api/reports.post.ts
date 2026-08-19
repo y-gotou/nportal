@@ -1,5 +1,5 @@
 import { createError, readBody } from "h3";
-import { getDb } from "~~/server/utils/survey";
+import { getDb } from "~~/server/utils/db";
 import { createReport, parseReportType } from "~~/server/utils/reports";
 import type { CreateReportInput } from "~~/types/portal";
 

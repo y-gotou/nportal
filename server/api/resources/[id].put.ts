@@ -1,5 +1,5 @@
 import { createError, readMultipartFormData } from "h3";
-import { getDb } from "~~/server/utils/survey";
+import { getDb } from "~~/server/utils/db";
 import {
   buildResourceContentDisposition,
   createResourceObjectKey,

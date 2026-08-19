@@ -1,5 +1,5 @@
 import { createError } from "h3";
-import { getDb } from "~~/server/utils/survey";
+import { getDb } from "~~/server/utils/db";
 import { deleteSpeakerApplication, parseSpeakerId } from "~~/server/utils/speakers";
 
 export default defineEventHandler(async (event) => {

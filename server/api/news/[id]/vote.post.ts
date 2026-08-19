@@ -1,5 +1,5 @@
 import { createError, getRouterParam, readBody } from "h3";
-import { getDb } from "~~/server/utils/survey";
+import { getDb } from "~~/server/utils/db";
 import { newsArticleExists, saveNewsVote } from "~~/server/utils/news";
 import type { NewsVoteValue } from "~~/types/portal";
 

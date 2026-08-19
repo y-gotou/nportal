@@ -1,6 +1,6 @@
 import { createError, readMultipartFormData, setResponseStatus } from "h3";
 import type { ChatMessageKind } from "~~/types/portal";
-import { getDb } from "~~/server/utils/survey";
+import { getDb } from "~~/server/utils/db";
 import {
   createChatMessage,
   getChatMessageRow,

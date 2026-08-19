@@ -1,6 +1,6 @@
 import { getQuery, setResponseStatus } from "h3";
 import type { ChatMessagesResponse } from "~~/types/portal";
-import { getDb } from "~~/server/utils/survey";
+import { getDb } from "~~/server/utils/db";
 import {
   getChatRoomVersion,
   getChatSchedule,
