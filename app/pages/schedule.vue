@@ -2,7 +2,7 @@
 import {
   formatDisplayDateTime,
   getTodayDate,
-} from "~~/utils/content";
+} from "#shared/utils/content";
 import { primaryButtonClass, secondaryButtonClass, topicTagClass } from "~/utils/ui";
 import type { ScheduleListResponse } from "~~/types/portal";
 

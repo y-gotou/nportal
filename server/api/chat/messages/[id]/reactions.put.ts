@@ -6,7 +6,7 @@ import {
   parseChatId,
   toggleChatReaction,
 } from "~~/server/utils/chat";
-import { getChatJstToday, isChatEmoji, isChatReadOnly } from "~~/utils/chat";
+import { getChatJstToday, isChatEmoji, isChatReadOnly } from "#shared/utils/chat";
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user as { email: string } | undefined;

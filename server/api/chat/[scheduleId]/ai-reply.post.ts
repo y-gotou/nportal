@@ -7,7 +7,7 @@ import {
   parseChatId,
 } from "~~/server/utils/chat";
 import { postChatAiReply } from "~~/server/utils/chat-ai";
-import { CHAT_AI_EMAIL, getChatJstToday, hasChatAiMention, isChatReadOnly } from "~~/utils/chat";
+import { CHAT_AI_EMAIL, getChatJstToday, hasChatAiMention, isChatReadOnly } from "#shared/utils/chat";
 
 // @AI メンション付き投稿への返信を生成する。投稿したクライアントが呼び出し、
 // リクエスト中に同期実行する(LLM 生成は数分かかることがあるが I/O 待ちが主体)。

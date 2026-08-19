@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { secondaryButtonClass } from "~/utils/ui";
-import { getSurveyStatusLabel } from "~~/utils/survey";
+import { getSurveyStatusLabel } from "#shared/utils/survey";
 
 const route = useRoute();
 const surveyId = Number(route.params.id);

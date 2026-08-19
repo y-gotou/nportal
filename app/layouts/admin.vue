@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useCurrentUser } from "~/composables/useCurrentUser";
-import { portalTitle } from "~~/utils/content";
+import { portalTitle } from "#shared/utils/content";
 
 const route = useRoute();
 const currentUser = useCurrentUser();

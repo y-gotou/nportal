@@ -19,8 +19,8 @@
 | 順 | ID | 内容 | 状態 | ブランチ | PR | 検証 |
 |---|----|------|------|---------|----|------|
 | ① | B1 | `getDb` を `server/utils/db.ts` へ移設 | 完了 | refactor/source-cleanup-01-db-util | #61 | check 通過(typecheck / build / tests 112 件全パス) |
-| ② | D2 | `resources.ts` 分割(r2 / upload / markdown) | レビュー待ち | refactor/source-cleanup-02-resources-split | #62 | check 通過(typecheck / build / tests 112 件全パス) |
-| ③ | D1+D5 | `utils/` → `shared/utils/` 移設、README・`.ts` 拡張子修正 | 未着手 | — | — | — |
+| ② | D2 | `resources.ts` 分割(r2 / upload / markdown) | 完了 | refactor/source-cleanup-02-resources-split | #62 | check 通過(typecheck / build / tests 112 件全パス) |
+| ③ | D1+D5 | `utils/` → `shared/utils/` 移設、README・`.ts` 拡張子修正 | レビュー待ち | refactor/source-cleanup-03-shared-utils | #63 | check 通過(typecheck / build / tests 112 件全パス) |
 | ④ | A1+A2 | 不要コード削除(`getMinutesDetailById`、admin/resources API 2本) | 未着手 | — | — | — |
 | ⑤ | B2〜B7+A3 | サーバー側共通化(requireUser / multipart / R2 ストリーム / ID パーサ / 設問 INSERT / 共有ユーティリティ)+ export 修飾整理 | 未着手 | — | — | — |
 | ⑥ | E1 | `survey.ts` から `survey-response.ts` を分離 | 未着手 | — | — | — |
