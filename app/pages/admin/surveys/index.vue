@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import type { Survey, SurveyStatus, SurveysResponse } from "~~/types/portal";
+import type { Survey, SurveysResponse } from "~~/types/portal";
 import { getSurveyStatusLabel } from "#shared/utils/survey";
+import { surveyStatusClass } from "~/utils/status";
 
 definePageMeta({ layout: "admin" });
 await useAdminGuard();
@@ -31,12 +32,6 @@ async function duplicateSurvey(survey: Survey) {
   finally {
     duplicatingId.value = null;
   }
-}
-
-function getStatusClass(status: SurveyStatus) {
-  if (status === "draft") return "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400";
-  if (status === "active") return "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400";
-  return "bg-surface-hover text-muted";
 }
 
 useSeoMeta({ title: "アンケート管理" });
@@ -81,7 +76,7 @@ useSeoMeta({ title: "アンケート管理" });
             <td class="px-4 py-3">
               <span
                 class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium"
-                :class="getStatusClass(survey.status)"
+                :class="surveyStatusClass(survey.status, { highlightDraft: true })"
               >
                 {{ getSurveyStatusLabel(survey.status) }}
               </span>

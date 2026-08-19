@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { ReportType, ReportsListResponse } from "~~/types/portal";
+import type { ReportsListResponse } from "~~/types/portal";
+import { reportTypeClass, reportTypeLabel } from "~/utils/status";
 
 definePageMeta({ layout: "admin" });
 await useAdminGuard();
@@ -9,16 +10,6 @@ const { data, refresh } = await useFetch<ReportsListResponse>("/api/admin/report
 });
 
 const reports = computed(() => data.value?.reports ?? []);
-
-function getTypeLabel(type: ReportType) {
-  return type === "bug" ? "不具合" : "要望";
-}
-
-function getTypeClass(type: ReportType) {
-  return type === "bug"
-    ? "bg-rose-50 text-rose-700 dark:bg-rose-900/20 dark:text-rose-400"
-    : "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400";
-}
 
 function formatCreatedAt(value: string) {
   const parsed = new Date(value);
@@ -50,9 +41,9 @@ useSeoMeta({ title: "不具合・要望管理" });
               <div class="flex flex-wrap items-center gap-2">
                 <span
                   class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium"
-                  :class="getTypeClass(report.reportType)"
+                  :class="reportTypeClass(report.reportType)"
                 >
-                  {{ getTypeLabel(report.reportType) }}
+                  {{ reportTypeLabel(report.reportType) }}
                 </span>
                 <p class="font-medium text-foreground">{{ report.title }}</p>
               </div>
