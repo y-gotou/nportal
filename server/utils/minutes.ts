@@ -77,17 +77,6 @@ export async function getMinutesDetail(
   };
 }
 
-export async function getMinutesDetailById(
-  db: D1DatabaseLike,
-  id: number,
-): Promise<Minutes | null> {
-  const row = await db
-    .prepare("SELECT * FROM minutes WHERE id = ?")
-    .bind(id)
-    .first<MinutesRow>();
-  return row ? toMinutes(row) : null;
-}
-
 export async function getMinutesDetailByDate(
   db: D1DatabaseLike,
   date: string,
