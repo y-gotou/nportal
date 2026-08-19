@@ -18,8 +18,11 @@ test("reports page includes dropdown type selector, back link, and completion me
 });
 
 test("site header exposes reports entry from authenticated user menus", async () => {
-  const header = await readFile(new URL("../app/components/SiteHeader.vue", import.meta.url), "utf8");
+  const menuItems = await readFile(
+    new URL("../app/components/site/SiteUserMenuItems.vue", import.meta.url),
+    "utf8",
+  );
 
-  assert.match(header, /to="\/reports"/);
-  assert.match(header, /不具合・要望報告/);
+  assert.match(menuItems, /to="\/reports"/);
+  assert.match(menuItems, /不具合・要望報告/);
 });
