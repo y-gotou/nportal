@@ -185,17 +185,6 @@ export async function getEditableResourceRow(
   return row;
 }
 
-export interface ResourcePayload {
-  title: string;
-  url: string;
-  type: string;
-  tags: string[];
-  date: string;
-  presenter?: string | null;
-  relatedMinutesSlug?: string | null;
-  submittedBy?: string | null;
-}
-
 export interface ResourceMutationPayload {
   title: string;
   tags: string[];
@@ -207,34 +196,6 @@ export interface ResourceMutationPayload {
   fileName?: string | null;
   fileSize?: number | null;
   mimeType?: string | null;
-}
-
-export async function createResourceItem(
-  db: D1DatabaseLike,
-  payload: ResourcePayload,
-): Promise<ResourceItem> {
-  const result = await db
-    .prepare(
-      `INSERT INTO resources (title, url, type, tags, date, presenter, related_minutes_slug, source_type, submitted_by)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 'url', ?)
-       RETURNING id`,
-    )
-    .bind(
-      payload.title,
-      payload.url,
-      payload.type,
-      JSON.stringify(payload.tags),
-      payload.date,
-      payload.presenter ?? null,
-      payload.relatedMinutesSlug ?? null,
-      payload.submittedBy ?? null,
-    )
-    .first<{ id: number }>();
-
-  if (!result) throw createError({ statusCode: 500, statusMessage: "Failed to create resource" });
-  const created = await getResourceItem(db, result.id);
-  if (!created) throw createError({ statusCode: 500, statusMessage: "Failed to create resource" });
-  return created;
 }
 
 export async function createSubmittedResource(
@@ -279,35 +240,6 @@ export async function createSubmittedResource(
   });
   if (!created) throw createError({ statusCode: 500, statusMessage: "Failed to create resource." });
   return created;
-}
-
-export async function updateResourceItem(
-  db: D1DatabaseLike,
-  id: number,
-  payload: ResourcePayload,
-): Promise<ResourceItem> {
-  await db
-    .prepare(
-      `UPDATE resources
-       SET title = ?, url = ?, type = ?, tags = ?, date = ?, presenter = ?, related_minutes_slug = ?, source_type = 'url',
-           file_key = NULL, file_name = NULL, file_size = NULL, mime_type = NULL, updated_at = datetime('now')
-       WHERE id = ?`,
-    )
-    .bind(
-      payload.title,
-      payload.url,
-      payload.type,
-      JSON.stringify(payload.tags),
-      payload.date,
-      payload.presenter ?? null,
-      payload.relatedMinutesSlug ?? null,
-      id,
-    )
-    .first();
-
-  const updated = await getResourceItem(db, id);
-  if (!updated) throw createError({ statusCode: 404, statusMessage: "Resource not found" });
-  return updated;
 }
 
 export async function updateSubmittedResource(
