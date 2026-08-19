@@ -1,8 +1,8 @@
 import { createError } from "h3";
 import { getDb } from "~~/server/utils/db";
+import { getResourcesBucket } from "~~/server/utils/r2";
 import {
   deleteResourceItem,
-  getResourcesBucket,
   parseResourceId,
 } from "~~/server/utils/resources";
 

@@ -6,7 +6,7 @@ import {
   parseChatId,
   softDeleteChatMessage,
 } from "~~/server/utils/chat";
-import { getResourcesBucket } from "~~/server/utils/resources";
+import { getResourcesBucket } from "~~/server/utils/r2";
 import { getChatJstToday, isChatReadOnly } from "~~/utils/chat";
 
 export default defineEventHandler(async (event) => {

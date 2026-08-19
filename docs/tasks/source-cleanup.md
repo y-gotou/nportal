@@ -19,7 +19,7 @@
 | 順 | ID | 内容 | 状態 | ブランチ | PR | 検証 |
 |---|----|------|------|---------|----|------|
 | ① | B1 | `getDb` を `server/utils/db.ts` へ移設 | レビュー待ち | refactor/source-cleanup-01-db-util | #61 | check 通過(typecheck / build / tests 112 件全パス) |
-| ② | D2 | `resources.ts` 分割(r2 / upload / markdown) | 未着手 | — | — | — |
+| ② | D2 | `resources.ts` 分割(r2 / upload / markdown) | レビュー待ち | refactor/source-cleanup-02-resources-split | — | check 通過(typecheck / build / tests 112 件全パス) |
 | ③ | D1+D5 | `utils/` → `shared/utils/` 移設、README・`.ts` 拡張子修正 | 未着手 | — | — | — |
 | ④ | A1+A2 | 不要コード削除(`getMinutesDetailById`、admin/resources API 2本) | 未着手 | — | — | — |
 | ⑤ | B2〜B7+A3 | サーバー側共通化(requireUser / multipart / R2 ストリーム / ID パーサ / 設問 INSERT / 共有ユーティリティ)+ export 修飾整理 | 未着手 | — | — | — |
@@ -33,3 +33,5 @@
 ## 作業メモ
 
 - C4 は URL 履歴・スクロール挙動への影響リスクがあるため見送り(2026-08-19 決定)
+- ②のブランチは①(getDb 移設)の変更に依存するため①から分岐。②の PR は #61 マージ後に作成する
+- ②の分割結果: resources.ts 653行 → resources.ts 411行 + upload.ts 154行 + r2.ts 59行 + resource-markdown.ts 35行。シンボル名は変更せず移動のみ

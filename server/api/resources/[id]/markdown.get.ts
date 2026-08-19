@@ -1,14 +1,14 @@
 import { createError } from "h3";
 import { getDb } from "~~/server/utils/db";
 import { renderMarkdown } from "~~/server/utils/minutes";
+import { getResourcesBucket } from "~~/server/utils/r2";
+import { isMarkdownFileName } from "~~/server/utils/upload";
+import { resolveMarkdownImageSources } from "~~/server/utils/resource-markdown";
 import {
   getResourceItem,
   getResourceRow,
-  getResourcesBucket,
-  isMarkdownFileName,
   listResourceImages,
   parseResourceId,
-  resolveMarkdownImageSources,
 } from "~~/server/utils/resources";
 
 export default defineEventHandler(async (event) => {

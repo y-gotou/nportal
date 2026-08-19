@@ -8,13 +8,12 @@ import {
   parseChatId,
   validateChatMessageBody,
 } from "~~/server/utils/chat";
+import { getResourceObjectPrefix, getResourcesBucket } from "~~/server/utils/r2";
 import {
-  getResourceObjectPrefix,
-  getResourcesBucket,
   normalizeResourceMimeType,
   sanitizeFileName,
   validateResourceFile,
-} from "~~/server/utils/resources";
+} from "~~/server/utils/upload";
 import { getChatJstToday, isChatReadOnly } from "~~/utils/chat";
 
 export default defineEventHandler(async (event) => {
