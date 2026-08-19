@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { SpeakerApplication, SpeakerApplicationStatus, SpeakersListResponse } from "~~/types/portal";
+import { speakerStatusClass, speakerStatusLabel } from "~/utils/status";
 
 definePageMeta({ layout: "admin" });
 await useAdminGuard();
@@ -10,17 +11,9 @@ const { data, refresh } = await useFetch<SpeakersListResponse>("/api/speakers", 
 
 const applications = computed(() => data.value?.applications ?? []);
 
-const statusOptions: { value: SpeakerApplicationStatus; label: string }[] = [
-  { value: "pending", label: "応募中" },
-  { value: "scheduled", label: "発表予定" },
-  { value: "done", label: "発表済み" },
-];
-
-function getStatusClass(status: SpeakerApplicationStatus) {
-  if (status === "pending") return "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400";
-  if (status === "scheduled") return "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400";
-  return "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400";
-}
+const statusOptions: { value: SpeakerApplicationStatus; label: string }[] = (
+  ["pending", "scheduled", "done"] as const
+).map((value) => ({ value, label: speakerStatusLabel(value) }));
 
 const updatingId = ref<number | null>(null);
 
@@ -75,7 +68,7 @@ useSeoMeta({ title: "発表募集管理" });
                 :value="app.status"
                 :disabled="updatingId === app.id"
                 class="rounded-lg border border-border bg-surface px-2 py-1.5 text-xs font-medium focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
-                :class="getStatusClass(app.status)"
+                :class="speakerStatusClass(app.status)"
                 @change="changeStatus(app, ($event.target as HTMLSelectElement).value as SpeakerApplicationStatus)"
               >
                 <option

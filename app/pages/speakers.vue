@@ -2,6 +2,7 @@
 import type { SpeakerApplication, SpeakersListResponse } from "~~/types/portal";
 import { primaryButtonClass, secondaryButtonClass, surfaceCardClass } from "~/utils/ui";
 import { useCurrentUser } from "~/composables/useCurrentUser";
+import { speakerStatusClass, speakerStatusLabel } from "~/utils/status";
 
 const currentUser = useCurrentUser();
 
@@ -93,18 +94,6 @@ async function withdrawApplication(id: number) {
   } catch (e: unknown) {
     alert(e instanceof Error ? e.message : "取り下げに失敗しました。");
   }
-}
-
-function getStatusLabel(status: SpeakerApplication["status"]) {
-  if (status === "pending") return "応募中";
-  if (status === "scheduled") return "発表予定";
-  return "発表済み";
-}
-
-function getStatusClass(status: SpeakerApplication["status"]) {
-  if (status === "pending") return "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400";
-  if (status === "scheduled") return "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400";
-  return "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400";
 }
 
 useSeoMeta({
@@ -240,9 +229,9 @@ useSeoMeta({
                     <h3 class="text-base font-semibold text-foreground">{{ app.title }}</h3>
                     <span
                       class="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium"
-                      :class="getStatusClass(app.status)"
+                      :class="speakerStatusClass(app.status)"
                     >
-                      {{ getStatusLabel(app.status) }}
+                      {{ speakerStatusLabel(app.status) }}
                     </span>
                   </div>
                   <div class="flex flex-wrap gap-3 text-sm text-muted">
