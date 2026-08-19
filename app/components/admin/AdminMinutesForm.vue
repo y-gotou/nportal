@@ -132,7 +132,7 @@ async function submit() {
         v-model="form.contentMd"
         rows="16"
         class="w-full rounded-lg border border-border px-3 py-2 font-mono text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-        :placeholder="isEdit ? undefined : '## 議題&#10;&#10;- ...'"
+        :placeholder="isEdit ? undefined : '## 議題\n\n- ...'"
       />
     </AdminFormField>
 
