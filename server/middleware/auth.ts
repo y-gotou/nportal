@@ -1,4 +1,5 @@
 import { createError, getHeader } from "h3";
+import { getCloudflareEnv } from "~~/server/utils/cloudflare";
 
 interface JwtPayload {
   email?: string;
@@ -57,11 +58,7 @@ function isValidIngestToken(header: string | undefined, expected: string | undef
 export default defineEventHandler((event) => {
   const path = event.path ?? "";
 
-  const env = (
-    event.context.cloudflare as
-      | { env?: Record<string, string | undefined> }
-      | undefined
-  )?.env;
+  const env = getCloudflareEnv<Record<string, string>>(event);
 
   const adminEmails = (env?.ADMIN_EMAILS ?? "").split(",").map((s) => s.trim()).filter(Boolean);
 

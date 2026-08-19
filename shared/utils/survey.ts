@@ -8,6 +8,7 @@ import type {
   SurveyResultBlock,
   SurveyStatus,
 } from "../../types/portal.ts";
+import { parseStringArray } from "./json.ts";
 
 export const SURVEY_OTHER_OPTION_VALUE = "__other__";
 export const SURVEY_OTHER_OPTION_LABEL = "その他";
@@ -21,17 +22,6 @@ export function getSurveyStatusLabel(status: SurveyStatus): string {
 interface ParsedSurveySelectionAnswer {
   selected: string[];
   otherText: string;
-}
-
-function parseStringArray(value: string) {
-  try {
-    const parsed = JSON.parse(value) as unknown;
-    return Array.isArray(parsed)
-      ? parsed.filter((item): item is string => typeof item === "string")
-      : [];
-  } catch {
-    return [];
-  }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

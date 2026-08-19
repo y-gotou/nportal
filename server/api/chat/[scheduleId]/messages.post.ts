@@ -1,6 +1,8 @@
 import { createError, readMultipartFormData, setResponseStatus } from "h3";
 import type { ChatMessageKind } from "~~/types/portal";
 import { getDb } from "~~/server/utils/db";
+import { getFilePart, getTextField } from "~~/server/utils/multipart";
+import { requireUser } from "~~/server/utils/auth";
 import {
   createChatMessage,
   getChatMessageRow,
@@ -15,12 +17,10 @@ import {
   validateResourceFile,
 } from "~~/server/utils/upload";
 import { getChatJstToday, isChatReadOnly } from "#shared/utils/chat";
+import { utcToday } from "#shared/utils/date";
 
 export default defineEventHandler(async (event) => {
-  const user = event.context.user as { email: string; isAdmin?: boolean } | undefined;
-  if (!user) {
-    throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
-  }
+  const user = requireUser(event);
 
   const db = getDb(event);
   const scheduleId = parseChatId(event.context.params?.scheduleId, "scheduleId is invalid.");
@@ -38,26 +38,22 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: "multipart/form-data is required." });
   }
 
-  const getTextField = (name: string) =>
-    parts.find((item) => item.name === name && !item.filename)?.data.toString("utf8") ?? "";
-
-  const rawKind = getTextField("kind").trim() || "text";
+  const rawKind = getTextField(parts, "kind") || "text";
   if (rawKind !== "text" && rawKind !== "stamp" && rawKind !== "sticker") {
     throw createError({ statusCode: 400, statusMessage: "kind is invalid." });
   }
   const kind = rawKind as ChatMessageKind;
 
-  const filePart = parts.find(
-    (item) => item.name === "file" && item.filename && item.data.byteLength > 0,
-  );
+  const filePart = getFilePart(parts);
 
   const body = validateChatMessageBody({
     kind,
-    body: getTextField("body"),
+    // 本文の空白は投稿内容の一部のため trim しない
+    body: getTextField(parts, "body", { trim: false }),
     hasAttachment: Boolean(filePart),
   });
 
-  const rawReplyTo = getTextField("replyToId").trim();
+  const rawReplyTo = getTextField(parts, "replyToId");
   let replyToId: number | null = null;
   if (rawReplyTo) {
     replyToId = parseChatId(rawReplyTo, "replyToId is invalid.");
@@ -78,7 +74,7 @@ export default defineEventHandler(async (event) => {
       { allowZip: user.isAdmin === true },
     );
 
-    const date = new Date().toISOString().slice(0, 10);
+    const date = utcToday();
     const fileKey = `${getResourceObjectPrefix(event)}/chat/${date}/${crypto.randomUUID()}-${fileName}`;
 
     // multipart解析後のBufferはbyteOffset付きビューのことがあり、そのままではminiflareのR2 putが失敗する

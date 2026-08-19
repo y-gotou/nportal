@@ -41,7 +41,7 @@ export async function listSchedule(db: D1DatabaseLike): Promise<ScheduleItem[]> 
   return results.map(toScheduleItem);
 }
 
-export async function getScheduleItem(
+async function getScheduleItem(
   db: D1DatabaseLike,
   id: number,
 ): Promise<ScheduleItem | null> {
@@ -65,6 +65,22 @@ export interface SchedulePayload {
   meetingUrl?: string | null;
   topics: string[];
   location?: string | null;
+}
+
+// post/put で共通のボディ検証と整形
+export function parseSchedulePayload(body: Partial<SchedulePayload>): SchedulePayload {
+  if (!body.date || !body.time || !body.title) {
+    throw createError({ statusCode: 400, statusMessage: "date, time, title are required" });
+  }
+
+  return {
+    date: body.date,
+    time: body.time,
+    title: body.title,
+    meetingUrl: body.meetingUrl ?? null,
+    topics: Array.isArray(body.topics) ? body.topics : [],
+    location: body.location ?? null,
+  };
 }
 
 export async function createScheduleItem(

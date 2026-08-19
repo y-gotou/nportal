@@ -20,10 +20,10 @@
 |---|----|------|------|---------|----|------|
 | ① | B1 | `getDb` を `server/utils/db.ts` へ移設 | 完了 | refactor/source-cleanup-01-db-util | #61 | check 通過(typecheck / build / tests 112 件全パス) |
 | ② | D2 | `resources.ts` 分割(r2 / upload / markdown) | 完了 | refactor/source-cleanup-02-resources-split | #62 | check 通過(typecheck / build / tests 112 件全パス) |
-| ③ | D1+D5 | `utils/` → `shared/utils/` 移設、README・`.ts` 拡張子修正 | レビュー待ち | refactor/source-cleanup-03-shared-utils | #63 | check 通過(typecheck / build / tests 112 件全パス) |
-| ④ | A1+A2 | 不要コード削除(`getMinutesDetailById`、admin/resources API 2本) | レビュー待ち | refactor/source-cleanup-04-dead-code | — | check 通過(typecheck / build / tests 112 件全パス) |
-| ⑤ | B2〜B7+A3 | サーバー側共通化(requireUser / multipart / R2 ストリーム / ID パーサ / 設問 INSERT / 共有ユーティリティ)+ export 修飾整理 | 未着手 | — | — | — |
-| ⑥ | E1 | `survey.ts` から `survey-response.ts` を分離 | 未着手 | — | — | — |
+| ③ | D1+D5 | `utils/` → `shared/utils/` 移設、README・`.ts` 拡張子修正 | 完了 | refactor/source-cleanup-03-shared-utils | #63 | check 通過(typecheck / build / tests 112 件全パス) |
+| ④ | A1+A2 | 不要コード削除(`getMinutesDetailById`、admin/resources API 2本) | 完了 | refactor/source-cleanup-04-dead-code | #64 | check 通過(typecheck / build / tests 112 件全パス) |
+| ⑤ | B2〜B7+A3 | サーバー側共通化(requireUser / multipart / R2 ストリーム / ID パーサ / 設問 INSERT / 共有ユーティリティ)+ export 修飾整理 | レビュー待ち | refactor/source-cleanup-05-server-dedup | #65 | check 通過(typecheck / build / tests 120 件全パス) |
+| ⑥ | E1 | `survey.ts` から `survey-response.ts` を分離 | 作業中 | refactor/source-cleanup-06-survey-response | — | — |
 | ⑦ | C1 | admin/surveys new/edit 共通化 + new.vue の validate バグ修正 | 未着手 | — | — | — |
 | ⑧ | C2+C3 | admin フォーム定型・ステータス表示の共通化(survey 配色統一含む) | 未着手 | — | — | — |
 | ⑨ | E2+E3+D3 | SurveyForm / SiteHeader 分割、components ドメイン別再編 | 未着手 | — | — | — |
@@ -35,3 +35,4 @@
 - C4 は URL 履歴・スクロール挙動への影響リスクがあるため見送り(2026-08-19 決定)
 - ②のブランチは①(getDb 移設)の変更に依存するため①から分岐。②の PR は #61 マージ後に作成する
 - ②の分割結果: resources.ts 653行 → resources.ts 411行 + upload.ts 154行 + r2.ts 59行 + resource-markdown.ts 35行。シンボル名は変更せず移動のみ
+- ⑤の判断事項: chat 添付が R2 メタデータを Content-Type に使わない従来挙動は streamR2Object の useObjectMetadata オプションで維持。401 メッセージは「Unauthorized」に統一(同意済みの挙動変更)。export された型の un-export は公開 API 面として見送り。shared 配下の .ts 拡張子 import のため nuxt.config に sharedTsConfig を追加

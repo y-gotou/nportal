@@ -1,5 +1,6 @@
 import { createError } from "h3";
 import type { H3Event } from "h3";
+import { getCloudflareEnv } from "./cloudflare.ts";
 
 interface LlmEnv {
   baseUrl: string;
@@ -8,11 +9,7 @@ interface LlmEnv {
 }
 
 function getLlmEnv(event: H3Event): LlmEnv {
-  const env = (
-    event.context.cloudflare as
-      | { env?: Record<string, string | undefined> }
-      | undefined
-  )?.env;
+  const env = getCloudflareEnv<Record<string, string>>(event);
 
   const baseUrl = env?.LLM_API_BASE_URL;
   const clientId = env?.LLM_CF_ACCESS_CLIENT_ID;
