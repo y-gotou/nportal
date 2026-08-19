@@ -105,7 +105,7 @@ test("resources page and shared form expose user submission controls", async () 
   const page = await readFile(new URL("../app/pages/resources/index.vue", import.meta.url), "utf8");
   const markdownPage = await readFile(new URL("../app/pages/resources/[id].vue", import.meta.url), "utf8");
   const markdownApi = await readFile(new URL("../server/api/resources/[id]/markdown.get.ts", import.meta.url), "utf8");
-  const form = await readFile(new URL("../app/components/ResourceSubmissionForm.vue", import.meta.url), "utf8");
+  const form = await readFile(new URL("../app/components/resource/ResourceSubmissionForm.vue", import.meta.url), "utf8");
 
   assert.match(page, /資料を投稿/);
   assert.match(page, /<Teleport to="body">/);
