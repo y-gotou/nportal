@@ -2,7 +2,7 @@ import { createError, type H3Event } from "h3";
 import { requireUser } from "./auth.ts";
 import { getCloudflareEnv } from "./cloudflare.ts";
 
-export function getAdminEmails(event: H3Event): string[] {
+function getAdminEmails(event: H3Event): string[] {
   const raw = getCloudflareEnv<{ ADMIN_EMAILS: string }>(event).ADMIN_EMAILS ?? "";
   return raw
     .split(",")

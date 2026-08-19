@@ -1,7 +1,7 @@
 import { sanitizeFileName } from "./upload.ts";
 import type { ResourceImageRow } from "./resources.ts";
 
-export function getResourceImageUrl(resourceId: number, imageId: number): string {
+function getResourceImageUrl(resourceId: number, imageId: number): string {
   return `/api/resources/${resourceId}/images/${imageId}`;
 }
 

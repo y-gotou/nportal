@@ -56,7 +56,7 @@ export function isMarkdownFileName(fileName: string | null | undefined): boolean
   return getFileExtension(fileName ?? "") === "md";
 }
 
-export function isHtmlFileName(fileName: string | null | undefined): boolean {
+function isHtmlFileName(fileName: string | null | undefined): boolean {
   return getFileExtension(fileName ?? "") === "html";
 }
 
@@ -103,7 +103,7 @@ export function buildResourceContentDisposition(fileName: string | null | undefi
   return `${dispositionType}; filename="${buildAsciiFileNameFallback(safeName)}"; filename*=UTF-8''${encodeContentDispositionValue(safeName)}`;
 }
 
-export function getFileExtension(fileName: string): string {
+function getFileExtension(fileName: string): string {
   const match = /\.([^.]+)$/.exec(fileName.toLowerCase());
   return match?.[1] ?? "";
 }

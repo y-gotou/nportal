@@ -15,12 +15,12 @@ export const CHAT_AI_CONTEXT_MESSAGES = 20;
 
 // 推論(reasoning)モデルは思考にトークンを消費するため、上限は思考分を見込んで大きめに取る
 // (不足すると content が空のまま打ち切られる)
-export const CHAT_AI_JUDGE_MAX_TOKENS = 1536;
-export const CHAT_AI_ANSWER_MAX_TOKENS = 4096;
+const CHAT_AI_JUDGE_MAX_TOKENS = 1536;
+const CHAT_AI_ANSWER_MAX_TOKENS = 4096;
 
 // Web 検索の取得件数と、LLM に渡す抜粋の最大文字数
-export const CHAT_AI_SEARCH_MAX_RESULTS = 5;
-export const CHAT_AI_SEARCH_SNIPPET_LENGTH = 500;
+const CHAT_AI_SEARCH_MAX_RESULTS = 5;
+const CHAT_AI_SEARCH_SNIPPET_LENGTH = 500;
 
 export const CHAT_AI_ERROR_BODY =
   "(AI応答の生成に失敗しました。時間をおいて再度お試しください)";
@@ -220,11 +220,9 @@ async function maybeSearchWeb(
     );
     const query = extractSearchQuery(judgeText);
     if (!query) {
-      console.log("chat AI web search: not needed or no query judged.");
       return null;
     }
 
-    console.log(`chat AI web search: query="${query}"`);
     const results = await searchTavily(apiKey, query);
     return results.length ? results : null;
   } catch (error) {

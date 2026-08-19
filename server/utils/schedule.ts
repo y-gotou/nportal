@@ -41,7 +41,7 @@ export async function listSchedule(db: D1DatabaseLike): Promise<ScheduleItem[]> 
   return results.map(toScheduleItem);
 }
 
-export async function getScheduleItem(
+async function getScheduleItem(
   db: D1DatabaseLike,
   id: number,
 ): Promise<ScheduleItem | null> {

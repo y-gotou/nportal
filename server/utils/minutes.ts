@@ -78,7 +78,7 @@ export async function getMinutesDetail(
   };
 }
 
-export async function getMinutesDetailByDate(
+async function getMinutesDetailByDate(
   db: D1DatabaseLike,
   date: string,
 ): Promise<Minutes | null> {

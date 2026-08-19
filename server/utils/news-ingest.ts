@@ -6,7 +6,7 @@ import { DATE_PATTERN, addUtcDays, jstToday } from "../../shared/utils/date.ts";
 // テストと ingest ハンドラーが参照する従来の公開 API を維持する
 export { jstToday };
 
-export const NEWS_CATEGORIES = ["プロダクト", "規制・リスク", "研究", "事例"];
+const NEWS_CATEGORIES = ["プロダクト", "規制・リスク", "研究", "事例"];
 
 const TERM_MARKER_PATTERN = /\[\[([^\]]+)\]\]/g;
 // 記事の識別に関係しない計測用パラメータのみ除去する
@@ -91,7 +91,7 @@ function requireGlossary(value: unknown): NewsGlossaryTerm[] {
   });
 }
 
-export function requireDate(value: unknown, field: string): string {
+function requireDate(value: unknown, field: string): string {
   const date = requireString(value, field, 10);
   if (!DATE_PATTERN.test(date)) invalid(`${field} must be in YYYY-MM-DD format.`);
   return date;
