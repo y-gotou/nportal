@@ -1,8 +1,7 @@
 import { createError } from "h3";
 import { getDb } from "~~/server/utils/db";
 import { requireUser } from "~~/server/utils/auth";
-import { getResourcesBucket } from "~~/server/utils/r2";
-import { buildResourceContentDisposition } from "~~/server/utils/upload";
+import { streamR2Object } from "~~/server/utils/r2";
 import {
   getResourceImage,
   parseResourceId,
@@ -19,16 +18,10 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: "Resource image not found." });
   }
 
-  const object = await getResourcesBucket(event).get(image.file_key);
-  if (!object) {
-    throw createError({ statusCode: 404, statusMessage: "Resource image not found." });
-  }
-
-  const headers = new Headers();
-  object.writeHttpMetadata?.(headers);
-  headers.set("Content-Type", image.mime_type || headers.get("Content-Type") || "application/octet-stream");
-  headers.set("Content-Disposition", buildResourceContentDisposition(image.file_name));
-  headers.set("X-Content-Type-Options", "nosniff");
-
-  return new Response(object.body, { headers });
+  return await streamR2Object(event, image.file_key, {
+    fileName: image.file_name,
+    mimeType: image.mime_type,
+    notFoundMessage: "Resource image not found.",
+    normalizeMimeType: false,
+  });
 });

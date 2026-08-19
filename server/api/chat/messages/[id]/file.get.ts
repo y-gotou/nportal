@@ -2,11 +2,7 @@ import { createError } from "h3";
 import { getDb } from "~~/server/utils/db";
 import { requireUser } from "~~/server/utils/auth";
 import { getChatMessageRow, parseChatId } from "~~/server/utils/chat";
-import { getResourcesBucket } from "~~/server/utils/r2";
-import {
-  buildResourceContentDisposition,
-  normalizeResourceMimeType,
-} from "~~/server/utils/upload";
+import { streamR2Object } from "~~/server/utils/r2";
 
 export default defineEventHandler(async (event) => {
   requireUser(event);
@@ -19,21 +15,10 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: "Chat file not found." });
   }
 
-  const object = await getResourcesBucket(event).get(message.file_key);
-  if (!object) {
-    throw createError({ statusCode: 404, statusMessage: "Chat file not found." });
-  }
-
-  const headers = new Headers();
-  headers.set(
-    "Content-Type",
-    normalizeResourceMimeType(
-      message.file_name ?? "file",
-      message.mime_type || "application/octet-stream",
-    ),
-  );
-  headers.set("Content-Disposition", buildResourceContentDisposition(message.file_name));
-  headers.set("X-Content-Type-Options", "nosniff");
-
-  return new Response(object.body, { headers });
+  return await streamR2Object(event, message.file_key, {
+    fileName: message.file_name,
+    mimeType: message.mime_type,
+    notFoundMessage: "Chat file not found.",
+    useObjectMetadata: false,
+  });
 });
