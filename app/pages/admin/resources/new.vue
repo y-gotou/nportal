@@ -21,11 +21,7 @@ useSeoMeta({ title: "資料を作成" });
 
 <template>
   <div class="space-y-6">
-    <div class="flex items-center gap-3">
-      <NuxtLink to="/admin/resources" class="text-sm text-muted hover:text-foreground">資料</NuxtLink>
-      <span class="text-border">/</span>
-      <h1 class="text-xl font-bold tracking-tight text-foreground">新規作成</h1>
-    </div>
+    <AdminPageHeader parent-label="資料" parent-to="/admin/resources" title="新規作成" />
 
     <ResourceSubmissionForm
       :resource="null"

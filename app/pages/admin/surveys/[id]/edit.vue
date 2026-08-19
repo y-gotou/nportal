@@ -27,26 +27,17 @@ const editor = useSurveyQuestionDraft({
   locked: isQuestionEditingLocked,
 });
 
-const errors = reactive<Record<string, string>>({});
-const isSubmitting = ref(false);
-const serverError = ref<string | null>(null);
+const { errors, isSubmitting, serverError, applyErrors, submitWith } = useAdminForm("更新に失敗しました。");
 
 function validate() {
   const e: Record<string, string> = editor.validateQuestions();
   if (!form.title.trim()) e.title = "タイトルは必須です。";
-
-  for (const key of Object.keys(errors)) {
-    delete errors[key];
-  }
-  Object.assign(errors, e);
-  return Object.keys(e).length === 0;
+  return applyErrors(e);
 }
 
 async function submit() {
   if (!validate()) return;
-  isSubmitting.value = true;
-  serverError.value = null;
-  try {
+  await submitWith(async () => {
     await $fetch(`/api/admin/surveys/${id}`, {
       method: "PUT",
       body: {
@@ -64,13 +55,7 @@ async function submit() {
     }
 
     await router.push("/admin/surveys");
-  }
-  catch (e: unknown) {
-    serverError.value = e instanceof Error ? e.message : "更新に失敗しました。";
-  }
-  finally {
-    isSubmitting.value = false;
-  }
+  });
 }
 
 useSeoMeta({ title: `${survey.title} を編集` });
@@ -78,18 +63,15 @@ useSeoMeta({ title: `${survey.title} を編集` });
 
 <template>
   <div class="space-y-6">
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <NuxtLink to="/admin/surveys" class="text-sm text-muted hover:text-foreground">アンケート</NuxtLink>
-        <span class="text-border">/</span>
-        <h1 class="text-xl font-bold tracking-tight text-foreground">編集</h1>
-      </div>
-      <AdminDeleteButton
-        :fetch-url="`/api/admin/surveys/${id}`"
-        redirect-to="/admin/surveys"
-        confirm-message="このアンケートと全ての回答を削除しますか？この操作は取り消せません。"
-      />
-    </div>
+    <AdminPageHeader parent-label="アンケート" parent-to="/admin/surveys" title="編集">
+      <template #actions>
+        <AdminDeleteButton
+          :fetch-url="`/api/admin/surveys/${id}`"
+          redirect-to="/admin/surveys"
+          confirm-message="このアンケートと全ての回答を削除しますか？この操作は取り消せません。"
+        />
+      </template>
+    </AdminPageHeader>
 
     <form class="space-y-6" @submit.prevent="submit">
       <p v-if="serverError" class="rounded-lg bg-red-50 p-3 text-sm text-red-600" role="alert">{{ serverError }}</p>
