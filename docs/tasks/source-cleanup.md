@@ -23,7 +23,7 @@
 | ③ | D1+D5 | `utils/` → `shared/utils/` 移設、README・`.ts` 拡張子修正 | 完了 | refactor/source-cleanup-03-shared-utils | #63 | check 通過(typecheck / build / tests 112 件全パス) |
 | ④ | A1+A2 | 不要コード削除(`getMinutesDetailById`、admin/resources API 2本) | 完了 | refactor/source-cleanup-04-dead-code | #64 | check 通過(typecheck / build / tests 112 件全パス) |
 | ⑤ | B2〜B7+A3 | サーバー側共通化(requireUser / multipart / R2 ストリーム / ID パーサ / 設問 INSERT / 共有ユーティリティ)+ export 修飾整理 | レビュー待ち | refactor/source-cleanup-05-server-dedup | #65 | check 通過(typecheck / build / tests 120 件全パス) |
-| ⑥ | E1 | `survey.ts` から `survey-response.ts` を分離 | 作業中 | refactor/source-cleanup-06-survey-response | — | — |
+| ⑥ | E1 | `survey.ts` から `survey-response.ts` を分離 | レビュー待ち | refactor/source-cleanup-06-survey-response | — | check 通過(typecheck / build / tests 120 件全パス) |
 | ⑦ | C1 | admin/surveys new/edit 共通化 + new.vue の validate バグ修正 | 未着手 | — | — | — |
 | ⑧ | C2+C3 | admin フォーム定型・ステータス表示の共通化(survey 配色統一含む) | 未着手 | — | — | — |
 | ⑨ | E2+E3+D3 | SurveyForm / SiteHeader 分割、components ドメイン別再編 | 未着手 | — | — | — |
