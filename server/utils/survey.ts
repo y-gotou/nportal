@@ -232,6 +232,57 @@ export async function getSurvey(
   return toSurvey(surveyRow, questionRows, responseCountBySurveyId.get(id) ?? 0);
 }
 
+export interface SurveyQuestionInput {
+  questionText: string;
+  questionType: SurveyQuestion["questionType"];
+  // 選択肢の配列。DB の JSON 文字列をそのまま渡すことも可
+  options: string[] | string;
+  allowOtherText?: boolean | number;
+}
+
+// 設問を sort_order 付きで一括挿入する
+export async function insertSurveyQuestions(
+  db: D1DatabaseLike,
+  surveyId: number,
+  questions: SurveyQuestionInput[],
+): Promise<void> {
+  if (questions.length === 0) return;
+
+  const statement = db.prepare(
+    "INSERT INTO questions (survey_id, question_text, question_type, options, allow_other_text, sort_order) VALUES (?, ?, ?, ?, ?, ?)",
+  );
+  await db.batch(
+    questions.map((question, index) =>
+      statement.bind(
+        surveyId,
+        question.questionText,
+        question.questionType,
+        typeof question.options === "string"
+          ? question.options
+          : JSON.stringify(question.options ?? []),
+        question.allowOtherText ? 1 : 0,
+        index,
+      ),
+    ),
+  );
+}
+
+// アンケート配下の設問に紐づく回答をすべて削除する
+export async function deleteSurveyResponses(
+  db: D1DatabaseLike,
+  surveyId: number,
+): Promise<void> {
+  const { results } = await db
+    .prepare("SELECT id FROM questions WHERE survey_id = ?")
+    .bind(surveyId)
+    .all<{ id: number }>();
+
+  if (results.length === 0) return;
+
+  const statement = db.prepare("DELETE FROM responses WHERE question_id = ?");
+  await db.batch(results.map((question) => statement.bind(question.id)));
+}
+
 export async function duplicateSurvey(
   db: D1DatabaseLike,
   sourceSurveyId: number,
@@ -269,23 +320,16 @@ export async function duplicateSurvey(
     });
   }
 
-  if (questionRows.length > 0) {
-    const statement = db.prepare(
-      "INSERT INTO questions (survey_id, question_text, question_type, options, allow_other_text, sort_order) VALUES (?, ?, ?, ?, ?, ?)",
-    );
-    await db.batch(
-      questionRows.map((question, index) =>
-        statement.bind(
-          created.id,
-          question.question_text,
-          question.question_type,
-          question.options,
-          question.allow_other_text,
-          index,
-        ),
-      ),
-    );
-  }
+  await insertSurveyQuestions(
+    db,
+    created.id,
+    questionRows.map((question) => ({
+      questionText: question.question_text,
+      questionType: question.question_type,
+      options: question.options,
+      allowOtherText: question.allow_other_text,
+    })),
+  );
 
   return created.id;
 }
