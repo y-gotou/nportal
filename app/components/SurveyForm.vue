@@ -1,16 +1,10 @@
 <script setup lang="ts">
-import type { Survey, SurveyAnswerValue, SurveyQuestion } from "~~/types/portal";
+import type { Survey } from "~~/types/portal";
 import {
   primaryButtonClass,
   secondaryButtonClass,
-  surfaceCardClass,
 } from "~/utils/ui";
-import {
-  parseSurveySelectionAnswer,
-  serializeSurveyAnswer,
-  SURVEY_OTHER_OPTION_LABEL,
-  SURVEY_OTHER_OPTION_VALUE,
-} from "#shared/utils/survey";
+import { serializeSurveyAnswer } from "#shared/utils/survey";
 
 const props = defineProps<{
   survey: Survey;
@@ -18,204 +12,17 @@ const props = defineProps<{
   isEditing?: boolean;
 }>();
 
-function buildInitialAnswers(
-  survey: Survey,
-  initial: Record<number, string> | undefined,
-): Record<number, SurveyAnswerValue> {
-  if (!initial) return {};
+const api = useSurveyAnswers(props.survey, props.initialAnswers);
+const { answers, validationErrors } = api;
 
-  const result: Record<number, SurveyAnswerValue> = {};
-
-  for (const question of survey.questions) {
-    const raw = initial[question.id];
-    if (typeof raw !== "string") continue;
-
-    if (question.questionType === "free_text") {
-      result[question.id] = raw;
-      continue;
-    }
-
-    const parsed = parseSurveySelectionAnswer(raw, question.questionType);
-    const hasOther = parsed.selected.includes(SURVEY_OTHER_OPTION_VALUE);
-
-    if (question.questionType === "single_choice") {
-      const selected = parsed.selected[0] ?? "";
-      if (selected === SURVEY_OTHER_OPTION_VALUE) {
-        result[question.id] = {
-          selected: SURVEY_OTHER_OPTION_VALUE,
-          otherText: parsed.otherText,
-        };
-      } else {
-        result[question.id] = selected;
-      }
-      continue;
-    }
-
-    if (hasOther) {
-      result[question.id] = {
-        selected: parsed.selected,
-        otherText: parsed.otherText,
-      };
-    } else {
-      result[question.id] = [...parsed.selected];
-    }
-  }
-
-  return result;
-}
-
-const answers = ref<Record<number, SurveyAnswerValue>>(
-  buildInitialAnswers(props.survey, props.initialAnswers),
-);
 const isSubmitting = ref(false);
 const isSubmitted = ref(false);
 const errorMessage = ref("");
-const validationErrors = ref<Record<number, string>>({});
 const successRef = ref<HTMLElement | null>(null);
 const errorRef = ref<HTMLElement | null>(null);
 
-function clearValidationError(questionId: number) {
-  if (validationErrors.value[questionId]) {
-    const { [questionId]: _, ...rest } = validationErrors.value;
-    validationErrors.value = rest;
-  }
-}
-
-function getSingleAnswer(questionId: number) {
-  const answer = answers.value[questionId];
-  if (typeof answer === "string") {
-    return answer;
-  }
-  if (Array.isArray(answer)) {
-    return "";
-  }
-  return typeof answer?.selected === "string" ? answer.selected : "";
-}
-
-function getMultipleAnswers(questionId: number) {
-  const answer = answers.value[questionId];
-  if (Array.isArray(answer)) {
-    return answer;
-  }
-  if (typeof answer === "object" && answer !== null && Array.isArray(answer.selected)) {
-    return answer.selected;
-  }
-  return [];
-}
-
-function getOtherText(questionId: number) {
-  const answer = answers.value[questionId];
-  if (typeof answer === "object" && answer !== null && !Array.isArray(answer)) {
-    return answer.otherText;
-  }
-  return "";
-}
-
-function isOtherSelected(question: SurveyQuestion) {
-  if (question.questionType === "single_choice") {
-    return getSingleAnswer(question.id) === SURVEY_OTHER_OPTION_VALUE;
-  }
-  if (question.questionType === "multiple_choice") {
-    return getMultipleAnswers(question.id).includes(SURVEY_OTHER_OPTION_VALUE);
-  }
-  return false;
-}
-
-function toggleMultipleAnswer(questionId: number, option: string) {
-  const selected = getMultipleAnswers(questionId);
-  const otherText = getOtherText(questionId);
-  const next = selected.includes(option)
-    ? selected.filter((item) => item !== option)
-    : [...selected, option];
-
-  answers.value = {
-    ...answers.value,
-    [questionId]: next.includes(SURVEY_OTHER_OPTION_VALUE)
-      ? { selected: next, otherText }
-      : next,
-  };
-
-  clearValidationError(questionId);
-}
-
-function setSingleAnswer(questionId: number, answer: string) {
-  const otherText = getOtherText(questionId);
-  answers.value = {
-    ...answers.value,
-    [questionId]: answer === SURVEY_OTHER_OPTION_VALUE
-      ? { selected: answer, otherText }
-      : answer,
-  };
-
-  clearValidationError(questionId);
-}
-
-function setOtherText(question: SurveyQuestion, otherText: string) {
-  if (question.questionType === "single_choice") {
-    answers.value = {
-      ...answers.value,
-      [question.id]: {
-        selected: SURVEY_OTHER_OPTION_VALUE,
-        otherText,
-      },
-    };
-  } else if (question.questionType === "multiple_choice") {
-    const selected = getMultipleAnswers(question.id);
-    const nextSelected = selected.includes(SURVEY_OTHER_OPTION_VALUE)
-      ? selected
-      : [...selected, SURVEY_OTHER_OPTION_VALUE];
-    answers.value = {
-      ...answers.value,
-      [question.id]: {
-        selected: nextSelected,
-        otherText,
-      },
-    };
-  }
-
-  clearValidationError(question.id);
-}
-
-function getTextAnswer(questionId: number) {
-  const answer = answers.value[questionId];
-  return typeof answer === "string" ? answer : "";
-}
-
-function validateAnswers(): boolean {
-  const errors: Record<number, string> = {};
-
-  for (const question of props.survey.questions) {
-    if (question.questionType === "single_choice") {
-      const answer = getSingleAnswer(question.id);
-      if (!answer) {
-        errors[question.id] = "1つ選択してください";
-      } else if (
-        question.allowOtherText &&
-        answer === SURVEY_OTHER_OPTION_VALUE &&
-        !getOtherText(question.id).trim()
-      ) {
-        errors[question.id] = "その他の内容を入力してください";
-      }
-    } else if (question.questionType === "multiple_choice") {
-      const selected = getMultipleAnswers(question.id);
-      if (selected.length === 0) {
-        errors[question.id] = "1つ以上選択してください";
-      } else if (
-        question.allowOtherText &&
-        selected.includes(SURVEY_OTHER_OPTION_VALUE) &&
-        !getOtherText(question.id).trim()
-      ) {
-        errors[question.id] = "その他の内容を入力してください";
-      }
-    }
-  }
-
-  validationErrors.value = errors;
-  return Object.keys(errors).length === 0;
-}
-
 async function submitSurvey() {
-  if (!validateAnswers()) {
+  if (!api.validateAnswers()) {
     await nextTick();
     const firstErrorId = Object.keys(validationErrors.value)[0];
     if (firstErrorId) {
@@ -293,141 +100,13 @@ async function submitSurvey() {
   </div>
 
   <form v-else class="space-y-6" @submit.prevent="submitSurvey">
-    <section
+    <SurveyQuestionField
       v-for="(question, index) in survey.questions"
       :key="question.id"
-      :class="`${surfaceCardClass} space-y-4`"
-      :aria-describedby="validationErrors[question.id] ? `error-${question.id}` : undefined"
-    >
-      <div class="space-y-1">
-        <p class="text-xs font-semibold tracking-[0.16em] text-muted">
-          Q{{ index + 1 }}
-        </p>
-        <h3 class="text-lg font-semibold tracking-tight text-foreground">
-          {{ question.questionText }}
-          <span
-            v-if="question.questionType !== 'free_text'"
-            class="ml-1 text-sm font-normal text-rose-500"
-            aria-hidden="true"
-          >*</span>
-        </h3>
-      </div>
-
-      <div v-if="question.questionType === 'single_choice'" class="space-y-3">
-        <label
-          v-for="option in question.options"
-          :key="option"
-          class="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-background px-4 py-3 text-sm text-foreground transition hover:border-blue-200 hover:bg-blue-50 dark:hover:bg-blue-900/10"
-          :class="{ 'border-rose-200 bg-rose-50 dark:border-rose-800 dark:bg-rose-900/20': validationErrors[question.id] }"
-        >
-          <input
-            :name="`question-${question.id}`"
-            type="radio"
-            :value="option"
-            :checked="getSingleAnswer(question.id) === option"
-            class="mt-0.5 h-4 w-4 border-border text-blue-500 focus:ring-blue-500"
-            @change="setSingleAnswer(question.id, option)"
-          >
-          <span>{{ option }}</span>
-        </label>
-
-        <label
-          v-if="question.allowOtherText"
-          class="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-background px-4 py-3 text-sm text-foreground transition hover:border-blue-200 hover:bg-blue-50 dark:hover:bg-blue-900/10"
-          :class="{ 'border-rose-200 bg-rose-50 dark:border-rose-800 dark:bg-rose-900/20': validationErrors[question.id] }"
-        >
-          <input
-            :name="`question-${question.id}`"
-            type="radio"
-            :value="SURVEY_OTHER_OPTION_VALUE"
-            :checked="getSingleAnswer(question.id) === SURVEY_OTHER_OPTION_VALUE"
-            class="mt-0.5 h-4 w-4 border-border text-blue-500 focus:ring-blue-500"
-            @change="setSingleAnswer(question.id, SURVEY_OTHER_OPTION_VALUE)"
-          >
-          <span class="w-full space-y-3">
-            <span class="block">{{ SURVEY_OTHER_OPTION_LABEL }}</span>
-            <input
-              v-if="isOtherSelected(question)"
-              :value="getOtherText(question.id)"
-              type="text"
-              class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-              placeholder="内容を入力してください"
-              @input="setOtherText(question, ($event.target as HTMLInputElement).value)"
-            >
-          </span>
-        </label>
-      </div>
-
-      <div v-else-if="question.questionType === 'multiple_choice'" class="space-y-3">
-        <label
-          v-for="option in question.options"
-          :key="option"
-          class="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-background px-4 py-3 text-sm text-foreground transition hover:border-blue-200 hover:bg-blue-50 dark:hover:bg-blue-900/10"
-          :class="{ 'border-rose-200 bg-rose-50 dark:border-rose-800 dark:bg-rose-900/20': validationErrors[question.id] }"
-        >
-          <input
-            :name="`question-${question.id}`"
-            type="checkbox"
-            :checked="getMultipleAnswers(question.id).includes(option)"
-            class="mt-0.5 h-4 w-4 rounded border-border text-blue-500 focus:ring-blue-500"
-            @change="toggleMultipleAnswer(question.id, option)"
-          >
-          <span>{{ option }}</span>
-        </label>
-
-        <label
-          v-if="question.allowOtherText"
-          class="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-background px-4 py-3 text-sm text-foreground transition hover:border-blue-200 hover:bg-blue-50 dark:hover:bg-blue-900/10"
-          :class="{ 'border-rose-200 bg-rose-50 dark:border-rose-800 dark:bg-rose-900/20': validationErrors[question.id] }"
-        >
-          <input
-            :name="`question-${question.id}`"
-            type="checkbox"
-            :checked="getMultipleAnswers(question.id).includes(SURVEY_OTHER_OPTION_VALUE)"
-            class="mt-0.5 h-4 w-4 rounded border-border text-blue-500 focus:ring-blue-500"
-            @change="toggleMultipleAnswer(question.id, SURVEY_OTHER_OPTION_VALUE)"
-          >
-          <span class="w-full space-y-3">
-            <span class="block">{{ SURVEY_OTHER_OPTION_LABEL }}</span>
-            <input
-              v-if="isOtherSelected(question)"
-              :value="getOtherText(question.id)"
-              type="text"
-              class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-              placeholder="内容を入力してください"
-              @input="setOtherText(question, ($event.target as HTMLInputElement).value)"
-            >
-          </span>
-        </label>
-      </div>
-
-      <textarea
-        v-else
-        :id="`question-${question.id}`"
-        :value="getTextAnswer(question.id)"
-        :name="`question-${question.id}`"
-        :aria-label="question.questionText"
-        autocomplete="off"
-        class="min-h-32 w-full rounded-lg border border-border bg-surface px-4 py-3 text-sm text-foreground transition-[border-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-        rows="5"
-        placeholder="自由にご記入ください…"
-        @input="setSingleAnswer(question.id, ($event.target as HTMLTextAreaElement).value)"
-      />
-
-      <p
-        v-if="validationErrors[question.id]"
-        :id="`error-${question.id}`"
-        :data-question-id="question.id"
-        tabindex="-1"
-        class="flex items-center gap-1.5 text-sm text-rose-600 dark:text-rose-400 focus-visible:outline-none"
-        role="alert"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-        </svg>
-        {{ validationErrors[question.id] }}
-      </p>
-    </section>
+      :question="question"
+      :index="index"
+      :api="api"
+    />
 
     <div
       v-if="errorMessage"
