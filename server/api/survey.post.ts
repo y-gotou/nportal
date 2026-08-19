@@ -1,15 +1,14 @@
 import { createError, readBody } from "h3";
 import { getDb } from "~~/server/utils/db";
 import { requireUser } from "~~/server/utils/auth";
+import { getRequiredSurvey, parseSurveyId } from "~~/server/utils/survey";
 import {
   addResponses,
   addSubmission,
   checkSubmission,
   deleteUserResponses,
-  getRequiredSurvey,
-  parseSurveyId,
   touchSubmission,
-} from "~~/server/utils/survey";
+} from "~~/server/utils/survey-response";
 import type { SurveyAnswerInput } from "~~/types/portal";
 
 interface SubmitSurveyBody {

@@ -3,10 +3,10 @@ import { getDb } from "~~/server/utils/db";
 import { parsePositiveIntParam } from "~~/server/utils/params";
 import {
   deleteSurveyResponses,
-  hasSurveyResponseData,
   insertSurveyQuestions,
   type SurveyQuestionInput,
 } from "~~/server/utils/survey";
+import { hasSurveyResponseData } from "~~/server/utils/survey-response";
 import { assertAdmin } from "~~/server/utils/admin";
 
 export default defineEventHandler(async (event) => {

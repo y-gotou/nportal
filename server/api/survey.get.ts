@@ -1,12 +1,8 @@
 import { getQuery } from "h3";
 import { getDb } from "~~/server/utils/db";
 import { getUser } from "~~/server/utils/auth";
-import {
-  getRequiredSurvey,
-  getResponses,
-  getUserAnswers,
-  parseSurveyId,
-} from "~~/server/utils/survey";
+import { getRequiredSurvey, parseSurveyId } from "~~/server/utils/survey";
+import { getResponses, getUserAnswers } from "~~/server/utils/survey-response";
 
 export default defineEventHandler(async (event) => {
   const surveyId = parseSurveyId(
