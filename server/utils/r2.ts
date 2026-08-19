@@ -5,6 +5,7 @@ import {
   normalizeResourceMimeType,
   sanitizeFileName,
 } from "./upload.ts";
+import { utcToday } from "../../shared/utils/date.ts";
 
 export interface R2ObjectLike {
   body: ReadableStream;
@@ -38,7 +39,7 @@ export function getResourceObjectPrefix(event: H3Event): string {
 }
 
 export function createResourceObjectKey(event: H3Event, fileName: string): string {
-  const date = new Date().toISOString().slice(0, 10);
+  const date = utcToday();
   return `${getResourceObjectPrefix(event)}/resources/${date}/${crypto.randomUUID()}-${sanitizeFileName(fileName)}`;
 }
 

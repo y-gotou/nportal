@@ -1,6 +1,5 @@
 import { createError } from "h3";
-
-const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+import { DATE_PATTERN } from "../../shared/utils/date.ts";
 
 // クエリパラメータの date を検証する。未指定なら undefined を返す。
 export function parseNewsDate(value: unknown): string | undefined {

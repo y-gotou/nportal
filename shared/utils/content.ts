@@ -1,4 +1,5 @@
 export const portalTitle = "N Portal";
+import { parseDateOnly } from "./date.ts";
 export const portalDescription =
   "社内AI勉強会の議事録、予定、資料、アンケートをまとめた軽量ポータルです。";
 
@@ -17,7 +18,7 @@ export function getTodayDate(now = new Date()) {
 }
 
 export function formatDisplayDate(date: string) {
-  const parsedDate = new Date(`${date}T00:00:00`);
+  const parsedDate = parseDateOnly(date);
   return Number.isNaN(parsedDate.getTime())
     ? date
     : displayDateFormatter.format(parsedDate);

@@ -1,5 +1,6 @@
 import { createError } from "h3";
 import type { D1DatabaseLike, Minutes, MinutesMeta, MinutesPayload } from "../../types/portal.ts";
+import { DATE_PATTERN } from "../../shared/utils/date.ts";
 
 interface MinutesRow {
   id: number;
@@ -40,7 +41,7 @@ export async function renderMarkdown(markdown: string): Promise<string> {
 }
 
 export function getMinutesSlugFromDate(date: string): string {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+  if (!DATE_PATTERN.test(date)) {
     throw createError({ statusCode: 400, statusMessage: "date must be YYYY-MM-DD" });
   }
 

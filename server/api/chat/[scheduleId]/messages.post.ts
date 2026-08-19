@@ -17,6 +17,7 @@ import {
   validateResourceFile,
 } from "~~/server/utils/upload";
 import { getChatJstToday, isChatReadOnly } from "#shared/utils/chat";
+import { utcToday } from "#shared/utils/date";
 
 export default defineEventHandler(async (event) => {
   const user = requireUser(event);
@@ -73,7 +74,7 @@ export default defineEventHandler(async (event) => {
       { allowZip: user.isAdmin === true },
     );
 
-    const date = new Date().toISOString().slice(0, 10);
+    const date = utcToday();
     const fileKey = `${getResourceObjectPrefix(event)}/chat/${date}/${crypto.randomUUID()}-${fileName}`;
 
     // multipart解析後のBufferはbyteOffset付きビューのことがあり、そのままではminiflareのR2 putが失敗する

@@ -43,6 +43,9 @@ export default defineNuxtConfig({
     tsConfig: {
       compilerOptions: { allowImportingTsExtensions: true },
     },
+    sharedTsConfig: {
+      compilerOptions: { allowImportingTsExtensions: true },
+    },
   },
   nitro: {
     preset: "cloudflare_pages",

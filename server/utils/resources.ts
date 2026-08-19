@@ -2,6 +2,8 @@ import { createError } from "h3";
 import type { D1DatabaseLike, ResourceItem } from "../../types/portal.ts";
 import { inferResourceType, isMarkdownFileName } from "./upload.ts";
 import { parsePositiveIntParam } from "./params.ts";
+import { parseStringArray } from "../../shared/utils/json.ts";
+import { utcToday } from "../../shared/utils/date.ts";
 
 export type ResourceSourceType = "url" | "file";
 
@@ -50,7 +52,7 @@ function toResourceItem(row: ResourceRow, user?: ResourceUser): ResourceItem {
     title: row.title,
     url: sourceType === "file" ? getResourceFileUrl(row.id, row.file_name) : row.url,
     type: row.type,
-    tags: parseTags(row.tags),
+    tags: parseStringArray(row.tags),
     date: row.date,
     presenter: row.presenter,
     relatedMinutesSlug: row.related_minutes_slug,
@@ -61,17 +63,6 @@ function toResourceItem(row: ResourceRow, user?: ResourceUser): ResourceItem {
     submittedBy: row.submitted_by,
     canEdit: canEditResource(row, user),
   };
-}
-
-function parseTags(value: string | null | undefined): string[] {
-  try {
-    const parsed = JSON.parse(value ?? "[]") as unknown;
-    return Array.isArray(parsed)
-      ? parsed.filter((item): item is string => typeof item === "string")
-      : [];
-  } catch {
-    return [];
-  }
 }
 
 function canEditResource(row: ResourceRow, user?: ResourceUser): boolean {
@@ -197,7 +188,7 @@ export async function createSubmittedResource(
   db: D1DatabaseLike,
   payload: ResourceMutationPayload,
 ): Promise<ResourceItem> {
-  const date = new Date().toISOString().slice(0, 10);
+  const date = utcToday();
   const url = payload.sourceType === "url" ? validateResourceUrl(payload.url) : "";
   const type = payload.sourceType === "url"
     ? inferResourceType({ url })

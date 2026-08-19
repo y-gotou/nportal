@@ -6,6 +6,7 @@ import type {
   NewsImpactAxis,
   NewsVoteValue,
 } from "../../types/portal.ts";
+import { parseStringArray } from "../../shared/utils/json.ts";
 
 // 掲載後の並び順: final_score = ai_score + VOTE_COEFFICIENT × (👍 − 👎)
 export const VOTE_COEFFICIENT = 4;
@@ -52,17 +53,6 @@ const ARTICLE_SELECT = `
   FROM news_articles a
   LEFT JOIN news_votes v ON v.article_id = a.id
 `;
-
-function parseStringArray(value: string | null | undefined): string[] {
-  try {
-    const parsed = JSON.parse(value ?? "[]") as unknown;
-    return Array.isArray(parsed)
-      ? parsed.filter((item): item is string => typeof item === "string")
-      : [];
-  } catch {
-    return [];
-  }
-}
 
 function parseGlossary(value: string | null | undefined): NewsGlossaryTerm[] {
   try {

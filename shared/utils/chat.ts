@@ -1,4 +1,5 @@
 export const MAX_CHAT_BODY_LENGTH = 2000;
+import { jstToday, parseD1Timestamp } from "./date.ts";
 
 // AI アシスタントの投稿者識別子(実在しないドメインで通常ユーザーと衝突しない)
 export const CHAT_AI_EMAIL = "ai-assistant@nportal.local";
@@ -64,7 +65,7 @@ export function isChatReadOnly(scheduleDate: string, today: string): boolean {
 
 // サーバー(Cloudflare Workers)はUTC動作のため、日本時間基準の「今日」を返す
 export function getChatJstToday(now = new Date()): string {
-  return new Date(now.getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  return jstToday(now.getTime());
 }
 
 export function isChatImageMimeType(mimeType: string | null | undefined): boolean {
@@ -100,7 +101,7 @@ export function splitChatBody(body: string): ChatBodyPart[] {
 
 // created_at(SQLiteのdatetime('now')=UTC)を日本時間のHH:MMで表示する
 export function formatChatTime(createdAt: string): string {
-  const date = new Date(`${createdAt.replace(" ", "T")}Z`);
+  const date = parseD1Timestamp(createdAt);
 
   if (Number.isNaN(date.getTime())) return "";
 

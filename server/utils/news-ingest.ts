@@ -1,10 +1,13 @@
 import { createError } from "h3";
 import type { D1DatabaseLike, NewsGlossaryTerm } from "../../types/portal.ts";
 import { NEWS_IMPACT_AXES } from "./news.ts";
+import { DATE_PATTERN, addUtcDays, jstToday } from "../../shared/utils/date.ts";
+
+// テストと ingest ハンドラーが参照する従来の公開 API を維持する
+export { jstToday };
 
 export const NEWS_CATEGORIES = ["プロダクト", "規制・リスク", "研究", "事例"];
 
-const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const TERM_MARKER_PATTERN = /\[\[([^\]]+)\]\]/g;
 // 記事の識別に関係しない計測用パラメータのみ除去する
 const TRACKING_PARAMS = /^(utm_|fbclid$|gclid$|mc_(cid|eid)$|ref$|ref_src$)/;
@@ -92,10 +95,6 @@ export function requireDate(value: unknown, field: string): string {
   const date = requireString(value, field, 10);
   if (!DATE_PATTERN.test(date)) invalid(`${field} must be in YYYY-MM-DD format.`);
   return date;
-}
-
-export function jstToday(now: number = Date.now()): string {
-  return new Date(now + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
 }
 
 // routine のクラウド環境は UTC で動くため、UTC 日付をそのまま書くと JST の前日になる。
@@ -211,9 +210,7 @@ export interface DigestResult {
 // 週次の選定窓は「実行日の 7 日前(前週木曜)以上、実行日より前」。
 // 週次は日次より先に実行されるため木曜の日次掲載分は窓に入らず、翌週のダイジェストが扱う。
 export function digestWindowStart(publishedDate: string): string {
-  const date = new Date(`${publishedDate}T00:00:00Z`);
-  date.setUTCDate(date.getUTCDate() - 7);
-  return date.toISOString().slice(0, 10);
+  return addUtcDays(publishedDate, -7);
 }
 
 // practice / learning は観点別のスコア目安レンジが低く、final_score 順だけでは毎週選から漏れるため最低枠を設ける
