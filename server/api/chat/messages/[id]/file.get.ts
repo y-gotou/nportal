@@ -1,5 +1,6 @@
 import { createError } from "h3";
 import { getDb } from "~~/server/utils/db";
+import { requireUser } from "~~/server/utils/auth";
 import { getChatMessageRow, parseChatId } from "~~/server/utils/chat";
 import { getResourcesBucket } from "~~/server/utils/r2";
 import {
@@ -8,10 +9,7 @@ import {
 } from "~~/server/utils/upload";
 
 export default defineEventHandler(async (event) => {
-  const user = event.context.user as { email: string } | undefined;
-  if (!user) {
-    throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
-  }
+  requireUser(event);
 
   const db = getDb(event);
   const messageId = parseChatId(event.context.params?.id, "messageId is invalid.");

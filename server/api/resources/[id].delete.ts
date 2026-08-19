@@ -1,5 +1,5 @@
-import { createError } from "h3";
 import { getDb } from "~~/server/utils/db";
+import { requireUser } from "~~/server/utils/auth";
 import { getResourcesBucket } from "~~/server/utils/r2";
 import {
   deleteResourceItem,
@@ -7,10 +7,7 @@ import {
 } from "~~/server/utils/resources";
 
 export default defineEventHandler(async (event) => {
-  const user = event.context.user as { email: string; isAdmin?: boolean } | undefined;
-  if (!user) {
-    throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
-  }
+  const user = requireUser(event);
 
   const id = parseResourceId(event.context.params?.id);
   const { fileKey, imageKeys } = await deleteResourceItem(getDb(event), id, user);

@@ -1,5 +1,6 @@
 import { createError, readBody } from "h3";
 import { getDb } from "~~/server/utils/db";
+import { requireUser } from "~~/server/utils/auth";
 import { createReport, parseReportType } from "~~/server/utils/reports";
 import type { CreateReportInput } from "~~/types/portal";
 
@@ -21,13 +22,7 @@ function requireTrimmedString(value: unknown, field: string): string {
 }
 
 export default defineEventHandler(async (event) => {
-  const user = event.context.user as { email: string } | undefined;
-  if (!user) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: "Unauthorized",
-    });
-  }
+  const user = requireUser(event);
 
   const body = await readBody<CreateReportBody>(event);
 

@@ -1,5 +1,6 @@
 import { createError, readBody } from "h3";
 import { getDb } from "~~/server/utils/db";
+import { requireUser } from "~~/server/utils/auth";
 import {
   addResponses,
   addSubmission,
@@ -17,13 +18,7 @@ interface SubmitSurveyBody {
 }
 
 export default defineEventHandler(async (event) => {
-  const user = event.context.user as { email: string } | undefined;
-  if (!user) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: "Unauthorized",
-    });
-  }
+  const user = requireUser(event);
 
   const body = await readBody<SubmitSurveyBody>(event);
 

@@ -1,5 +1,6 @@
 import { getQuery } from "h3";
 import { getDb } from "~~/server/utils/db";
+import { getUser } from "~~/server/utils/auth";
 import {
   getRequiredSurvey,
   getResponses,
@@ -14,7 +15,7 @@ export default defineEventHandler(async (event) => {
   );
 
   const db = getDb(event);
-  const user = event.context.user as { email: string; isAdmin?: boolean } | undefined;
+  const user = getUser(event);
   const survey = await getRequiredSurvey(db, surveyId, {
     includeDraft: user?.isAdmin === true,
   });

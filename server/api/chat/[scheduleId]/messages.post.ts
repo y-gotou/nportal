@@ -1,6 +1,7 @@
 import { createError, readMultipartFormData, setResponseStatus } from "h3";
 import type { ChatMessageKind } from "~~/types/portal";
 import { getDb } from "~~/server/utils/db";
+import { requireUser } from "~~/server/utils/auth";
 import {
   createChatMessage,
   getChatMessageRow,
@@ -17,10 +18,7 @@ import {
 import { getChatJstToday, isChatReadOnly } from "#shared/utils/chat";
 
 export default defineEventHandler(async (event) => {
-  const user = event.context.user as { email: string; isAdmin?: boolean } | undefined;
-  if (!user) {
-    throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
-  }
+  const user = requireUser(event);
 
   const db = getDb(event);
   const scheduleId = parseChatId(event.context.params?.scheduleId, "scheduleId is invalid.");

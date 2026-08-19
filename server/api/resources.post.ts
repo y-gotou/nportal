@@ -1,5 +1,6 @@
 import { createError, readMultipartFormData } from "h3";
 import { getDb } from "~~/server/utils/db";
+import { requireUser } from "~~/server/utils/auth";
 import { createResourceObjectKey, getResourcesBucket } from "~~/server/utils/r2";
 import {
   buildResourceContentDisposition,
@@ -35,10 +36,7 @@ function getImageParts(parts: Awaited<ReturnType<typeof readMultipartFormData>>)
 }
 
 export default defineEventHandler(async (event) => {
-  const user = event.context.user as { email: string; isAdmin?: boolean } | undefined;
-  if (!user) {
-    throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
-  }
+  const user = requireUser(event);
 
   const parts = await readMultipartFormData(event);
   if (!parts) {

@@ -1,5 +1,6 @@
 import { createError, readBody, setResponseStatus } from "h3";
 import { getDb } from "~~/server/utils/db";
+import { requireUser } from "~~/server/utils/auth";
 import {
   getChatMessageRow,
   getChatSchedule,
@@ -13,10 +14,7 @@ import { CHAT_AI_EMAIL, getChatJstToday, hasChatAiMention, isChatReadOnly } from
 // リクエスト中に同期実行する(LLM 生成は数分かかることがあるが I/O 待ちが主体)。
 // 返信自体は chat_messages に挿入されるため、表示は通常のポーリングで反映される。
 export default defineEventHandler(async (event) => {
-  const user = event.context.user as { email: string } | undefined;
-  if (!user) {
-    throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
-  }
+  requireUser(event);
 
   const db = getDb(event);
   const scheduleId = parseChatId(event.context.params?.scheduleId, "scheduleId is invalid.");

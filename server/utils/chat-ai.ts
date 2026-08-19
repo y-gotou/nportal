@@ -1,6 +1,7 @@
 import type { H3Event } from "h3";
 import type { ChatMessage, D1DatabaseLike } from "../../types/portal.ts";
 import { createChatMessage, listChatMessages } from "./chat.ts";
+import { getCloudflareEnv } from "./cloudflare.ts";
 import { llmFetch } from "./llm.ts";
 import {
   CHAT_AI_EMAIL,
@@ -134,15 +135,9 @@ export function extractChatCompletionText(payload: unknown): string | null {
   return typeof content === "string" && content.trim() ? content.trim() : null;
 }
 
-function getCloudflareEnv(event: H3Event): Record<string, string | undefined> | undefined {
-  return (
-    event.context.cloudflare as { env?: Record<string, string | undefined> } | undefined
-  )?.env;
-}
-
 // 使用モデル: LLM_CHAT_MODEL があればそれを、なければ /v1/models の先頭を使う
 async function resolveChatAiModel(event: H3Event): Promise<string | null> {
-  const configured = getCloudflareEnv(event)?.LLM_CHAT_MODEL?.trim();
+  const configured = getCloudflareEnv<Record<string, string>>(event).LLM_CHAT_MODEL?.trim();
   if (configured) return configured;
 
   const upstream = await llmFetch(event, "/v1/models");
@@ -213,7 +208,7 @@ async function maybeSearchWeb(
   history: ChatMessage[],
   today: string,
 ): Promise<ChatAiSearchResult[] | null> {
-  const apiKey = getCloudflareEnv(event)?.TAVILY_API_KEY?.trim();
+  const apiKey = getCloudflareEnv<Record<string, string>>(event).TAVILY_API_KEY?.trim();
   if (!apiKey) return null;
 
   try {

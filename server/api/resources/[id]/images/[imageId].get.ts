@@ -1,5 +1,6 @@
 import { createError } from "h3";
 import { getDb } from "~~/server/utils/db";
+import { requireUser } from "~~/server/utils/auth";
 import { getResourcesBucket } from "~~/server/utils/r2";
 import { buildResourceContentDisposition } from "~~/server/utils/upload";
 import {
@@ -8,10 +9,7 @@ import {
 } from "~~/server/utils/resources";
 
 export default defineEventHandler(async (event) => {
-  const user = event.context.user as { email: string } | undefined;
-  if (!user) {
-    throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
-  }
+  requireUser(event);
 
   const id = parseResourceId(event.context.params?.id);
   const imageId = parseResourceId(event.context.params?.imageId);

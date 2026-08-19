@@ -1,10 +1,9 @@
 import { createError, type H3Event } from "h3";
 import type { D1DatabaseLike } from "../../types/portal.ts";
+import { getCloudflareEnv } from "./cloudflare.ts";
 
 export function getDb(event: H3Event): D1DatabaseLike {
-  const db = (
-    event.context.cloudflare as { env?: { DB?: D1DatabaseLike } } | undefined
-  )?.env?.DB;
+  const db = getCloudflareEnv<{ DB: D1DatabaseLike }>(event).DB;
 
   if (!db) {
     throw createError({
