@@ -1,9 +1,9 @@
 import { createError } from "h3";
 import { getDb } from "~~/server/utils/db";
+import { getResourcesBucket } from "~~/server/utils/r2";
+import { buildResourceContentDisposition } from "~~/server/utils/upload";
 import {
-  buildResourceContentDisposition,
   getResourceImage,
-  getResourcesBucket,
   parseResourceId,
 } from "~~/server/utils/resources";
 

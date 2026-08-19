@@ -1,17 +1,18 @@
 import { createError, readMultipartFormData } from "h3";
 import { getDb } from "~~/server/utils/db";
+import { createResourceObjectKey, getResourcesBucket } from "~~/server/utils/r2";
 import {
   buildResourceContentDisposition,
-  createResourceObjectKey,
-  getEditableResourceRow,
-  getResourcesBucket,
-  normalizeResourceTags,
   normalizeResourceMimeType,
+  sanitizeFileName,
+  validateResourceFile,
+} from "~~/server/utils/upload";
+import {
+  getEditableResourceRow,
+  normalizeResourceTags,
   parseResourceId,
   requireResourceTitle,
-  sanitizeFileName,
   updateSubmittedResource,
-  validateResourceFile,
   validateResourceUrl,
 } from "~~/server/utils/resources";
 

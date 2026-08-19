@@ -1,11 +1,11 @@
 import { createError } from "h3";
 import { getDb } from "~~/server/utils/db";
 import { getChatMessageRow, parseChatId } from "~~/server/utils/chat";
+import { getResourcesBucket } from "~~/server/utils/r2";
 import {
   buildResourceContentDisposition,
-  getResourcesBucket,
   normalizeResourceMimeType,
-} from "~~/server/utils/resources";
+} from "~~/server/utils/upload";
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user as { email: string } | undefined;

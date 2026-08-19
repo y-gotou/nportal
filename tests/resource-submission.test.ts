@@ -4,13 +4,15 @@ import test from "node:test";
 import {
   MAX_RESOURCE_FILE_SIZE,
   buildResourceContentDisposition,
-  getResourceFileUrl,
   inferResourceType,
   isResourceImageFileName,
   normalizeResourceMimeType,
-  resolveMarkdownImageSources,
   sanitizeFileName,
   validateResourceFile,
+} from "../server/utils/upload.ts";
+import { resolveMarkdownImageSources } from "../server/utils/resource-markdown.ts";
+import {
+  getResourceFileUrl,
   validateResourceUrl,
 } from "../server/utils/resources.ts";
 import { renderMarkdown } from "../server/utils/minutes.ts";

@@ -1,9 +1,9 @@
 import { readBody } from "h3";
 import { getDb } from "~~/server/utils/db";
 import { assertAdmin } from "~~/server/utils/admin";
+import { getResourcesBucket } from "~~/server/utils/r2";
 import {
   getResourceRow,
-  getResourcesBucket,
   parseResourceId,
   updateResourceItem,
   type ResourcePayload,
