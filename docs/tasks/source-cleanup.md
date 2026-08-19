@@ -24,9 +24,9 @@
 | ④ | A1+A2 | 不要コード削除(`getMinutesDetailById`、admin/resources API 2本) | 完了 | refactor/source-cleanup-04-dead-code | #64 | check 通過(typecheck / build / tests 112 件全パス) |
 | ⑤ | B2〜B7+A3 | サーバー側共通化(requireUser / multipart / R2 ストリーム / ID パーサ / 設問 INSERT / 共有ユーティリティ)+ export 修飾整理 | 完了 | refactor/source-cleanup-05-server-dedup | #65 | check 通過(typecheck / build / tests 120 件全パス) |
 | ⑥ | E1 | `survey.ts` から `survey-response.ts` を分離 | 完了 | refactor/source-cleanup-06-survey-response | #66 | check 通過(typecheck / build / tests 120 件全パス) |
-| ⑦ | C1 | admin/surveys new/edit 共通化 + new.vue の validate バグ修正 | レビュー待ち | refactor/source-cleanup-07-survey-editor | #67 | check 通過(tests 126 件全パス)+ 実機確認済み |
-| ⑧ | C2+C3 | admin フォーム定型・ステータス表示の共通化(survey 配色統一含む) | レビュー待ち | refactor/source-cleanup-08-admin-form | — | check 通過(tests 126 件全パス)+ 実機確認済み |
-| ⑨ | E2+E3+D3 | SurveyForm / SiteHeader 分割、components ドメイン別再編 | 未着手 | — | — | — |
+| ⑦ | C1 | admin/surveys new/edit 共通化 + new.vue の validate バグ修正 | 完了 | refactor/source-cleanup-07-survey-editor | #67 | check 通過(tests 126 件全パス)+ 実機確認済み |
+| ⑧ | C2+C3 | admin フォーム定型・ステータス表示の共通化(survey 配色統一含む) | レビュー待ち | refactor/source-cleanup-08-admin-form | #68 | check 通過(tests 126 件全パス)+ 実機確認済み |
+| ⑨ | E2+E3+D3 | SurveyForm / SiteHeader 分割、components ドメイン別再編 | 作業中 | refactor/source-cleanup-09-components | — | — |
 | ⑩ | — | 統合ブランチ → main の最終 PR(本番反映) | 未着手 | refactor/source-cleanup | — | — |
 | — | C4 | 検索クエリ同期の共通化 | 見送り | — | — | — |
 
