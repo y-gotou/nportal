@@ -18,7 +18,7 @@
 
 | 順 | ID | 内容 | 状態 | ブランチ | PR | 検証 |
 |---|----|------|------|---------|----|------|
-| ① | B1 | `getDb` を `server/utils/db.ts` へ移設 | レビュー待ち | refactor/source-cleanup-01-db-util | — | check 通過(typecheck / build / tests 112 件全パス) |
+| ① | B1 | `getDb` を `server/utils/db.ts` へ移設 | レビュー待ち | refactor/source-cleanup-01-db-util | #61 | check 通過(typecheck / build / tests 112 件全パス) |
 | ② | D2 | `resources.ts` 分割(r2 / upload / markdown) | 未着手 | — | — | — |
 | ③ | D1+D5 | `utils/` → `shared/utils/` 移設、README・`.ts` 拡張子修正 | 未着手 | — | — | — |
 | ④ | A1+A2 | 不要コード削除(`getMinutesDetailById`、admin/resources API 2本) | 未着手 | — | — | — |
