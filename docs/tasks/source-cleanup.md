@@ -36,6 +36,6 @@
 - ②のブランチは①(getDb 移設)の変更に依存するため①から分岐。②の PR は #61 マージ後に作成する
 - ②の分割結果: resources.ts 653行 → resources.ts 411行 + upload.ts 154行 + r2.ts 59行 + resource-markdown.ts 35行。シンボル名は変更せず移動のみ
 - ⑦の実機確認(2026-08-19、ローカル dev): 新規作成でエラー表示→部分修正→再送信で該当エラーのみ解消(バグ修正確認)。作成・編集・保存・回答後の設問ロック(注意文表示・入力/追加ボタン disabled)・ロック中の基本情報更新・削除まで一連動作を確認。コンソールエラーなし。テストデータは削除済み
-- ⑧の判断事項: survey 配色の統一方向は「公開側の受付中=青」を正とし、admin の active バッジを緑→青に変更(draft=amber・closed=グレーは維持、公開側の見た目は不変)。ResourceSubmissionForm への useAdminForm 適用は公開ページ共用のため⑧では見送り
+- ⑧の判断事項: survey 配色の統一方向は「公開側の受付中=青」を正とし、admin の active バッジを緑→青に変更。下書きの amber 強調は admin 一覧のみ(highlightDraft オプション)とし、管理者が公開一覧で下書きを見た場合も従来どおりグレーを維持(レビュー指摘で修正)。ResourceSubmissionForm への useAdminForm 適用は公開ページ共用のため⑧では見送り
 - ⑧の実機確認(2026-08-19、ローカル dev): minutes/schedule の新規(検証エラー→作成)・編集(スラッグ表示・開催日 disabled・保存)・削除、admin/公開の survey バッジ(受付中=青に統一・下書き表示)、speaker 応募→バッジ(応募中=amber)→admin でステータス変更→公開側バッジ(発表予定=青)→削除、reports のラベル表示を確認。コンソールエラーなし。テストデータは削除済み
 - ⑤の判断事項: chat 添付が R2 メタデータを Content-Type に使わない従来挙動は streamR2Object の useObjectMetadata オプションで維持。401 メッセージは「Unauthorized」に統一(同意済みの挙動変更)。export された型の un-export は公開 API 面として見送り。shared 配下の .ts 拡張子 import のため nuxt.config に sharedTsConfig を追加

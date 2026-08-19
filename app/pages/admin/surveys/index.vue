@@ -76,7 +76,7 @@ useSeoMeta({ title: "アンケート管理" });
             <td class="px-4 py-3">
               <span
                 class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium"
-                :class="surveyStatusClass(survey.status)"
+                :class="surveyStatusClass(survey.status, { highlightDraft: true })"
               >
                 {{ getSurveyStatusLabel(survey.status) }}
               </span>

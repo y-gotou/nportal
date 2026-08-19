@@ -14,10 +14,16 @@ export function speakerStatusClass(status: SpeakerApplicationStatus): string {
   return "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400";
 }
 
-// アンケートステータスのバッジ配色(公開側・admin 共通。受付中は公開側の青に統一)
-export function surveyStatusClass(status: SurveyStatus): string {
-  if (status === "draft") return "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400";
+// アンケートステータスのバッジ配色(受付中は公開側の青に統一)。
+// 下書きの強調(amber)は admin 一覧のみで、公開側は従来どおり強調しない。
+export function surveyStatusClass(
+  status: SurveyStatus,
+  options: { highlightDraft?: boolean } = {},
+): string {
   if (status === "active") return "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400";
+  if (status === "draft" && options.highlightDraft) {
+    return "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400";
+  }
   return "bg-surface-hover text-muted";
 }
 
