@@ -7,7 +7,7 @@ import {
   MAX_CHAT_BODY_LENGTH,
   chatDisplayName,
   getChatJstToday,
-} from "../../utils/chat.ts";
+} from "../../shared/utils/chat.ts";
 
 // LLM に渡す直近メッセージ数
 export const CHAT_AI_CONTEXT_MESSAGES = 20;

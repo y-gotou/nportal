@@ -7,7 +7,7 @@ import {
   parseSurveySelectionAnswer,
   serializeSurveyAnswer,
   SURVEY_OTHER_OPTION_VALUE,
-} from "../utils/survey.ts";
+} from "../shared/utils/survey.ts";
 import type { Survey, SurveyResponse } from "../types/portal.ts";
 
 const survey: Survey = {

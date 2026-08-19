@@ -7,7 +7,7 @@ import type {
   SurveyResponse,
   SurveyResultBlock,
   SurveyStatus,
-} from "../types/portal";
+} from "../../types/portal.ts";
 
 export const SURVEY_OTHER_OPTION_VALUE = "__other__";
 export const SURVEY_OTHER_OPTION_LABEL = "その他";

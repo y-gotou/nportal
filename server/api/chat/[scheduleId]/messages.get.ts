@@ -9,7 +9,7 @@ import {
   listDeletedChatMessageIds,
   parseChatId,
 } from "~~/server/utils/chat";
-import { getChatJstToday, isChatReadOnly } from "~~/utils/chat";
+import { getChatJstToday, isChatReadOnly } from "#shared/utils/chat";
 
 export default defineEventHandler(async (event) => {
   const db = getDb(event);

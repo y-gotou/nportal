@@ -10,7 +10,7 @@ import {
   isChatEmoji,
   isChatImageMimeType,
   isChatStickerId,
-} from "../../utils/chat.ts";
+} from "../../shared/utils/chat.ts";
 
 export interface ChatMessageRow {
   id: number;

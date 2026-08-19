@@ -6,8 +6,8 @@ import type {
   ChatReaction,
   ChatRoomInfo,
 } from "~~/types/portal";
-import { hasChatAiMention } from "~~/utils/chat";
-import { formatDisplayDateTime } from "~~/utils/content";
+import { hasChatAiMention } from "#shared/utils/chat";
+import { formatDisplayDateTime } from "#shared/utils/content";
 import { useCurrentUser } from "~/composables/useCurrentUser";
 
 const props = defineProps<{

@@ -5,7 +5,7 @@ import {
   secondaryButtonClass,
   surfaceCardClass,
 } from "~/utils/ui";
-import { getSurveyStatusLabel } from "~~/utils/survey";
+import { getSurveyStatusLabel } from "#shared/utils/survey";
 
 const { data, error } = await useFetch<SurveysResponse>("/api/surveys");
 

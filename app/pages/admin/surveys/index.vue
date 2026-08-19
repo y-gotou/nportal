@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Survey, SurveyStatus, SurveysResponse } from "~~/types/portal";
-import { getSurveyStatusLabel } from "~~/utils/survey";
+import { getSurveyStatusLabel } from "#shared/utils/survey";
 
 definePageMeta({ layout: "admin" });
 await useAdminGuard();

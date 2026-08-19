@@ -14,7 +14,7 @@ import {
   sanitizeFileName,
   validateResourceFile,
 } from "~~/server/utils/upload";
-import { getChatJstToday, isChatReadOnly } from "~~/utils/chat";
+import { getChatJstToday, isChatReadOnly } from "#shared/utils/chat";
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user as { email: string; isAdmin?: boolean } | undefined;

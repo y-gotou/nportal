@@ -7,7 +7,7 @@ import {
   softDeleteChatMessage,
 } from "~~/server/utils/chat";
 import { getResourcesBucket } from "~~/server/utils/r2";
-import { getChatJstToday, isChatReadOnly } from "~~/utils/chat";
+import { getChatJstToday, isChatReadOnly } from "#shared/utils/chat";
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user as { email: string; isAdmin?: boolean } | undefined;

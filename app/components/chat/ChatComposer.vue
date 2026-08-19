@@ -8,7 +8,7 @@ import {
   chatDisplayName,
   chatStickerLabel,
   findChatAiMentionCandidate,
-} from "~~/utils/chat";
+} from "#shared/utils/chat";
 
 const props = defineProps<{
   sending: boolean;

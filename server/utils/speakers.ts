@@ -1,5 +1,5 @@
 import { createError } from "h3";
-import type { D1DatabaseLike, SpeakerApplication, SpeakerApplicationStatus } from "../../types/portal";
+import type { D1DatabaseLike, SpeakerApplication, SpeakerApplicationStatus } from "../../types/portal.ts";
 
 function parseStatus(value: string): SpeakerApplicationStatus {
   if (value === "pending" || value === "scheduled" || value === "done") {

@@ -10,7 +10,7 @@ import {
   formatDisplayDateTime,
   getTodayDate,
   portalDescription,
-} from "~~/utils/content";
+} from "#shared/utils/content";
 import {
   interactiveCardClass,
   primaryButtonClass,

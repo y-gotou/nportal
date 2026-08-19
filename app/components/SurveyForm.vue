@@ -10,7 +10,7 @@ import {
   serializeSurveyAnswer,
   SURVEY_OTHER_OPTION_LABEL,
   SURVEY_OTHER_OPTION_VALUE,
-} from "~~/utils/survey";
+} from "#shared/utils/survey";
 
 const props = defineProps<{
   survey: Survey;
