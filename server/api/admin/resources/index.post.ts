@@ -1,5 +1,5 @@
 import { readBody } from "h3";
-import { getDb } from "~~/server/utils/survey";
+import { getDb } from "~~/server/utils/db";
 import { assertAdmin } from "~~/server/utils/admin";
 import { createResourceItem, type ResourcePayload } from "~~/server/utils/resources";
 

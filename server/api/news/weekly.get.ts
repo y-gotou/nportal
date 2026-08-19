@@ -1,5 +1,5 @@
 import { createError, getQuery } from "h3";
-import { getDb } from "~~/server/utils/survey";
+import { getDb } from "~~/server/utils/db";
 import { getAdjacentDigestDates, getNewsDigest } from "~~/server/utils/news";
 import { parseNewsDate } from "~~/server/utils/news-date";
 

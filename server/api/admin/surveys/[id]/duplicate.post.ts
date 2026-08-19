@@ -1,4 +1,5 @@
-import { duplicateSurvey, getDb, parseSurveyId } from "~~/server/utils/survey";
+import { getDb } from "~~/server/utils/db";
+import { duplicateSurvey, parseSurveyId } from "~~/server/utils/survey";
 import { assertAdmin } from "~~/server/utils/admin";
 
 export default defineEventHandler(async (event) => {

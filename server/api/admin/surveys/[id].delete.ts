@@ -1,4 +1,4 @@
-import { getDb } from "~~/server/utils/survey";
+import { getDb } from "~~/server/utils/db";
 import { assertAdmin } from "~~/server/utils/admin";
 
 export default defineEventHandler(async (event) => {

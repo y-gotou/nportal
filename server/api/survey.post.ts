@@ -1,10 +1,10 @@
 import { createError, readBody } from "h3";
+import { getDb } from "~~/server/utils/db";
 import {
   addResponses,
   addSubmission,
   checkSubmission,
   deleteUserResponses,
-  getDb,
   getRequiredSurvey,
   parseSurveyId,
   touchSubmission,

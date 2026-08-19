@@ -1,5 +1,5 @@
 import { createError } from "h3";
-import { getDb } from "~~/server/utils/survey";
+import { getDb } from "~~/server/utils/db";
 import { renderMarkdown } from "~~/server/utils/minutes";
 import {
   getResourceItem,

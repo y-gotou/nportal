@@ -1,4 +1,4 @@
-import { getDb } from "~~/server/utils/survey";
+import { getDb } from "~~/server/utils/db";
 import { buildFeedbackSummary } from "~~/server/utils/news-feedback";
 
 export default defineEventHandler(async (event) => {

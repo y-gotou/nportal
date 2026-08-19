@@ -1,5 +1,5 @@
 import { readBody } from "h3";
-import { getDb } from "~~/server/utils/survey";
+import { getDb } from "~~/server/utils/db";
 import { assertAdmin } from "~~/server/utils/admin";
 import { createMinutes } from "~~/server/utils/minutes";
 import type { MinutesPayload } from "~~/types/portal";

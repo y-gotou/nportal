@@ -1,5 +1,5 @@
 import { assertAdmin } from "~~/server/utils/admin";
-import { getDb } from "~~/server/utils/survey";
+import { getDb } from "~~/server/utils/db";
 import { adminDeleteSpeakerApplication, parseSpeakerId } from "~~/server/utils/speakers";
 
 export default defineEventHandler(async (event) => {
