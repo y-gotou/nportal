@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { SpeakerApplication, SpeakersListResponse } from "~~/types/portal";
 import { primaryButtonClass, secondaryButtonClass, surfaceCardClass } from "~/utils/ui";
+import { isSpeakerFormDirty, type SpeakerFormValues } from "~/utils/speakers";
 import { useCurrentUser } from "~/composables/useCurrentUser";
 import { speakerStatusClass, speakerStatusLabel } from "~/utils/status";
 
@@ -26,12 +27,21 @@ const formDuration = ref<number | "">(15);
 const formNote = ref("");
 const formError = ref<string | null>(null);
 const isSubmitting = ref(false);
+const initialForm = ref<SpeakerFormValues>({ title: "", duration: 15, note: "" });
+
+const isFormDirty = computed(() =>
+  isSpeakerFormDirty(
+    { title: formTitle.value, duration: formDuration.value, note: formNote.value },
+    initialForm.value,
+  ),
+);
 
 function openCreateForm() {
   editingId.value = null;
   formTitle.value = "";
   formDuration.value = 15;
   formNote.value = "";
+  initialForm.value = { title: "", duration: 15, note: "" };
   formError.value = null;
   showForm.value = true;
 }
@@ -41,6 +51,7 @@ function openEditForm(app: SpeakerApplication) {
   formTitle.value = app.title;
   formDuration.value = app.duration;
   formNote.value = app.note ?? "";
+  initialForm.value = { title: app.title, duration: app.duration, note: app.note ?? "" };
   formError.value = null;
   showForm.value = true;
 }
@@ -48,6 +59,14 @@ function openEditForm(app: SpeakerApplication) {
 function closeForm() {
   showForm.value = false;
   formError.value = null;
+}
+
+function requestCloseForm() {
+  if (isFormDirty.value && !confirm("入力中の内容は保存されていません。閉じてもよろしいですか？")) {
+    return;
+  }
+
+  closeForm();
 }
 
 async function submitForm() {
@@ -129,7 +148,7 @@ useSeoMeta({
       <div
         v-if="showForm"
         class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4"
-        @click.self="closeForm"
+        @click.self="requestCloseForm"
       >
         <div class="w-full max-w-lg rounded-2xl bg-surface p-6 shadow-xl">
           <h2 class="text-lg font-bold text-foreground">
@@ -186,7 +205,7 @@ useSeoMeta({
               <button
                 type="button"
                 :class="secondaryButtonClass"
-                @click="closeForm"
+                @click="requestCloseForm"
               >
                 キャンセル
               </button>
