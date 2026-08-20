@@ -1,43 +1,26 @@
 import { createError, readMultipartFormData } from "h3";
-import { getDb } from "~~/server/utils/survey";
+import { getDb } from "~~/server/utils/db";
+import { getFilePart, getFileParts, getTextField } from "~~/server/utils/multipart";
+import { requireUser } from "~~/server/utils/auth";
+import { createResourceObjectKey, getResourcesBucket } from "~~/server/utils/r2";
 import {
   buildResourceContentDisposition,
-  createResourceImage,
-  createResourceObjectKey,
-  createSubmittedResource,
-  getResourcesBucket,
   isMarkdownFileName,
   isResourceImageFileName,
-  normalizeResourceTags,
   normalizeResourceMimeType,
-  requireResourceTitle,
   sanitizeFileName,
   validateResourceFile,
+} from "~~/server/utils/upload";
+import {
+  createResourceImage,
+  createSubmittedResource,
+  normalizeResourceTags,
+  requireResourceTitle,
   validateResourceUrl,
 } from "~~/server/utils/resources";
 
-function getTextField(parts: Awaited<ReturnType<typeof readMultipartFormData>>, name: string): string {
-  const part = parts?.find((item) => item.name === name && !item.filename);
-  return part?.data.toString("utf8").trim() ?? "";
-}
-
-function getTags(value: string): string[] {
-  return normalizeResourceTags(value.split(","));
-}
-
-function getFilePart(parts: Awaited<ReturnType<typeof readMultipartFormData>>) {
-  return parts?.find((item) => item.name === "file" && item.filename && item.data.byteLength > 0);
-}
-
-function getImageParts(parts: Awaited<ReturnType<typeof readMultipartFormData>>) {
-  return parts?.filter((item) => item.name === "images" && item.filename && item.data.byteLength > 0) ?? [];
-}
-
 export default defineEventHandler(async (event) => {
-  const user = event.context.user as { email: string; isAdmin?: boolean } | undefined;
-  if (!user) {
-    throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
-  }
+  const user = requireUser(event);
 
   const parts = await readMultipartFormData(event);
   if (!parts) {
@@ -54,7 +37,7 @@ export default defineEventHandler(async (event) => {
 
   const common = {
     title,
-    tags: getTags(getTextField(parts, "tags")),
+    tags: normalizeResourceTags(getTextField(parts, "tags").split(",")),
     relatedMinutesSlug: getTextField(parts, "relatedMinutesSlug") || null,
     submittedBy: user.email,
   };
@@ -74,7 +57,7 @@ export default defineEventHandler(async (event) => {
   const size = file?.data.byteLength ?? 0;
   validateResourceFile({ fileName, size, mimeType: submittedMimeType }, { allowZip: user.isAdmin === true });
 
-  const imageParts = getImageParts(parts);
+  const imageParts = getFileParts(parts, "images");
   if (imageParts.length > 0 && !isMarkdownFileName(fileName)) {
     throw createError({ statusCode: 400, statusMessage: "images can only be attached to a markdown file." });
   }

@@ -1,21 +1,16 @@
 <script setup lang="ts">
-import type { SurveyStatus, SurveysResponse } from "~~/types/portal";
+import type { SurveysResponse } from "~~/types/portal";
 import {
   primaryButtonClass,
   secondaryButtonClass,
   surfaceCardClass,
 } from "~/utils/ui";
-import { getSurveyStatusLabel } from "~~/utils/survey";
+import { getSurveyStatusLabel } from "#shared/utils/survey";
+import { surveyStatusClass } from "~/utils/status";
 
 const { data, error } = await useFetch<SurveysResponse>("/api/surveys");
 
 const surveys = computed(() => data.value?.surveys ?? []);
-
-function getSurveyStatusClass(status: SurveyStatus) {
-  return status === "active"
-    ? "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
-    : "bg-surface-hover text-muted";
-}
 
 useSeoMeta({
   title: "アンケート",
@@ -50,7 +45,7 @@ useSeoMeta({
               </h2>
               <span
                 class="shrink-0 rounded-full px-2.5 py-1 text-xs font-medium"
-                :class="getSurveyStatusClass(survey.status)"
+                :class="surveyStatusClass(survey.status)"
               >
                 {{ getSurveyStatusLabel(survey.status) }}
               </span>

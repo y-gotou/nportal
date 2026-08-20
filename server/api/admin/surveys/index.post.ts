@@ -1,20 +1,18 @@
 import { readBody } from "h3";
-import { getDb, parseSurveyStatus } from "~~/server/utils/survey";
+import { getDb } from "~~/server/utils/db";
+import {
+  insertSurveyQuestions,
+  parseSurveyStatus,
+  type SurveyQuestionInput,
+} from "~~/server/utils/survey";
 import { assertAdmin } from "~~/server/utils/admin";
-import type { SurveyQuestionType, SurveyStatus } from "~~/types/portal";
-
-interface QuestionInput {
-  questionText: string;
-  questionType: SurveyQuestionType;
-  options: string[];
-  allowOtherText?: boolean;
-}
+import type { SurveyStatus } from "~~/types/portal";
 
 interface CreateSurveyBody {
   title?: string;
   description?: string;
   status?: SurveyStatus;
-  questions?: QuestionInput[];
+  questions?: SurveyQuestionInput[];
 }
 
 export default defineEventHandler(async (event) => {
@@ -52,24 +50,7 @@ export default defineEventHandler(async (event) => {
   const surveyId = surveyResult.id;
 
   // 設問を一括挿入
-  const questions = body.questions ?? [];
-  if (questions.length > 0) {
-    const stmt = db.prepare(
-      "INSERT INTO questions (survey_id, question_text, question_type, options, allow_other_text, sort_order) VALUES (?, ?, ?, ?, ?, ?)",
-    );
-    await db.batch(
-      questions.map((q, i) =>
-        stmt.bind(
-          surveyId,
-          q.questionText,
-          q.questionType,
-          JSON.stringify(q.options ?? []),
-          q.allowOtherText ? 1 : 0,
-          i,
-        ),
-      ),
-    );
-  }
+  await insertSurveyQuestions(db, surveyId, body.questions ?? []);
 
   return { surveyId };
 });

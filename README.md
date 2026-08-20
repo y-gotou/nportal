@@ -80,23 +80,20 @@ npm run db:schema:preview # Preview D1 にスキーマのみ適用
 ```text
 app/
   components/   UI コンポーネント
+  composables/  クライアント共有ロジック
   layouts/      共通レイアウト
   pages/        Nuxt ページ
-  utils/        静的コンテンツ参照ユーティリティ
-content/
-  minutes/      元の議事録 Markdown
-  resources.json
-  schedule.json
+  utils/        表示用ユーティリティ(ラベル・配色・更新履歴データ)
 db/
   schema.sql    D1 スキーマ
   seed.sql      D1 初期データ(ローカル専用・既存データを削除して投入)
-generated/
-  minutes.json  build 時に生成される議事録 JSON
-scripts/
-  build-minutes.mjs
+scripts/        ニュース収集 routine・D1 実行スクリプト
 server/
   api/          Survey API・LLM プロキシほか
   utils/        D1 アクセス・LLM 転送
+shared/
+  utils/        app と server の双方から使う純粋ユーティリティ
+tests/          node:test によるユニットテスト
 types/
   portal.ts     共有型
 wrangler.example.jsonc  Pages/D1/R2 設定例
@@ -126,5 +123,4 @@ wrangler.example.jsonc  Pages/D1/R2 設定例
 
 ## メモ
 
-- `generated/minutes.json` は生成物なので commit しません。
 - 旧 `ai-meeting` は参照元としてのみ使い、切り替え後に削除する前提です。

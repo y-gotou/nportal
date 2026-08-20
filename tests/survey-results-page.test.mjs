@@ -4,7 +4,7 @@ import test from "node:test";
 
 test("survey results component preserves line breaks for free-text answers", async () => {
   const component = await readFile(
-    new URL("../app/components/SurveyResults.vue", import.meta.url),
+    new URL("../app/components/survey/SurveyResults.vue", import.meta.url),
     "utf8",
   );
 

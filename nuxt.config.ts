@@ -38,9 +38,12 @@ export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss()],
   },
-  // server/utils から共有ユーティリティ(utils/chat.ts)を .ts 拡張子付きで import するため
+  // server/utils から共有ユーティリティ(shared/utils/chat.ts)を .ts 拡張子付きで import するため
   typescript: {
     tsConfig: {
+      compilerOptions: { allowImportingTsExtensions: true },
+    },
+    sharedTsConfig: {
       compilerOptions: { allowImportingTsExtensions: true },
     },
   },

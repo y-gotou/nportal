@@ -1,42 +1,21 @@
-import { createError, readBody } from "h3";
-import { getDb } from "~~/server/utils/survey";
-import { parseSpeakerId, updateSpeakerApplication } from "~~/server/utils/speakers";
-
-interface UpdateSpeakerBody {
-  title?: string;
-  duration?: number;
-  note?: string | null;
-}
+import { readBody } from "h3";
+import { getDb } from "~~/server/utils/db";
+import { requireUser } from "~~/server/utils/auth";
+import {
+  parseSpeakerApplicationBody,
+  parseSpeakerId,
+  updateSpeakerApplication,
+  type SpeakerApplicationBody,
+} from "~~/server/utils/speakers";
 
 export default defineEventHandler(async (event) => {
-  const user = event.context.user as { email: string } | undefined;
-  if (!user) {
-    throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
-  }
+  const user = requireUser(event);
 
   const id = parseSpeakerId(event.context.params?.id);
-  const body = await readBody<UpdateSpeakerBody>(event);
-
-  if (!body.title || typeof body.title !== "string" || body.title.trim() === "") {
-    throw createError({ statusCode: 400, statusMessage: "title is required." });
-  }
-
-  const duration = Number(body.duration);
-  if (!Number.isInteger(duration) || duration < 1) {
-    throw createError({ statusCode: 400, statusMessage: "duration must be a positive integer." });
-  }
+  const data = parseSpeakerApplicationBody(await readBody<SpeakerApplicationBody>(event));
 
   const db = getDb(event);
-  const application = await updateSpeakerApplication(
-    db,
-    id,
-    {
-      title: body.title.trim(),
-      duration,
-      note: typeof body.note === "string" ? body.note.trim() || null : null,
-    },
-    user.email,
-  );
+  const application = await updateSpeakerApplication(db, id, data, user.email);
 
   return { application };
 });

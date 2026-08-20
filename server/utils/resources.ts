@@ -1,7 +1,9 @@
-import { createError, type H3Event } from "h3";
+import { createError } from "h3";
 import type { D1DatabaseLike, ResourceItem } from "../../types/portal.ts";
-
-export const MAX_RESOURCE_FILE_SIZE = 50 * 1024 * 1024;
+import { inferResourceType, isMarkdownFileName } from "./upload.ts";
+import { parsePositiveIntParam } from "./params.ts";
+import { parseStringArray } from "../../shared/utils/json.ts";
+import { utcToday } from "../../shared/utils/date.ts";
 
 export type ResourceSourceType = "url" | "file";
 
@@ -36,134 +38,10 @@ export interface ResourceUser {
   isAdmin?: boolean;
 }
 
-export interface R2ObjectLike {
-  body: ReadableStream;
-  httpMetadata?: {
-    contentType?: string;
-    contentDisposition?: string;
-  };
-  writeHttpMetadata?: (headers: Headers) => void;
-}
-
-export interface R2BucketLike {
-  put(
-    key: string,
-    value: ArrayBuffer | ArrayBufferView | Blob | ReadableStream | string | null,
-    options?: {
-      httpMetadata?: {
-        contentType?: string;
-        contentDisposition?: string;
-      };
-      customMetadata?: Record<string, string>;
-    },
-  ): Promise<unknown>;
-  get(key: string): Promise<R2ObjectLike | null>;
-  delete(key: string): Promise<void>;
-}
-
-const RESOURCE_TYPE_BY_EXTENSION: Record<string, string> = {
-  pdf: "PDF",
-  ppt: "PowerPoint",
-  pptx: "PowerPoint",
-  doc: "Word",
-  docx: "Word",
-  xls: "Excel",
-  xlsx: "Excel",
-  csv: "CSV",
-  txt: "Text",
-  md: "Markdown",
-  html: "HTML",
-  png: "Image",
-  jpg: "Image",
-  jpeg: "Image",
-  gif: "Image",
-  webp: "Image",
-  zip: "ZIP",
-};
-
-const MIME_TYPES_BY_EXTENSION: Record<string, string[]> = {
-  pdf: ["application/pdf"],
-  ppt: ["application/vnd.ms-powerpoint", "application/octet-stream"],
-  pptx: ["application/vnd.openxmlformats-officedocument.presentationml.presentation", "application/octet-stream"],
-  doc: ["application/msword", "application/octet-stream"],
-  docx: ["application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/octet-stream"],
-  xls: ["application/vnd.ms-excel", "application/octet-stream"],
-  xlsx: ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/octet-stream"],
-  csv: ["text/csv", "application/csv", "application/vnd.ms-excel", "text/plain"],
-  txt: ["text/plain"],
-  md: ["text/markdown", "text/plain", "application/octet-stream"],
-  html: ["text/html", "application/octet-stream"],
-  png: ["image/png"],
-  jpg: ["image/jpeg"],
-  jpeg: ["image/jpeg"],
-  gif: ["image/gif"],
-  webp: ["image/webp"],
-  zip: ["application/zip", "application/x-zip-compressed", "application/octet-stream"],
-};
-
-const RESOURCE_IMAGE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "gif", "webp"]);
-
-function getBaseMimeType(value: string | null | undefined): string {
-  return value?.split(";")[0]?.trim().toLowerCase() ?? "";
-}
-
-export function isResourceImageFileName(fileName: string | null | undefined): boolean {
-  return RESOURCE_IMAGE_EXTENSIONS.has(getFileExtension(fileName ?? ""));
-}
-
-export function isMarkdownFileName(fileName: string | null | undefined): boolean {
-  return getFileExtension(fileName ?? "") === "md";
-}
-
-export function isHtmlFileName(fileName: string | null | undefined): boolean {
-  return getFileExtension(fileName ?? "") === "html";
-}
-
-export function normalizeResourceMimeType(fileName: string, mimeType?: string | null): string {
-  if (isMarkdownFileName(fileName)) {
-    return "text/markdown; charset=utf-8";
-  }
-
-  return mimeType?.trim() || "application/octet-stream";
-}
-
 export function getResourceFileUrl(resourceId: number, fileName?: string | null): string {
   return isMarkdownFileName(fileName)
     ? `/resources/${resourceId}`
     : `/api/resources/${resourceId}/file`;
-}
-
-export function getResourceImageUrl(resourceId: number, imageId: number): string {
-  return `/api/resources/${resourceId}/images/${imageId}`;
-}
-
-function normalizeImageRefName(value: string): string {
-  const basename = value.replace(/&amp;/g, "&").split("/").pop() ?? "";
-  let decoded = basename;
-  try {
-    decoded = decodeURIComponent(basename);
-  } catch {
-    // percent-decode できない参照は原文のまま照合する
-  }
-  return sanitizeFileName(decoded).toLowerCase();
-}
-
-export function resolveMarkdownImageSources(
-  html: string,
-  resourceId: number,
-  images: Pick<ResourceImageRow, "id" | "file_name">[],
-): string {
-  if (images.length === 0) return html;
-
-  const urlByName = new Map(
-    images.map((image) => [image.file_name.toLowerCase(), getResourceImageUrl(resourceId, image.id)]),
-  );
-
-  return html.replace(/(<img\b[^>]*\bsrc=")([^"]*)(")/g, (match, before, src, after) => {
-    if (/^([a-z][a-z0-9+.-]*:|[/#?])/i.test(src)) return match;
-    const url = urlByName.get(normalizeImageRefName(src));
-    return url ? `${before}${url}${after}` : match;
-  });
 }
 
 function toResourceItem(row: ResourceRow, user?: ResourceUser): ResourceItem {
@@ -174,7 +52,7 @@ function toResourceItem(row: ResourceRow, user?: ResourceUser): ResourceItem {
     title: row.title,
     url: sourceType === "file" ? getResourceFileUrl(row.id, row.file_name) : row.url,
     type: row.type,
-    tags: parseTags(row.tags),
+    tags: parseStringArray(row.tags),
     date: row.date,
     presenter: row.presenter,
     relatedMinutesSlug: row.related_minutes_slug,
@@ -187,30 +65,13 @@ function toResourceItem(row: ResourceRow, user?: ResourceUser): ResourceItem {
   };
 }
 
-function parseTags(value: string | null | undefined): string[] {
-  try {
-    const parsed = JSON.parse(value ?? "[]") as unknown;
-    return Array.isArray(parsed)
-      ? parsed.filter((item): item is string => typeof item === "string")
-      : [];
-  } catch {
-    return [];
-  }
-}
-
 function canEditResource(row: ResourceRow, user?: ResourceUser): boolean {
   if (!user) return false;
   return user.isAdmin === true || row.submitted_by === user.email;
 }
 
 export function parseResourceId(value: unknown): number {
-  const id = Number(value);
-
-  if (!Number.isInteger(id) || id < 1) {
-    throw createError({ statusCode: 400, statusMessage: "Invalid resource ID." });
-  }
-
-  return id;
+  return parsePositiveIntParam(value, "Invalid resource ID.");
 }
 
 export function normalizeResourceTags(value: unknown): string[] {
@@ -247,123 +108,6 @@ export function validateResourceUrl(value: unknown): string {
   } catch {
     throw createError({ statusCode: 400, statusMessage: "url must be http or https." });
   }
-}
-
-export function sanitizeFileName(value: string | undefined): string {
-  const name = (value ?? "resource")
-    .normalize("NFC")
-    .split(/[\\/]/)
-    .pop()
-    ?.replace(/[\u0000-\u001f\u007f]/g, "")
-    .replace(/[^\p{L}\p{N} .()+,@_-]/gu, "_")
-    .replace(/\s+/g, " ")
-    .trim();
-
-  return (name || "resource").slice(0, 180);
-}
-
-function encodeContentDispositionValue(value: string): string {
-  return encodeURIComponent(value)
-    .replace(/['()*]/g, (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`);
-}
-
-function buildAsciiFileNameFallback(fileName: string): string {
-  const fallback = fileName
-    .replace(/[^\x20-\x7e]/g, "_")
-    .replace(/["\\]/g, "")
-    .replace(/[^\w .()+,@-]/g, "_")
-    .replace(/\s+/g, " ")
-    .trim();
-
-  return (fallback || "resource").slice(0, 180);
-}
-
-export function buildResourceContentDisposition(fileName: string | null | undefined): string {
-  const safeName = sanitizeFileName(fileName ?? "resource");
-  const dispositionType = isHtmlFileName(safeName) ? "attachment" : "inline";
-  return `${dispositionType}; filename="${buildAsciiFileNameFallback(safeName)}"; filename*=UTF-8''${encodeContentDispositionValue(safeName)}`;
-}
-
-export function getFileExtension(fileName: string): string {
-  const match = /\.([^.]+)$/.exec(fileName.toLowerCase());
-  return match?.[1] ?? "";
-}
-
-export function inferResourceType(input: { fileName?: string | null; url?: string | null }): string {
-  if (input.fileName) {
-    const extension = getFileExtension(input.fileName);
-    return RESOURCE_TYPE_BY_EXTENSION[extension] ?? "File";
-  }
-
-  if (input.url) {
-    return "URL";
-  }
-
-  return "File";
-}
-
-export function validateResourceFile(
-  file: { fileName: string; size: number; mimeType?: string | null },
-  options: { allowZip?: boolean } = {},
-) {
-  if (file.size < 1) {
-    throw createError({ statusCode: 400, statusMessage: "file is empty." });
-  }
-
-  if (file.size > MAX_RESOURCE_FILE_SIZE) {
-    throw createError({ statusCode: 413, statusMessage: "file exceeds the 50MB limit." });
-  }
-
-  const extension = getFileExtension(file.fileName);
-  const allowedMimes = MIME_TYPES_BY_EXTENSION[extension];
-
-  if (!allowedMimes) {
-    throw createError({ statusCode: 400, statusMessage: "file extension is not allowed." });
-  }
-
-  if (extension === "zip" && options.allowZip !== true) {
-    throw createError({
-      statusCode: 403,
-      statusMessage: "zip files can only be submitted by administrators.",
-    });
-  }
-
-  const mimeType = getBaseMimeType(file.mimeType);
-  if (mimeType && !allowedMimes.includes(mimeType)) {
-    throw createError({ statusCode: 400, statusMessage: "file type is not allowed." });
-  }
-}
-
-export function getResourceObjectPrefix(event: H3Event): string {
-  const env = (
-    event.context.cloudflare as { env?: Record<string, unknown> } | undefined
-  )?.env;
-
-  const prefix = typeof env?.RESOURCE_OBJECT_PREFIX === "string"
-    ? env.RESOURCE_OBJECT_PREFIX.trim()
-    : "";
-
-  return prefix || "local";
-}
-
-export function createResourceObjectKey(event: H3Event, fileName: string): string {
-  const date = new Date().toISOString().slice(0, 10);
-  return `${getResourceObjectPrefix(event)}/resources/${date}/${crypto.randomUUID()}-${sanitizeFileName(fileName)}`;
-}
-
-export function getResourcesBucket(event: H3Event): R2BucketLike {
-  const bucket = (
-    event.context.cloudflare as { env?: { RESOURCES_BUCKET?: R2BucketLike } } | undefined
-  )?.env?.RESOURCES_BUCKET;
-
-  if (!bucket) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: "Cloudflare R2 binding `RESOURCES_BUCKET` is not configured.",
-    });
-  }
-
-  return bucket;
 }
 
 export interface ListResourcesOptions {
@@ -427,17 +171,6 @@ export async function getEditableResourceRow(
   return row;
 }
 
-export interface ResourcePayload {
-  title: string;
-  url: string;
-  type: string;
-  tags: string[];
-  date: string;
-  presenter?: string | null;
-  relatedMinutesSlug?: string | null;
-  submittedBy?: string | null;
-}
-
 export interface ResourceMutationPayload {
   title: string;
   tags: string[];
@@ -451,39 +184,11 @@ export interface ResourceMutationPayload {
   mimeType?: string | null;
 }
 
-export async function createResourceItem(
-  db: D1DatabaseLike,
-  payload: ResourcePayload,
-): Promise<ResourceItem> {
-  const result = await db
-    .prepare(
-      `INSERT INTO resources (title, url, type, tags, date, presenter, related_minutes_slug, source_type, submitted_by)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 'url', ?)
-       RETURNING id`,
-    )
-    .bind(
-      payload.title,
-      payload.url,
-      payload.type,
-      JSON.stringify(payload.tags),
-      payload.date,
-      payload.presenter ?? null,
-      payload.relatedMinutesSlug ?? null,
-      payload.submittedBy ?? null,
-    )
-    .first<{ id: number }>();
-
-  if (!result) throw createError({ statusCode: 500, statusMessage: "Failed to create resource" });
-  const created = await getResourceItem(db, result.id);
-  if (!created) throw createError({ statusCode: 500, statusMessage: "Failed to create resource" });
-  return created;
-}
-
 export async function createSubmittedResource(
   db: D1DatabaseLike,
   payload: ResourceMutationPayload,
 ): Promise<ResourceItem> {
-  const date = new Date().toISOString().slice(0, 10);
+  const date = utcToday();
   const url = payload.sourceType === "url" ? validateResourceUrl(payload.url) : "";
   const type = payload.sourceType === "url"
     ? inferResourceType({ url })
@@ -521,35 +226,6 @@ export async function createSubmittedResource(
   });
   if (!created) throw createError({ statusCode: 500, statusMessage: "Failed to create resource." });
   return created;
-}
-
-export async function updateResourceItem(
-  db: D1DatabaseLike,
-  id: number,
-  payload: ResourcePayload,
-): Promise<ResourceItem> {
-  await db
-    .prepare(
-      `UPDATE resources
-       SET title = ?, url = ?, type = ?, tags = ?, date = ?, presenter = ?, related_minutes_slug = ?, source_type = 'url',
-           file_key = NULL, file_name = NULL, file_size = NULL, mime_type = NULL, updated_at = datetime('now')
-       WHERE id = ?`,
-    )
-    .bind(
-      payload.title,
-      payload.url,
-      payload.type,
-      JSON.stringify(payload.tags),
-      payload.date,
-      payload.presenter ?? null,
-      payload.relatedMinutesSlug ?? null,
-      id,
-    )
-    .first();
-
-  const updated = await getResourceItem(db, id);
-  if (!updated) throw createError({ statusCode: 404, statusMessage: "Resource not found" });
-  return updated;
 }
 
 export async function updateSubmittedResource(

@@ -1,12 +1,12 @@
-import { createError, type H3Event } from "h3";
+import { createError } from "h3";
 import type {
   D1DatabaseLike,
   Survey,
-  SurveyAnswerInput,
   SurveyQuestion,
   SurveyStatus,
-  SurveyResponse,
 } from "../../types/portal.ts";
+import { parsePositiveIntParam } from "./params.ts";
+import { parseStringArray } from "../../shared/utils/json.ts";
 
 interface SurveyRow {
   id: number;
@@ -31,42 +31,16 @@ interface QuestionRow {
   sort_order: number;
 }
 
-interface ResponseRow {
-  question_id: number;
-  answer: string;
-  submitted_at: string;
-}
-
 interface SubmissionRow {
   survey_id: number;
   user_email: string;
-}
-
-function parseSurveyOptions(value: string | null | undefined) {
-  try {
-    const parsed = JSON.parse(value ?? "[]") as unknown;
-    return Array.isArray(parsed)
-      ? parsed.filter((item): item is string => typeof item === "string")
-      : [];
-  } catch {
-    return [];
-  }
 }
 
 export function parseSurveyId(
   value: unknown,
   message = "surveyId is required.",
 ): number {
-  const surveyId = Number(value);
-
-  if (!Number.isInteger(surveyId) || surveyId < 1) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: message,
-    });
-  }
-
-  return surveyId;
+  return parsePositiveIntParam(value, message);
 }
 
 export function parseSurveyStatus(
@@ -100,24 +74,9 @@ function toSurveyQuestion(question: QuestionRow): SurveyQuestion {
     id: question.id,
     questionText: question.question_text,
     questionType: question.question_type,
-    options: parseSurveyOptions(question.options),
+    options: parseStringArray(question.options),
     allowOtherText: question.allow_other_text === 1,
   };
-}
-
-export function getDb(event: H3Event): D1DatabaseLike {
-  const db = (
-    event.context.cloudflare as { env?: { DB?: D1DatabaseLike } } | undefined
-  )?.env?.DB;
-
-  if (!db) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: "Cloudflare D1 binding `DB` is not configured.",
-    });
-  }
-
-  return db;
 }
 
 function toSurvey(
@@ -255,6 +214,57 @@ export async function getSurvey(
   return toSurvey(surveyRow, questionRows, responseCountBySurveyId.get(id) ?? 0);
 }
 
+export interface SurveyQuestionInput {
+  questionText: string;
+  questionType: SurveyQuestion["questionType"];
+  // 選択肢の配列。DB の JSON 文字列をそのまま渡すことも可
+  options: string[] | string;
+  allowOtherText?: boolean | number;
+}
+
+// 設問を sort_order 付きで一括挿入する
+export async function insertSurveyQuestions(
+  db: D1DatabaseLike,
+  surveyId: number,
+  questions: SurveyQuestionInput[],
+): Promise<void> {
+  if (questions.length === 0) return;
+
+  const statement = db.prepare(
+    "INSERT INTO questions (survey_id, question_text, question_type, options, allow_other_text, sort_order) VALUES (?, ?, ?, ?, ?, ?)",
+  );
+  await db.batch(
+    questions.map((question, index) =>
+      statement.bind(
+        surveyId,
+        question.questionText,
+        question.questionType,
+        typeof question.options === "string"
+          ? question.options
+          : JSON.stringify(question.options ?? []),
+        question.allowOtherText ? 1 : 0,
+        index,
+      ),
+    ),
+  );
+}
+
+// アンケート配下の設問に紐づく回答をすべて削除する
+export async function deleteSurveyResponses(
+  db: D1DatabaseLike,
+  surveyId: number,
+): Promise<void> {
+  const { results } = await db
+    .prepare("SELECT id FROM questions WHERE survey_id = ?")
+    .bind(surveyId)
+    .all<{ id: number }>();
+
+  if (results.length === 0) return;
+
+  const statement = db.prepare("DELETE FROM responses WHERE question_id = ?");
+  await db.batch(results.map((question) => statement.bind(question.id)));
+}
+
 export async function duplicateSurvey(
   db: D1DatabaseLike,
   sourceSurveyId: number,
@@ -292,23 +302,16 @@ export async function duplicateSurvey(
     });
   }
 
-  if (questionRows.length > 0) {
-    const statement = db.prepare(
-      "INSERT INTO questions (survey_id, question_text, question_type, options, allow_other_text, sort_order) VALUES (?, ?, ?, ?, ?, ?)",
-    );
-    await db.batch(
-      questionRows.map((question, index) =>
-        statement.bind(
-          created.id,
-          question.question_text,
-          question.question_type,
-          question.options,
-          question.allow_other_text,
-          index,
-        ),
-      ),
-    );
-  }
+  await insertSurveyQuestions(
+    db,
+    created.id,
+    questionRows.map((question) => ({
+      questionText: question.question_text,
+      questionType: question.question_type,
+      options: question.options,
+      allowOtherText: question.allow_other_text,
+    })),
+  );
 
   return created.id;
 }
@@ -328,144 +331,4 @@ export async function getRequiredSurvey(
   }
 
   return survey;
-}
-
-export async function getResponses(
-  db: D1DatabaseLike,
-  surveyId: number,
-): Promise<SurveyResponse[]> {
-  const { results } = await db
-    .prepare(
-      `SELECT r.question_id, r.answer, r.submitted_at
-       FROM responses r
-       JOIN questions q ON q.id = r.question_id
-       WHERE q.survey_id = ?
-       ORDER BY r.submitted_at DESC`,
-    )
-    .bind(surveyId)
-    .all<ResponseRow>();
-
-  return results.map((row) => ({
-    questionId: row.question_id,
-    answer: row.answer,
-    submittedAt: row.submitted_at,
-  }));
-}
-
-export async function addResponses(
-  db: D1DatabaseLike,
-  responses: SurveyAnswerInput[],
-  userEmail?: string,
-): Promise<void> {
-  const statement = db.prepare(
-    "INSERT INTO responses (question_id, answer, user_email) VALUES (?, ?, ?)",
-  );
-
-  await db.batch(
-    responses.map((response) =>
-      statement.bind(response.questionId, response.answer, userEmail ?? null),
-    ),
-  );
-}
-
-export async function checkSubmission(
-  db: D1DatabaseLike,
-  surveyId: number,
-  userEmail: string,
-): Promise<boolean> {
-  const row = await db
-    .prepare(
-      "SELECT id FROM submissions WHERE survey_id = ? AND user_email = ?",
-    )
-    .bind(surveyId, userEmail)
-    .first<{ id: number }>();
-  return row !== null;
-}
-
-export async function hasSurveyResponseData(
-  db: D1DatabaseLike,
-  surveyId: number,
-): Promise<boolean> {
-  const submissionRow = await db
-    .prepare("SELECT id FROM submissions WHERE survey_id = ? LIMIT 1")
-    .bind(surveyId)
-    .first<{ id: number }>();
-
-  if (submissionRow !== null) {
-    return true;
-  }
-
-  const responseRow = await db
-    .prepare(
-      `SELECT r.id
-       FROM responses r
-       JOIN questions q ON q.id = r.question_id
-       WHERE q.survey_id = ?
-       LIMIT 1`,
-    )
-    .bind(surveyId)
-    .first<{ id: number }>();
-
-  return responseRow !== null;
-}
-
-export async function addSubmission(
-  db: D1DatabaseLike,
-  surveyId: number,
-  userEmail: string,
-): Promise<void> {
-  await db
-    .prepare(
-      "INSERT INTO submissions (survey_id, user_email) VALUES (?, ?)",
-    )
-    .bind(surveyId, userEmail)
-    .first();
-}
-
-export async function deleteUserResponses(
-  db: D1DatabaseLike,
-  surveyId: number,
-  userEmail: string,
-): Promise<void> {
-  await db
-    .prepare(
-      `DELETE FROM responses
-       WHERE user_email = ?
-         AND question_id IN (SELECT id FROM questions WHERE survey_id = ?)`,
-    )
-    .bind(userEmail, surveyId)
-    .first();
-}
-
-export async function touchSubmission(
-  db: D1DatabaseLike,
-  surveyId: number,
-  userEmail: string,
-): Promise<void> {
-  await db
-    .prepare(
-      `UPDATE submissions
-       SET submitted_at = datetime('now')
-       WHERE survey_id = ? AND user_email = ?`,
-    )
-    .bind(surveyId, userEmail)
-    .first();
-}
-
-export async function getUserAnswers(
-  db: D1DatabaseLike,
-  surveyId: number,
-  userEmail: string,
-): Promise<Record<number, string>> {
-  const { results } = await db
-    .prepare(
-      `SELECT r.question_id, r.answer
-       FROM responses r
-       JOIN questions q ON q.id = r.question_id
-       WHERE q.survey_id = ? AND r.user_email = ?`,
-    )
-    .bind(surveyId, userEmail)
-    .all<{ question_id: number; answer: string }>();
-
-  return Object.fromEntries(results.map((row) => [row.question_id, row.answer]));
 }

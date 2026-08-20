@@ -1,5 +1,6 @@
 import { createError } from "h3";
 import type { CreateReportInput, D1DatabaseLike, Report, ReportType } from "../../types/portal.ts";
+import { parsePositiveIntParam } from "./params.ts";
 
 interface ReportRow {
   id: number;
@@ -36,16 +37,7 @@ export function parseReportType(
 }
 
 export function parseReportId(value: unknown): number {
-  const id = Number(value);
-
-  if (!Number.isInteger(id) || id < 1) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "Invalid report ID.",
-    });
-  }
-
-  return id;
+  return parsePositiveIntParam(value, "Invalid report ID.");
 }
 
 export async function listReports(

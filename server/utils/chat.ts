@@ -10,7 +10,8 @@ import {
   isChatEmoji,
   isChatImageMimeType,
   isChatStickerId,
-} from "../../utils/chat.ts";
+} from "../../shared/utils/chat.ts";
+import { parsePositiveIntParam } from "./params.ts";
 
 export interface ChatMessageRow {
   id: number;
@@ -35,13 +36,7 @@ export interface ChatScheduleRow {
 }
 
 export function parseChatId(value: unknown, message: string): number {
-  const id = Number(value);
-
-  if (!Number.isInteger(id) || id < 1) {
-    throw createError({ statusCode: 400, statusMessage: message });
-  }
-
-  return id;
+  return parsePositiveIntParam(value, message);
 }
 
 export function toChatMessage(row: ChatMessageRow): ChatMessage {

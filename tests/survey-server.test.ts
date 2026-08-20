@@ -1,13 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-  deleteUserResponses,
   duplicateSurvey,
   getSurvey,
-  hasSurveyResponseData,
   listSurveys,
-  touchSubmission,
 } from "../server/utils/survey.ts";
+import {
+  deleteUserResponses,
+  hasSurveyResponseData,
+  touchSubmission,
+} from "../server/utils/survey-response.ts";
 import type { D1DatabaseLike, D1PreparedStatement } from "../types/portal.ts";
 
 interface MockDbOptions {

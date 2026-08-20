@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatDisplayDate } from "~~/utils/content";
+import { formatDisplayDate } from "#shared/utils/content";
 import { interactiveCardClass, primaryButtonClass, secondaryButtonClass, topicTagClass } from "~/utils/ui";
 import type { MinutesListResponse, ResourceItem, ResourcesListResponse } from "~~/types/portal";
 

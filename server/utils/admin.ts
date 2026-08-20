@@ -1,10 +1,9 @@
 import { createError, type H3Event } from "h3";
+import { requireUser } from "./auth.ts";
+import { getCloudflareEnv } from "./cloudflare.ts";
 
-export function getAdminEmails(event: H3Event): string[] {
-  const env = (
-    event.context.cloudflare as { env?: Record<string, string | undefined> } | undefined
-  )?.env;
-  const raw = env?.ADMIN_EMAILS ?? "";
+function getAdminEmails(event: H3Event): string[] {
+  const raw = getCloudflareEnv<{ ADMIN_EMAILS: string }>(event).ADMIN_EMAILS ?? "";
   return raw
     .split(",")
     .map((s) => s.trim())
@@ -12,10 +11,7 @@ export function getAdminEmails(event: H3Event): string[] {
 }
 
 export function assertAdmin(event: H3Event): void {
-  const user = event.context.user as { email: string } | undefined;
-  if (!user) {
-    throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
-  }
+  const user = requireUser(event);
   const admins = getAdminEmails(event);
   if (!admins.includes(user.email)) {
     throw createError({ statusCode: 403, statusMessage: "Forbidden" });

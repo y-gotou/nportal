@@ -7,7 +7,8 @@ import type {
   SurveyResponse,
   SurveyResultBlock,
   SurveyStatus,
-} from "../types/portal";
+} from "../../types/portal.ts";
+import { parseStringArray } from "./json.ts";
 
 export const SURVEY_OTHER_OPTION_VALUE = "__other__";
 export const SURVEY_OTHER_OPTION_LABEL = "その他";
@@ -21,17 +22,6 @@ export function getSurveyStatusLabel(status: SurveyStatus): string {
 interface ParsedSurveySelectionAnswer {
   selected: string[];
   otherText: string;
-}
-
-function parseStringArray(value: string) {
-  try {
-    const parsed = JSON.parse(value) as unknown;
-    return Array.isArray(parsed)
-      ? parsed.filter((item): item is string => typeof item === "string")
-      : [];
-  } catch {
-    return [];
-  }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -231,4 +221,51 @@ export function buildSurveyResultBlocks(
       distribution: buildDistribution(optionCounts, responseCount),
     };
   });
+}
+
+// 保存済み回答(questionId → シリアライズ文字列)をフォームの回答値モデルに復元する
+export function buildSurveyInitialAnswers(
+  survey: Survey,
+  initial: Record<number, string> | undefined,
+): Record<number, SurveyAnswerValue> {
+  if (!initial) return {};
+
+  const result: Record<number, SurveyAnswerValue> = {};
+
+  for (const question of survey.questions) {
+    const raw = initial[question.id];
+    if (typeof raw !== "string") continue;
+
+    if (question.questionType === "free_text") {
+      result[question.id] = raw;
+      continue;
+    }
+
+    const parsed = parseSurveySelectionAnswer(raw, question.questionType);
+    const hasOther = parsed.selected.includes(SURVEY_OTHER_OPTION_VALUE);
+
+    if (question.questionType === "single_choice") {
+      const selected = parsed.selected[0] ?? "";
+      if (selected === SURVEY_OTHER_OPTION_VALUE) {
+        result[question.id] = {
+          selected: SURVEY_OTHER_OPTION_VALUE,
+          otherText: parsed.otherText,
+        };
+      } else {
+        result[question.id] = selected;
+      }
+      continue;
+    }
+
+    if (hasOther) {
+      result[question.id] = {
+        selected: parsed.selected,
+        otherText: parsed.otherText,
+      };
+    } else {
+      result[question.id] = [...parsed.selected];
+    }
+  }
+
+  return result;
 }

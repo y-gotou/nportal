@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CreateReportInput, ReportType } from "~~/types/portal";
 import { primaryButtonClass, secondaryButtonClass, surfaceCardClass } from "~/utils/ui";
+import { reportTypeLabel } from "~/utils/status";
 
 const form = reactive<CreateReportInput>({
   reportType: "bug",
@@ -17,10 +18,9 @@ const isSubmitting = ref(false);
 const submitError = ref("");
 const isSubmitted = ref(false);
 
-const typeOptions: Array<{ value: ReportType; label: string }> = [
-  { value: "bug", label: "不具合" },
-  { value: "request", label: "要望" },
-];
+const typeOptions: Array<{ value: ReportType; label: string }> = (
+  ["bug", "request"] as const
+).map((value) => ({ value, label: reportTypeLabel(value) }));
 
 function resetMessages() {
   submitError.value = "";

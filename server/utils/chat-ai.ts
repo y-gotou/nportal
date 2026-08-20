@@ -1,25 +1,26 @@
 import type { H3Event } from "h3";
 import type { ChatMessage, D1DatabaseLike } from "../../types/portal.ts";
 import { createChatMessage, listChatMessages } from "./chat.ts";
+import { getCloudflareEnv } from "./cloudflare.ts";
 import { llmFetch } from "./llm.ts";
 import {
   CHAT_AI_EMAIL,
   MAX_CHAT_BODY_LENGTH,
   chatDisplayName,
   getChatJstToday,
-} from "../../utils/chat.ts";
+} from "../../shared/utils/chat.ts";
 
 // LLM に渡す直近メッセージ数
 export const CHAT_AI_CONTEXT_MESSAGES = 20;
 
 // 推論(reasoning)モデルは思考にトークンを消費するため、上限は思考分を見込んで大きめに取る
 // (不足すると content が空のまま打ち切られる)
-export const CHAT_AI_JUDGE_MAX_TOKENS = 1536;
-export const CHAT_AI_ANSWER_MAX_TOKENS = 4096;
+const CHAT_AI_JUDGE_MAX_TOKENS = 1536;
+const CHAT_AI_ANSWER_MAX_TOKENS = 4096;
 
 // Web 検索の取得件数と、LLM に渡す抜粋の最大文字数
-export const CHAT_AI_SEARCH_MAX_RESULTS = 5;
-export const CHAT_AI_SEARCH_SNIPPET_LENGTH = 500;
+const CHAT_AI_SEARCH_MAX_RESULTS = 5;
+const CHAT_AI_SEARCH_SNIPPET_LENGTH = 500;
 
 export const CHAT_AI_ERROR_BODY =
   "(AI応答の生成に失敗しました。時間をおいて再度お試しください)";
@@ -134,15 +135,9 @@ export function extractChatCompletionText(payload: unknown): string | null {
   return typeof content === "string" && content.trim() ? content.trim() : null;
 }
 
-function getCloudflareEnv(event: H3Event): Record<string, string | undefined> | undefined {
-  return (
-    event.context.cloudflare as { env?: Record<string, string | undefined> } | undefined
-  )?.env;
-}
-
 // 使用モデル: LLM_CHAT_MODEL があればそれを、なければ /v1/models の先頭を使う
 async function resolveChatAiModel(event: H3Event): Promise<string | null> {
-  const configured = getCloudflareEnv(event)?.LLM_CHAT_MODEL?.trim();
+  const configured = getCloudflareEnv<Record<string, string>>(event).LLM_CHAT_MODEL?.trim();
   if (configured) return configured;
 
   const upstream = await llmFetch(event, "/v1/models");
@@ -213,7 +208,7 @@ async function maybeSearchWeb(
   history: ChatMessage[],
   today: string,
 ): Promise<ChatAiSearchResult[] | null> {
-  const apiKey = getCloudflareEnv(event)?.TAVILY_API_KEY?.trim();
+  const apiKey = getCloudflareEnv<Record<string, string>>(event).TAVILY_API_KEY?.trim();
   if (!apiKey) return null;
 
   try {
@@ -225,11 +220,9 @@ async function maybeSearchWeb(
     );
     const query = extractSearchQuery(judgeText);
     if (!query) {
-      console.log("chat AI web search: not needed or no query judged.");
       return null;
     }
 
-    console.log(`chat AI web search: query="${query}"`);
     const results = await searchTavily(apiKey, query);
     return results.length ? results : null;
   } catch (error) {

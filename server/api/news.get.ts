@@ -1,5 +1,6 @@
-import { createError, getQuery } from "h3";
-import { getDb } from "~~/server/utils/survey";
+import { getQuery } from "h3";
+import { getDb } from "~~/server/utils/db";
+import { requireUser } from "~~/server/utils/auth";
 import {
   getAdjacentNewsDates,
   getNewsUpdatedAt,
@@ -9,11 +10,7 @@ import {
 import { parseNewsDate } from "~~/server/utils/news-date";
 
 export default defineEventHandler(async (event) => {
-  const user = event.context.user as { email: string } | undefined;
-
-  if (!user) {
-    throw createError({ statusCode: 401, statusMessage: "Unauthorized." });
-  }
+  const user = requireUser(event);
 
   const db = getDb(event);
   const date = await resolveNewsDate(db, parseNewsDate(getQuery(event).date));

@@ -1,4 +1,5 @@
 import type { NewsImpactAxis } from "~~/types/portal";
+import { parseD1Timestamp, parseDateOnly } from "#shared/utils/date";
 
 // 日本語は既定で文字単位に折り返せるため、単語の途中で改行される。
 // auto-phrase は文節単位で折り返し、strict は小書き仮名・長音符の行頭禁則を適用する。
@@ -52,13 +53,13 @@ export function formatRank(index: number) {
 }
 
 export function formatDateWithWeekday(date: string) {
-  const parsed = new Date(`${date}T00:00:00`);
+  const parsed = parseDateOnly(date);
   return Number.isNaN(parsed.getTime()) ? date : dateWithWeekdayFormatter.format(parsed);
 }
 
 // D1 の created_at は UTC の "YYYY-MM-DD HH:MM:SS" 形式で入る
 export function formatUpdatedAt(value: string) {
-  const parsed = new Date(`${value.replace(" ", "T")}Z`);
+  const parsed = parseD1Timestamp(value);
   return Number.isNaN(parsed.getTime()) ? value : updatedAtFormatter.format(parsed);
 }
 

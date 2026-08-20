@@ -1,14 +1,8 @@
-import { createError } from "h3";
+import { requireUser } from "~~/server/utils/auth";
 import { llmFetch, passthroughResponse } from "~~/server/utils/llm";
 
 export default defineEventHandler(async (event) => {
-  const user = event.context.user as { email: string } | undefined;
-  if (!user) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: "Unauthorized",
-    });
-  }
+  requireUser(event);
 
   const upstream = await llmFetch(event, "/v1/models", { method: "GET" });
 

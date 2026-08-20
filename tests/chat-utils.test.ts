@@ -19,7 +19,7 @@ import {
   isChatReadOnly,
   isChatStickerId,
   splitChatBody,
-} from "../utils/chat.ts";
+} from "../shared/utils/chat.ts";
 
 const baseRow: ChatMessageRow = {
   id: 1,

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ResourcesListResponse } from "~~/types/portal";
-import { formatDisplayDate } from "~~/utils/content";
+import { formatDisplayDate } from "#shared/utils/content";
 
 definePageMeta({ layout: "admin" });
 await useAdminGuard();

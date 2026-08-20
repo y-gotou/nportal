@@ -1,6 +1,7 @@
-import { getDb } from "~~/server/utils/survey";
+import { getDb } from "~~/server/utils/db";
 import { assertAdmin } from "~~/server/utils/admin";
-import { deleteResourceItem, getResourcesBucket, parseResourceId } from "~~/server/utils/resources";
+import { getResourcesBucket } from "~~/server/utils/r2";
+import { deleteResourceItem, parseResourceId } from "~~/server/utils/resources";
 
 export default defineEventHandler(async (event) => {
   assertAdmin(event);

@@ -1,5 +1,6 @@
 import { createError } from "h3";
 import type { D1DatabaseLike, Minutes, MinutesMeta, MinutesPayload } from "../../types/portal.ts";
+import { DATE_PATTERN } from "../../shared/utils/date.ts";
 
 interface MinutesRow {
   id: number;
@@ -40,7 +41,7 @@ export async function renderMarkdown(markdown: string): Promise<string> {
 }
 
 export function getMinutesSlugFromDate(date: string): string {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+  if (!DATE_PATTERN.test(date)) {
     throw createError({ statusCode: 400, statusMessage: "date must be YYYY-MM-DD" });
   }
 
@@ -77,18 +78,7 @@ export async function getMinutesDetail(
   };
 }
 
-export async function getMinutesDetailById(
-  db: D1DatabaseLike,
-  id: number,
-): Promise<Minutes | null> {
-  const row = await db
-    .prepare("SELECT * FROM minutes WHERE id = ?")
-    .bind(id)
-    .first<MinutesRow>();
-  return row ? toMinutes(row) : null;
-}
-
-export async function getMinutesDetailByDate(
+async function getMinutesDetailByDate(
   db: D1DatabaseLike,
   date: string,
 ): Promise<Minutes | null> {
@@ -97,6 +87,21 @@ export async function getMinutesDetailByDate(
     .bind(date)
     .first<MinutesRow>();
   return row ? toMinutes(row) : null;
+}
+
+// post/put で共通のボディ検証と整形
+export function parseMinutesPayload(body: Partial<MinutesPayload>): MinutesPayload {
+  if (!body.title || !body.date) {
+    throw createError({ statusCode: 400, statusMessage: "title, date are required" });
+  }
+
+  return {
+    title: body.title,
+    date: body.date,
+    attendees: Array.isArray(body.attendees) ? body.attendees : [],
+    topics: Array.isArray(body.topics) ? body.topics : [],
+    contentMd: body.contentMd ?? "",
+  };
 }
 
 export async function createMinutes(

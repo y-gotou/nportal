@@ -1,5 +1,7 @@
 import type { D1DatabaseLike } from "../../types/portal.ts";
 import { VOTE_COEFFICIENT } from "./news.ts";
+import { parseStringArray } from "../../shared/utils/json.ts";
+import { utcDaysAgo } from "../../shared/utils/date.ts";
 
 // docs/requirements-news.md §7.2 の重み式
 const WEIGHT_STRENGTH = 0.3;
@@ -47,23 +49,6 @@ function toWeight({ up, down }: Tally): number {
 
 function toWeightMap(tallies: Map<string, Tally>): Record<string, number> {
   return Object.fromEntries([...tallies].map(([key, tally]) => [key, toWeight(tally)]));
-}
-
-function parseTags(value: string): string[] {
-  try {
-    const parsed = JSON.parse(value ?? "[]") as unknown;
-    return Array.isArray(parsed)
-      ? parsed.filter((item): item is string => typeof item === "string")
-      : [];
-  } catch {
-    return [];
-  }
-}
-
-function daysAgo(days: number): string {
-  const date = new Date();
-  date.setUTCDate(date.getUTCDate() - days);
-  return date.toISOString().slice(0, 10);
 }
 
 export interface FeedbackSummary {
@@ -120,7 +105,7 @@ async function loadStudyGroupContext(db: D1DatabaseLike) {
       .all<{ topics: string }>(),
     db
       .prepare("SELECT tags FROM resources WHERE date >= ?")
-      .bind(daysAgo(TAG_WINDOW_DAYS))
+      .bind(utcDaysAgo(TAG_WINDOW_DAYS))
       .all<{ tags: string }>(),
     db
       .prepare(
@@ -134,8 +119,8 @@ async function loadStudyGroupContext(db: D1DatabaseLike) {
   const unique = (values: string[]) => [...new Set(values)].slice(0, CONTEXT_LIMIT);
 
   return {
-    recent_topics: unique(minutes.results.flatMap((row) => parseTags(row.topics))),
-    resource_tags: unique(resources.results.flatMap((row) => parseTags(row.tags))),
+    recent_topics: unique(minutes.results.flatMap((row) => parseStringArray(row.topics))),
+    resource_tags: unique(resources.results.flatMap((row) => parseStringArray(row.tags))),
     upcoming_sessions: applications.results.map((row) => row.title),
   };
 }
@@ -150,8 +135,8 @@ export async function buildFeedbackSummary(db: D1DatabaseLike): Promise<Feedback
   const categories = new Map<string, Tally>();
   const axes = new Map<string, Tally>();
   const tags = new Map<string, Tally>();
-  const tagWindowStart = daysAgo(TAG_WINDOW_DAYS);
-  const weightWindowStart = daysAgo(WEIGHT_WINDOW_DAYS);
+  const tagWindowStart = utcDaysAgo(TAG_WINDOW_DAYS);
+  const weightWindowStart = utcDaysAgo(WEIGHT_WINDOW_DAYS);
 
   for (const row of stats) {
     const up = Number(row.up_count);
@@ -172,7 +157,7 @@ export async function buildFeedbackSummary(db: D1DatabaseLike): Promise<Feedback
 
     // タグの傾向は直近 30 日に限定する
     if (row.published_date >= tagWindowStart) {
-      for (const tag of parseTags(row.tags)) {
+      for (const tag of parseStringArray(row.tags)) {
         const tally = tallyOf(tags, tag);
         tally.up += up;
         tally.down += down;
@@ -181,7 +166,7 @@ export async function buildFeedbackSummary(db: D1DatabaseLike): Promise<Feedback
   }
 
   const tagEntries = [...tags].map(([tag, tally]) => ({ tag, up: tally.up, down: tally.down }));
-  const recentWindowStart = daysAgo(RECENT_ARTICLE_WINDOW_DAYS);
+  const recentWindowStart = utcDaysAgo(RECENT_ARTICLE_WINDOW_DAYS);
   const recentArticles = stats
     .filter((row) => row.published_date >= recentWindowStart)
     .map((row) => ({
@@ -191,7 +176,7 @@ export async function buildFeedbackSummary(db: D1DatabaseLike): Promise<Feedback
       source: row.source,
       category: row.category,
       impact_axis: row.impact_axis,
-      tags: parseTags(row.tags),
+      tags: parseStringArray(row.tags),
       up: Number(row.up_count),
       down: Number(row.down_count),
       final_score:

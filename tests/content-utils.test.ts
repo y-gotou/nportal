@@ -6,7 +6,7 @@ import {
   formatDisplayDateTime,
   portalDescription,
   portalTitle,
-} from "../utils/content.ts";
+} from "../shared/utils/content.ts";
 
 test("getTodayDate formats local dates as YYYY-MM-DD", () => {
   const date = new Date(2026, 3, 13, 9, 30, 0);

@@ -1,6 +1,6 @@
 import { assertAdmin } from "~~/server/utils/admin";
 import { deleteReport, parseReportId } from "~~/server/utils/reports";
-import { getDb } from "~~/server/utils/survey";
+import { getDb } from "~~/server/utils/db";
 
 export default defineEventHandler(async (event) => {
   assertAdmin(event);

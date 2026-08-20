@@ -1,6 +1,6 @@
 import { readBody } from "h3";
 import { assertAdmin } from "~~/server/utils/admin";
-import { getDb } from "~~/server/utils/survey";
+import { getDb } from "~~/server/utils/db";
 import { adminUpdateSpeakerStatus, parseSpeakerId } from "~~/server/utils/speakers";
 import type { SpeakerApplicationStatus } from "~~/types/portal";
 

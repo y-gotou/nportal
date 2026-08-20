@@ -1,22 +1,20 @@
 import { createError, readBody } from "h3";
-import { getDb, hasSurveyResponseData } from "~~/server/utils/survey";
+import { getDb } from "~~/server/utils/db";
+import { parsePositiveIntParam } from "~~/server/utils/params";
+import {
+  deleteSurveyResponses,
+  insertSurveyQuestions,
+  type SurveyQuestionInput,
+} from "~~/server/utils/survey";
+import { hasSurveyResponseData } from "~~/server/utils/survey-response";
 import { assertAdmin } from "~~/server/utils/admin";
-import type { SurveyQuestionType } from "~~/types/portal";
-
-interface QuestionInput {
-  questionText: string;
-  questionType: SurveyQuestionType;
-  options: string[];
-  allowOtherText?: boolean;
-}
 
 export default defineEventHandler(async (event) => {
   assertAdmin(event);
 
-  const id = Number(event.context.params?.id);
-  if (!Number.isInteger(id) || id < 1) throw createError({ statusCode: 400, statusMessage: "Invalid id" });
+  const id = parsePositiveIntParam(event.context.params?.id, "Invalid id");
 
-  const body = await readBody<QuestionInput[] | { questions: QuestionInput[] }>(event);
+  const body = await readBody<SurveyQuestionInput[] | { questions: SurveyQuestionInput[] }>(event);
   const questions = Array.isArray(body) ? body : body?.questions;
 
   if (!Array.isArray(questions)) {
@@ -34,35 +32,9 @@ export default defineEventHandler(async (event) => {
   }
 
   // 既存の設問と回答を削除してから再挿入（一括置換）
-  const existingQuestions = await db
-    .prepare("SELECT id FROM questions WHERE survey_id = ?")
-    .bind(id)
-    .all<{ id: number }>();
-
-  if (existingQuestions.results.length > 0) {
-    const deleteResp = db.prepare("DELETE FROM responses WHERE question_id = ?");
-    await db.batch(existingQuestions.results.map((q) => deleteResp.bind(q.id)));
-  }
-
+  await deleteSurveyResponses(db, id);
   await db.prepare("DELETE FROM questions WHERE survey_id = ?").bind(id).first();
-
-  if (questions.length > 0) {
-    const stmt = db.prepare(
-      "INSERT INTO questions (survey_id, question_text, question_type, options, allow_other_text, sort_order) VALUES (?, ?, ?, ?, ?, ?)",
-    );
-    await db.batch(
-      questions.map((q, i) =>
-        stmt.bind(
-          id,
-          q.questionText,
-          q.questionType,
-          JSON.stringify(q.options ?? []),
-          q.allowOtherText ? 1 : 0,
-          i,
-        ),
-      ),
-    );
-  }
+  await insertSurveyQuestions(db, id, questions);
 
   return { success: true };
 });

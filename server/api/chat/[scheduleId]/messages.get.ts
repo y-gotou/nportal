@@ -1,6 +1,6 @@
 import { getQuery, setResponseStatus } from "h3";
 import type { ChatMessagesResponse } from "~~/types/portal";
-import { getDb } from "~~/server/utils/survey";
+import { getDb } from "~~/server/utils/db";
 import {
   getChatRoomVersion,
   getChatSchedule,
@@ -9,7 +9,7 @@ import {
   listDeletedChatMessageIds,
   parseChatId,
 } from "~~/server/utils/chat";
-import { getChatJstToday, isChatReadOnly } from "~~/utils/chat";
+import { getChatJstToday, isChatReadOnly } from "#shared/utils/chat";
 
 export default defineEventHandler(async (event) => {
   const db = getDb(event);

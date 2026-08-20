@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { MinutesMeta } from "~~/types/portal";
-import { formatDisplayDate } from "~~/utils/content";
+import { formatDisplayDate } from "#shared/utils/content";
 import { interactiveCardClass, topicTagClass } from "~/utils/ui";
 
 const props = defineProps<{

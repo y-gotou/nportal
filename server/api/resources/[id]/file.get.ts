@@ -1,18 +1,14 @@
 import { createError } from "h3";
-import { getDb } from "~~/server/utils/survey";
+import { getDb } from "~~/server/utils/db";
+import { requireUser } from "~~/server/utils/auth";
+import { streamR2Object } from "~~/server/utils/r2";
 import {
-  buildResourceContentDisposition,
   getResourceRow,
-  getResourcesBucket,
-  normalizeResourceMimeType,
   parseResourceId,
 } from "~~/server/utils/resources";
 
 export default defineEventHandler(async (event) => {
-  const user = event.context.user as { email: string } | undefined;
-  if (!user) {
-    throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
-  }
+  requireUser(event);
 
   const id = parseResourceId(event.context.params?.id);
   const resource = await getResourceRow(getDb(event), id);
@@ -21,22 +17,9 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: "Resource file not found." });
   }
 
-  const object = await getResourcesBucket(event).get(resource.file_key);
-  if (!object) {
-    throw createError({ statusCode: 404, statusMessage: "Resource file not found." });
-  }
-
-  const headers = new Headers();
-  object.writeHttpMetadata?.(headers);
-  headers.set(
-    "Content-Type",
-    normalizeResourceMimeType(
-      resource.file_name ?? "resource",
-      resource.mime_type || headers.get("Content-Type") || "application/octet-stream",
-    ),
-  );
-  headers.set("Content-Disposition", buildResourceContentDisposition(resource.file_name));
-  headers.set("X-Content-Type-Options", "nosniff");
-
-  return new Response(object.body, { headers });
+  return await streamR2Object(event, resource.file_key, {
+    fileName: resource.file_name,
+    mimeType: resource.mime_type,
+    notFoundMessage: "Resource file not found.",
+  });
 });

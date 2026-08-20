@@ -9,7 +9,7 @@ import {
   formatChatTime,
   isChatStickerId,
   splitChatBody,
-} from "~~/utils/chat";
+} from "#shared/utils/chat";
 
 const props = defineProps<{
   message: ChatMessage;

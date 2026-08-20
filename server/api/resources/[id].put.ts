@@ -1,38 +1,25 @@
 import { createError, readMultipartFormData } from "h3";
-import { getDb } from "~~/server/utils/survey";
+import { getDb } from "~~/server/utils/db";
+import { getFilePart, getTextField } from "~~/server/utils/multipart";
+import { requireUser } from "~~/server/utils/auth";
+import { createResourceObjectKey, getResourcesBucket } from "~~/server/utils/r2";
 import {
   buildResourceContentDisposition,
-  createResourceObjectKey,
-  getEditableResourceRow,
-  getResourcesBucket,
-  normalizeResourceTags,
   normalizeResourceMimeType,
+  sanitizeFileName,
+  validateResourceFile,
+} from "~~/server/utils/upload";
+import {
+  getEditableResourceRow,
+  normalizeResourceTags,
   parseResourceId,
   requireResourceTitle,
-  sanitizeFileName,
   updateSubmittedResource,
-  validateResourceFile,
   validateResourceUrl,
 } from "~~/server/utils/resources";
 
-function getTextField(parts: Awaited<ReturnType<typeof readMultipartFormData>>, name: string): string {
-  const part = parts?.find((item) => item.name === name && !item.filename);
-  return part?.data.toString("utf8").trim() ?? "";
-}
-
-function getTags(value: string): string[] {
-  return normalizeResourceTags(value.split(","));
-}
-
-function getFilePart(parts: Awaited<ReturnType<typeof readMultipartFormData>>) {
-  return parts?.find((item) => item.name === "file" && item.filename && item.data.byteLength > 0);
-}
-
 export default defineEventHandler(async (event) => {
-  const user = event.context.user as { email: string; isAdmin?: boolean } | undefined;
-  if (!user) {
-    throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
-  }
+  const user = requireUser(event);
 
   const id = parseResourceId(event.context.params?.id);
   const db = getDb(event);
@@ -53,7 +40,7 @@ export default defineEventHandler(async (event) => {
 
   const common = {
     title,
-    tags: getTags(getTextField(parts, "tags")),
+    tags: normalizeResourceTags(getTextField(parts, "tags").split(",")),
     relatedMinutesSlug: getTextField(parts, "relatedMinutesSlug") || null,
     submittedBy: existing.submitted_by ?? user.email,
   };

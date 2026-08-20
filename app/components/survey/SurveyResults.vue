@@ -5,7 +5,7 @@ import {
   parseSurveySelectionAnswer,
   SURVEY_OTHER_OPTION_LABEL,
   SURVEY_OTHER_OPTION_VALUE,
-} from "~~/utils/survey";
+} from "#shared/utils/survey";
 import { surfaceCardClass } from "~/utils/ui";
 
 const props = defineProps<{

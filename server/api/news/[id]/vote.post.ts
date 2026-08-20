@@ -1,5 +1,6 @@
 import { createError, getRouterParam, readBody } from "h3";
-import { getDb } from "~~/server/utils/survey";
+import { getDb } from "~~/server/utils/db";
+import { requireUser } from "~~/server/utils/auth";
 import { newsArticleExists, saveNewsVote } from "~~/server/utils/news";
 import type { NewsVoteValue } from "~~/types/portal";
 
@@ -15,11 +16,7 @@ function parseVoteValue(value: unknown): NewsVoteValue {
 }
 
 export default defineEventHandler(async (event) => {
-  const user = event.context.user as { email: string } | undefined;
-
-  if (!user) {
-    throw createError({ statusCode: 401, statusMessage: "Unauthorized." });
-  }
+  const user = requireUser(event);
 
   const articleId = Number(getRouterParam(event, "id"));
 

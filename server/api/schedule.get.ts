@@ -1,4 +1,4 @@
-import { getDb } from "~~/server/utils/survey";
+import { getDb } from "~~/server/utils/db";
 import { listSchedule } from "~~/server/utils/schedule";
 
 export default defineEventHandler(async (event) => {
