@@ -2,13 +2,13 @@
 id: T-001
 title: 発表者募集モーダルの誤クローズ対策
 scale: medium
-status: doing
+status: done
 priority: mid
 updated: 2026-08-20
 approvals:
   spec: 2026-08-20
   plan: 2026-08-20
-  done: null
+  done: 2026-08-20
 ---
 # 発表者募集モーダルの誤クローズ対策
 
