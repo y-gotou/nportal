@@ -27,7 +27,7 @@
 | ⑦ | C1 | admin/surveys new/edit 共通化 + new.vue の validate バグ修正 | 完了 | refactor/source-cleanup-07-survey-editor | #67 | check 通過(tests 126 件全パス)+ 実機確認済み |
 | ⑧ | C2+C3 | admin フォーム定型・ステータス表示の共通化(survey 配色統一含む) | 完了 | refactor/source-cleanup-08-admin-form | #68 | check 通過(tests 126 件全パス)+ 実機確認済み |
 | ⑨ | E2+E3+D3 | SurveyForm / SiteHeader 分割、components ドメイン別再編 | 完了 | refactor/source-cleanup-09-components | #69 | check 通過(tests 136 件全パス)+ 実機確認済み |
-| ⑩ | — | 統合ブランチ → main の最終 PR(本番反映) | レビュー待ち | refactor/source-cleanup | — | check 通過(typecheck / build / tests 136 件全パス) |
+| ⑩ | — | 統合ブランチ → main の最終 PR(本番反映) | 完了 | refactor/source-cleanup | #70 | check 通過(typecheck / build / tests 136 件全パス)。2026-08-20 マージ・本番デプロイ |
 | — | C4 | 検索クエリ同期の共通化 | 見送り | — | — | — |
 
 ## 作業メモ
