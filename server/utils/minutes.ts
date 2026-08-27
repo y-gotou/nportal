@@ -1,5 +1,11 @@
 import { createError } from "h3";
-import type { D1DatabaseLike, Minutes, MinutesMeta, MinutesPayload } from "../../types/portal.ts";
+import type {
+  D1DatabaseLike,
+  Minutes,
+  MinutesMeta,
+  MinutesNeighbor,
+  MinutesPayload,
+} from "../../types/portal.ts";
 import { DATE_PATTERN } from "../../shared/utils/date.ts";
 
 interface MinutesRow {
@@ -48,9 +54,30 @@ export function getMinutesSlugFromDate(date: string): string {
   return date;
 }
 
-export async function listMinutes(db: D1DatabaseLike): Promise<MinutesMeta[]> {
+// LIKE のワイルドカード(% _)とエスケープ文字自身をエスケープする
+export function escapeLikePattern(keyword: string): string {
+  return keyword.replace(/[\\%_]/g, (char) => `\\${char}`);
+}
+
+export async function listMinutes(db: D1DatabaseLike, keyword?: string): Promise<MinutesMeta[]> {
+  const trimmed = keyword?.trim();
+
+  if (!trimmed) {
+    const { results } = await db
+      .prepare("SELECT id, slug, title, date, attendees, topics FROM minutes ORDER BY date DESC")
+      .all<MinutesRow>();
+    return results.map(toMinutesMeta);
+  }
+
+  // topics は JSON 文字列のカラムをそのまま部分一致させる
+  const pattern = `%${escapeLikePattern(trimmed)}%`;
   const { results } = await db
-    .prepare("SELECT id, slug, title, date, attendees, topics FROM minutes ORDER BY date DESC")
+    .prepare(
+      `SELECT id, slug, title, date, attendees, topics FROM minutes
+       WHERE title LIKE ? ESCAPE '\\' OR topics LIKE ? ESCAPE '\\' OR content_md LIKE ? ESCAPE '\\'
+       ORDER BY date DESC`,
+    )
+    .bind(pattern, pattern, pattern)
     .all<MinutesRow>();
   return results.map(toMinutesMeta);
 }
@@ -71,10 +98,25 @@ export async function getMinutesDetail(
     .bind(slug)
     .first<MinutesRow & { schedule_id: number | null; has_chat: number | null }>();
   if (!row) return null;
+
+  // 前後の回は日付順から導出する(slug=日付)
+  const [prev, next] = await Promise.all([
+    db
+      .prepare("SELECT slug, title, date FROM minutes WHERE date < ? ORDER BY date DESC LIMIT 1")
+      .bind(row.date)
+      .first<MinutesNeighbor>(),
+    db
+      .prepare("SELECT slug, title, date FROM minutes WHERE date > ? ORDER BY date ASC LIMIT 1")
+      .bind(row.date)
+      .first<MinutesNeighbor>(),
+  ]);
+
   return {
     ...toMinutes(row),
     scheduleId: row.schedule_id,
     hasChat: (row.has_chat ?? 0) === 1,
+    prev: prev ?? null,
+    next: next ?? null,
   };
 }
 

@@ -104,10 +104,12 @@ CREATE TABLE IF NOT EXISTS speaker_applications (
   duration   INTEGER NOT NULL,
   note       TEXT,
   status     TEXT NOT NULL DEFAULT 'pending',
+  minutes_slug TEXT,
   created_at TEXT DEFAULT (datetime('now')),
   updated_at TEXT DEFAULT (datetime('now'))
 );
 -- status: 'pending'（応募中）/ 'scheduled'（発表予定）/ 'done'（発表済み）
+-- minutes_slug: 発表回の議事録slug（管理者が手動で紐付け。未紐付けは NULL）
 
 CREATE INDEX IF NOT EXISTS idx_speaker_applications_email ON speaker_applications(user_email);
 CREATE INDEX IF NOT EXISTS idx_speaker_applications_status ON speaker_applications(status);

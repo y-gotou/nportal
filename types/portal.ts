@@ -35,11 +35,19 @@ export interface MinutesMeta {
   topics: string[];
 }
 
+export interface MinutesNeighbor {
+  slug: string;
+  title: string;
+  date: string;
+}
+
 export interface Minutes extends MinutesMeta {
   contentMd: string;
   contentHtml: string;
   scheduleId?: number | null;
   hasChat?: boolean;
+  prev?: MinutesNeighbor | null;
+  next?: MinutesNeighbor | null;
 }
 
 export interface MinutesPayload {
@@ -183,6 +191,7 @@ export interface SpeakerApplication {
   duration: number;
   note: string | null;
   status: SpeakerApplicationStatus;
+  minutes_slug: string | null;
   created_at: string;
   updated_at: string;
 }
