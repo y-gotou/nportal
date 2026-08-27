@@ -2,13 +2,13 @@
 id: T-004
 title: 発表済み申込への議事録リンク
 scale: medium
-status: blocked
+status: done
 priority: mid
 updated: 2026-08-27
 approvals:
   spec: 2026-08-27
   plan: 2026-08-27
-  done: null
+  done: 2026-08-27
 ---
 # 発表済み申込への議事録リンク
 
