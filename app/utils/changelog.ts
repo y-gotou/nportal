@@ -38,6 +38,13 @@ export const changelogEntries: ChangelogEntry[] = [
   {
     date: "2026-08-27",
     category: "improvement",
+    title: "議事録詳細に前後の議事録への移動ボタンを追加",
+    description:
+      "ページ上部と末尾のボタンから、前の回・次の回の議事録へ直接移動できるようにしました。",
+  },
+  {
+    date: "2026-08-27",
+    category: "improvement",
     title: "議事録のキーワード検索が本文にも対応",
     description:
       "タイトル・トピックに加えて議事録の本文も検索対象にし、本文にだけ登場する語でも探せるようにしました。",
