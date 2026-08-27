@@ -191,6 +191,7 @@ export interface SpeakerApplication {
   duration: number;
   note: string | null;
   status: SpeakerApplicationStatus;
+  minutes_slug: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -257,6 +257,15 @@ useSeoMeta({
                     <span>{{ app.user_email }}</span>
                     <span class="text-border">|</span>
                     <span>{{ app.duration }}分</span>
+                    <template v-if="app.minutes_slug">
+                      <span class="text-border">|</span>
+                      <NuxtLink
+                        :to="`/minutes/${app.minutes_slug}`"
+                        class="font-medium text-blue-600 hover:underline dark:text-blue-400"
+                      >
+                        議事録を見る
+                      </NuxtLink>
+                    </template>
                   </div>
                   <p v-if="app.note" class="text-sm text-muted">{{ app.note }}</p>
                 </div>

@@ -1,5 +1,6 @@
 import { createError } from "h3";
 import type { D1DatabaseLike, SpeakerApplication, SpeakerApplicationStatus } from "../../types/portal.ts";
+import { DATE_PATTERN } from "../../shared/utils/date.ts";
 import { parsePositiveIntParam } from "./params.ts";
 
 function parseStatus(value: string): SpeakerApplicationStatus {
@@ -17,6 +18,7 @@ function toApplication(row: Record<string, unknown>): SpeakerApplication {
     duration: row.duration as number,
     note: (row.note as string | null) ?? null,
     status: parseStatus(row.status as string),
+    minutes_slug: (row.minutes_slug as string | null) ?? null,
     created_at: row.created_at as string,
     updated_at: row.updated_at as string,
   };
@@ -154,20 +156,48 @@ export async function deleteSpeakerApplication(
     .first();
 }
 
-export async function adminUpdateSpeakerStatus(
+export interface AdminSpeakerUpdates {
+  status?: SpeakerApplicationStatus;
+  // null は紐付け解除、undefined は変更なし
+  minutesSlug?: string | null;
+}
+
+export async function adminUpdateSpeakerApplication(
   db: D1DatabaseLike,
   id: number,
-  status: SpeakerApplicationStatus,
+  updates: AdminSpeakerUpdates,
 ): Promise<SpeakerApplication> {
-  const now = new Date().toISOString();
+  const sets: string[] = [];
+  const values: unknown[] = [];
+
+  if (updates.status !== undefined) {
+    sets.push("status = ?");
+    values.push(updates.status);
+  }
+
+  if (updates.minutesSlug !== undefined) {
+    if (updates.minutesSlug !== null && !DATE_PATTERN.test(updates.minutesSlug)) {
+      throw createError({ statusCode: 400, statusMessage: "minutes_slug must be YYYY-MM-DD or null." });
+    }
+    sets.push("minutes_slug = ?");
+    values.push(updates.minutesSlug);
+  }
+
+  if (sets.length === 0) {
+    throw createError({ statusCode: 400, statusMessage: "No fields to update." });
+  }
+
+  sets.push("updated_at = ?");
+  values.push(new Date().toISOString());
+
   const row = await db
     .prepare(
       `UPDATE speaker_applications
-       SET status = ?, updated_at = ?
+       SET ${sets.join(", ")}
        WHERE id = ?
        RETURNING *`,
     )
-    .bind(status, now, id)
+    .bind(...values, id)
     .first<Record<string, unknown>>();
 
   if (!row) {
