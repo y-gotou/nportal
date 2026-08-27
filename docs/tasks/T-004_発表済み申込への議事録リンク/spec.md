@@ -2,7 +2,7 @@
 id: T-004
 title: 発表済み申込への議事録リンク
 scale: medium
-status: doing
+status: blocked
 priority: mid
 updated: 2026-08-27
 approvals:

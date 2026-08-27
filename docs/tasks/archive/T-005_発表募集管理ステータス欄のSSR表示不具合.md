@@ -2,12 +2,12 @@
 id: T-005
 title: 発表募集管理ステータス欄のSSR表示不具合
 scale: small
-status: doing
+status: done
 priority: mid
 updated: 2026-08-27
 approvals:
   spec: 2026-08-27
-  done: null
+  done: 2026-08-27
 ---
 # 発表募集管理ステータス欄のSSR表示不具合
 
@@ -37,8 +37,8 @@ approvals:
 
 ## 作業ログ
 ### 引き継ぎサマリ
-- 現状: 実装・エージェント検証完了。ブランチ fix/admin-speakers-status-select にコミット済み(push 未実施)。
-- 次の一手: G3(完了処理)。
+- 現状: 完了(G3 承認 2026-08-27)。
+- 次の一手: なし。
 - 未確定点: なし。
 
 ### 時系列
@@ -47,3 +47,4 @@ approvals:
 - 2026-08-27: ユーザー承認を得て push、PR #77 を作成(fix/admin-speakers-status-select)。
 - 2026-08-27: ユーザーが Preview ビルドで動作確認(問題なし)。
 - 2026-08-27: PR #77 マージ・本番デプロイ成功。ユーザーが Preview で動作確認済み。
+- 2026-08-27: G3 承認。完了処理・アーカイブ。

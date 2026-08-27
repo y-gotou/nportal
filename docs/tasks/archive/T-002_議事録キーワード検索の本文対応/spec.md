@@ -2,13 +2,13 @@
 id: T-002
 title: 議事録キーワード検索の本文対応
 scale: medium
-status: doing
+status: done
 priority: mid
 updated: 2026-08-27
 approvals:
   spec: 2026-08-27
   plan: 2026-08-27
-  done: null
+  done: 2026-08-27
 ---
 # 議事録キーワード検索の本文対応
 
