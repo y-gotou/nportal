@@ -26,18 +26,38 @@ useSeoMeta({
 
 <template>
   <PageContainer size="wide">
-    <div class="mb-4 flex flex-wrap gap-3">
-      <NuxtLink to="/minutes" :class="secondaryButtonClass">
-        <IconArrowLeft />
-        一覧へ戻る
-      </NuxtLink>
-      <NuxtLink
-        v-if="minutes.hasChat && minutes.scheduleId"
-        :to="`/chat/${minutes.scheduleId}`"
-        :class="secondaryButtonClass"
-      >
-        チャットを見る
-      </NuxtLink>
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex flex-wrap gap-3">
+        <NuxtLink to="/minutes" :class="secondaryButtonClass">
+          <IconArrowLeft />
+          一覧へ戻る
+        </NuxtLink>
+        <NuxtLink
+          v-if="minutes.hasChat && minutes.scheduleId"
+          :to="`/chat/${minutes.scheduleId}`"
+          :class="secondaryButtonClass"
+        >
+          チャットを見る
+        </NuxtLink>
+      </div>
+      <div class="flex flex-wrap gap-3">
+        <NuxtLink
+          v-if="minutes.prev"
+          :to="`/minutes/${minutes.prev.slug}`"
+          :class="secondaryButtonClass"
+        >
+          <IconArrowLeft />
+          前の議事録
+        </NuxtLink>
+        <NuxtLink
+          v-if="minutes.next"
+          :to="`/minutes/${minutes.next.slug}`"
+          :class="secondaryButtonClass"
+        >
+          次の議事録
+          <IconArrowRight />
+        </NuxtLink>
+      </div>
     </div>
 
     <div class="mb-6">
@@ -79,5 +99,24 @@ useSeoMeta({
         </a>
       </div>
     </section>
+
+    <div v-if="minutes.prev || minutes.next" class="mt-8 flex flex-wrap justify-between gap-3">
+      <NuxtLink
+        v-if="minutes.prev"
+        :to="`/minutes/${minutes.prev.slug}`"
+        :class="secondaryButtonClass"
+      >
+        <IconArrowLeft />
+        前の議事録
+      </NuxtLink>
+      <NuxtLink
+        v-if="minutes.next"
+        :to="`/minutes/${minutes.next.slug}`"
+        :class="[secondaryButtonClass, 'ml-auto']"
+      >
+        次の議事録
+        <IconArrowRight />
+      </NuxtLink>
+    </div>
   </PageContainer>
 </template>
