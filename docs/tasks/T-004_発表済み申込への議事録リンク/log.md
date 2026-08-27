@@ -15,3 +15,4 @@
 - 2026-08-27: ユーザー承認を得て push、PR #76 を作成(feat/speakers-minutes-link)。
 - 2026-08-27: ユーザーが本番 D1(nportal-db)へ minutes_slug カラム追加を適用(success: true を確認)。PR マージ前だが NULL 許容カラムのため現行アプリに影響なし。
 - 2026-08-27: Preview ビルドでの確認のため、ユーザーが Preview D1(nportal-preview-db)にも minutes_slug カラム追加を適用(success: true)。Preview D1 は議事録3件・発表申込0件のため、検証用申込の投入 SQL を提示。
+- 2026-08-27: Preview 確認で「ドロップダウンが見えない」との報告 → 参照 URL が T-003 の Preview(ac340d5e)だったことが原因と特定。T-004 の正しい Preview(f11f4925)では API・SSR HTML ともドロップダウン描画を無人確認済み。ユーザーの画面確認待ち。
