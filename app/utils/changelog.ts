@@ -38,6 +38,13 @@ export const changelogEntries: ChangelogEntry[] = [
   {
     date: "2026-08-27",
     category: "improvement",
+    title: "発表済みの発表から議事録を参照可能に",
+    description:
+      "発表募集ページの発表済みカードに、該当回の議事録へのリンクを表示するようにしました。",
+  },
+  {
+    date: "2026-08-27",
+    category: "improvement",
     title: "議事録詳細に前後の議事録への移動ボタンを追加",
     description:
       "ページ上部と末尾のボタンから、前の回・次の回の議事録へ直接移動できるようにしました。",

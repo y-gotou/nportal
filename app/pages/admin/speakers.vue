@@ -1,15 +1,22 @@
 <script setup lang="ts">
-import type { SpeakerApplication, SpeakerApplicationStatus, SpeakersListResponse } from "~~/types/portal";
+import type { MinutesListResponse, SpeakerApplication, SpeakerApplicationStatus, SpeakersListResponse } from "~~/types/portal";
+import { formatDisplayDate } from "#shared/utils/content";
 import { speakerStatusClass, speakerStatusLabel } from "~/utils/status";
 
 definePageMeta({ layout: "admin" });
 await useAdminGuard();
 
-const { data, refresh } = await useFetch<SpeakersListResponse>("/api/speakers", {
-  default: () => ({ applications: [] }),
-});
+const [{ data, refresh }, { data: minutesData }] = await Promise.all([
+  useFetch<SpeakersListResponse>("/api/speakers", {
+    default: () => ({ applications: [] }),
+  }),
+  useFetch<MinutesListResponse>("/api/minutes", {
+    default: () => ({ minutes: [] }),
+  }),
+]);
 
 const applications = computed(() => data.value?.applications ?? []);
+const minutesOptions = computed(() => minutesData.value?.minutes ?? []);
 
 const statusOptions: { value: SpeakerApplicationStatus; label: string }[] = (
   ["pending", "scheduled", "done"] as const
@@ -33,6 +40,23 @@ async function changeStatus(app: SpeakerApplication, newStatus: SpeakerApplicati
   }
 }
 
+async function changeMinutes(app: SpeakerApplication, slug: string) {
+  const newSlug = slug || null;
+  if (app.minutes_slug === newSlug) return;
+  updatingId.value = app.id;
+  try {
+    await $fetch(`/api/admin/speakers/${app.id}`, {
+      method: "PUT",
+      body: { minutes_slug: newSlug },
+    });
+    await refresh();
+  } catch (e: unknown) {
+    alert(e instanceof Error ? e.message : "議事録の紐付けに失敗しました。");
+  } finally {
+    updatingId.value = null;
+  }
+}
+
 useSeoMeta({ title: "発表募集管理" });
 </script>
 
@@ -48,6 +72,7 @@ useSeoMeta({ title: "発表募集管理" });
             <th class="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted sm:table-cell">応募者</th>
             <th class="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted md:table-cell">時間</th>
             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">ステータス</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">議事録</th>
             <th class="px-4 py-3" />
           </tr>
         </thead>
@@ -78,6 +103,24 @@ useSeoMeta({ title: "発表募集管理" });
                   :selected="opt.value === app.status"
                 >
                   {{ opt.label }}
+                </option>
+              </select>
+            </td>
+            <td class="px-4 py-3">
+              <!-- select の value 属性は SSR で選択状態にならないため option の selected で指定する -->
+              <select
+                :disabled="updatingId === app.id"
+                class="max-w-48 rounded-lg border border-border bg-surface px-2 py-1.5 text-xs font-medium text-foreground focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                @change="changeMinutes(app, ($event.target as HTMLSelectElement).value)"
+              >
+                <option value="" :selected="!app.minutes_slug">紐付けなし</option>
+                <option
+                  v-for="minutes in minutesOptions"
+                  :key="minutes.slug"
+                  :value="minutes.slug"
+                  :selected="minutes.slug === app.minutes_slug"
+                >
+                  {{ formatDisplayDate(minutes.date) }} {{ minutes.title }}
                 </option>
               </select>
             </td>
