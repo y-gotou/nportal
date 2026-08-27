@@ -87,6 +87,20 @@ function createDb(state: TestDbState): D1DatabaseLike {
             return (state.minutes.find((row) => row.date === boundValues[0]) ?? null) as T | null;
           }
 
+          if (query.includes("WHERE date < ?")) {
+            const row = state.minutes
+              .filter((item) => item.date < String(boundValues[0]))
+              .sort((a, b) => b.date.localeCompare(a.date))[0];
+            return row ? ({ slug: row.slug, title: row.title, date: row.date } as T) : null;
+          }
+
+          if (query.includes("WHERE date > ?")) {
+            const row = state.minutes
+              .filter((item) => item.date > String(boundValues[0]))
+              .sort((a, b) => a.date.localeCompare(b.date))[0];
+            return row ? ({ slug: row.slug, title: row.title, date: row.date } as T) : null;
+          }
+
           if (query.includes("INSERT INTO minutes")) {
             state.minutes.push({
               id: state.minutes.length + 1,
@@ -351,6 +365,51 @@ test("listMinutes escapes LIKE wildcards in the keyword", async () => {
     ["2026-08-20"],
   );
   assert.equal(escapeLikePattern("100%_\\"), "100\\%\\_\\\\");
+});
+
+test("getMinutesDetail derives prev/next neighbors from date order", async () => {
+  const makeRow = (id: number, date: string, title: string) => ({
+    id,
+    slug: date,
+    title,
+    date,
+    attendees: "[]",
+    topics: "[]",
+    content_md: "",
+    content_html: "",
+  });
+  const state: TestDbState = {
+    minutes: [
+      makeRow(1, "2026-08-06", "第28回"),
+      makeRow(2, "2026-08-13", "第29回"),
+      makeRow(3, "2026-08-20", "第30回"),
+    ],
+    schedule: [],
+  };
+  const db = createDb(state);
+
+  // 中間: 前後とも存在する
+  const middle = await getMinutesDetail(db, "2026-08-13");
+  assert.equal(middle?.prev?.slug, "2026-08-06");
+  assert.equal(middle?.next?.slug, "2026-08-20");
+
+  // 最古: 前は存在しない
+  const oldest = await getMinutesDetail(db, "2026-08-06");
+  assert.equal(oldest?.prev, null);
+  assert.equal(oldest?.next?.slug, "2026-08-13");
+
+  // 最新: 次は存在しない
+  const newest = await getMinutesDetail(db, "2026-08-20");
+  assert.equal(newest?.prev?.slug, "2026-08-13");
+  assert.equal(newest?.next, null);
+
+  // 1件のみ: 前後とも存在しない
+  const single = await getMinutesDetail(
+    createDb({ minutes: [makeRow(1, "2026-08-06", "第28回")], schedule: [] }),
+    "2026-08-06",
+  );
+  assert.equal(single?.prev, null);
+  assert.equal(single?.next, null);
 });
 
 test("listSchedule derives minutesSlug from minutes with the same date", async () => {

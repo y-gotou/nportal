@@ -1,5 +1,11 @@
 import { createError } from "h3";
-import type { D1DatabaseLike, Minutes, MinutesMeta, MinutesPayload } from "../../types/portal.ts";
+import type {
+  D1DatabaseLike,
+  Minutes,
+  MinutesMeta,
+  MinutesNeighbor,
+  MinutesPayload,
+} from "../../types/portal.ts";
 import { DATE_PATTERN } from "../../shared/utils/date.ts";
 
 interface MinutesRow {
@@ -92,10 +98,25 @@ export async function getMinutesDetail(
     .bind(slug)
     .first<MinutesRow & { schedule_id: number | null; has_chat: number | null }>();
   if (!row) return null;
+
+  // 前後の回は日付順から導出する(slug=日付)
+  const [prev, next] = await Promise.all([
+    db
+      .prepare("SELECT slug, title, date FROM minutes WHERE date < ? ORDER BY date DESC LIMIT 1")
+      .bind(row.date)
+      .first<MinutesNeighbor>(),
+    db
+      .prepare("SELECT slug, title, date FROM minutes WHERE date > ? ORDER BY date ASC LIMIT 1")
+      .bind(row.date)
+      .first<MinutesNeighbor>(),
+  ]);
+
   return {
     ...toMinutes(row),
     scheduleId: row.schedule_id,
     hasChat: (row.has_chat ?? 0) === 1,
+    prev: prev ?? null,
+    next: next ?? null,
   };
 }
 
