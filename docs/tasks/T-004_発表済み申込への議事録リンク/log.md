@@ -14,3 +14,4 @@
 - 2026-08-27: 検証中に、`<select :value>` は SSR で選択状態を出力できず(select の value 属性は無効)、リロード後に先頭選択肢が表示される問題を発見。新設の議事録ドロップダウンは option の :selected 指定に修正して解消。**既存のステータス欄にも同じ事象があり(done の行がリロード後「応募中」と表示される)、本タスクの範囲外として未修正。別途対応要否はユーザー判断待ち。**
 - 2026-08-27: ユーザー承認を得て push、PR #76 を作成(feat/speakers-minutes-link)。
 - 2026-08-27: ユーザーが本番 D1(nportal-db)へ minutes_slug カラム追加を適用(success: true を確認)。PR マージ前だが NULL 許容カラムのため現行アプリに影響なし。
+- 2026-08-27: Preview ビルドでの確認のため、ユーザーが Preview D1(nportal-preview-db)にも minutes_slug カラム追加を適用(success: true)。Preview D1 は議事録3件・発表申込0件のため、検証用申込の投入 SQL を提示。
