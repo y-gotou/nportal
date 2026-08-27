@@ -64,8 +64,8 @@ useSeoMeta({ title: "発表募集管理" });
               {{ app.duration }}分
             </td>
             <td class="px-4 py-3">
+              <!-- select の value 属性は SSR で選択状態にならないため option の selected で指定する -->
               <select
-                :value="app.status"
                 :disabled="updatingId === app.id"
                 class="rounded-lg border border-border bg-surface px-2 py-1.5 text-xs font-medium focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
                 :class="speakerStatusClass(app.status)"
@@ -75,6 +75,7 @@ useSeoMeta({ title: "発表募集管理" });
                   v-for="opt in statusOptions"
                   :key="opt.value"
                   :value="opt.value"
+                  :selected="opt.value === app.status"
                 >
                   {{ opt.label }}
                 </option>
