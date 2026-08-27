@@ -257,37 +257,37 @@ useSeoMeta({
                     <span>{{ app.user_email }}</span>
                     <span class="text-border">|</span>
                     <span>{{ app.duration }}分</span>
-                    <template v-if="app.minutes_slug">
-                      <span class="text-border">|</span>
-                      <NuxtLink
-                        :to="`/minutes/${app.minutes_slug}`"
-                        class="font-medium text-blue-600 hover:underline dark:text-blue-400"
-                      >
-                        議事録を見る
-                      </NuxtLink>
-                    </template>
                   </div>
-                  <p v-if="app.note" class="text-sm text-muted">{{ app.note }}</p>
+                  <p v-if="app.note" class="whitespace-pre-wrap break-words text-sm text-muted">{{ app.note }}</p>
                 </div>
 
                 <div
-                  v-if="currentUser?.email === app.user_email && app.status !== 'done'"
-                  class="flex shrink-0 gap-2"
+                  v-if="app.minutes_slug || (currentUser?.email === app.user_email && app.status !== 'done')"
+                  class="flex shrink-0 flex-wrap items-center gap-2"
                 >
-                  <button
-                    type="button"
-                    class="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted transition-colors hover:bg-surface-hover"
-                    @click="openEditForm(app)"
+                  <NuxtLink
+                    v-if="app.minutes_slug"
+                    :to="`/minutes/${app.minutes_slug}`"
+                    :class="secondaryButtonClass"
                   >
-                    編集
-                  </button>
-                  <button
-                    type="button"
-                    class="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
-                    @click="withdrawApplication(app.id)"
-                  >
-                    取り下げ
-                  </button>
+                    議事録を見る
+                  </NuxtLink>
+                  <template v-if="currentUser?.email === app.user_email && app.status !== 'done'">
+                    <button
+                      type="button"
+                      class="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted transition-colors hover:bg-surface-hover"
+                      @click="openEditForm(app)"
+                    >
+                      編集
+                    </button>
+                    <button
+                      type="button"
+                      class="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+                      @click="withdrawApplication(app.id)"
+                    >
+                      取り下げ
+                    </button>
+                  </template>
                 </div>
               </div>
             </div>
