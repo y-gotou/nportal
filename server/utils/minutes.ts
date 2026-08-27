@@ -48,9 +48,30 @@ export function getMinutesSlugFromDate(date: string): string {
   return date;
 }
 
-export async function listMinutes(db: D1DatabaseLike): Promise<MinutesMeta[]> {
+// LIKE のワイルドカード(% _)とエスケープ文字自身をエスケープする
+export function escapeLikePattern(keyword: string): string {
+  return keyword.replace(/[\\%_]/g, (char) => `\\${char}`);
+}
+
+export async function listMinutes(db: D1DatabaseLike, keyword?: string): Promise<MinutesMeta[]> {
+  const trimmed = keyword?.trim();
+
+  if (!trimmed) {
+    const { results } = await db
+      .prepare("SELECT id, slug, title, date, attendees, topics FROM minutes ORDER BY date DESC")
+      .all<MinutesRow>();
+    return results.map(toMinutesMeta);
+  }
+
+  // topics は JSON 文字列のカラムをそのまま部分一致させる
+  const pattern = `%${escapeLikePattern(trimmed)}%`;
   const { results } = await db
-    .prepare("SELECT id, slug, title, date, attendees, topics FROM minutes ORDER BY date DESC")
+    .prepare(
+      `SELECT id, slug, title, date, attendees, topics FROM minutes
+       WHERE title LIKE ? ESCAPE '\\' OR topics LIKE ? ESCAPE '\\' OR content_md LIKE ? ESCAPE '\\'
+       ORDER BY date DESC`,
+    )
+    .bind(pattern, pattern, pattern)
     .all<MinutesRow>();
   return results.map(toMinutesMeta);
 }

@@ -2,8 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   createMinutes,
+  escapeLikePattern,
   getMinutesDetail,
   getMinutesSlugFromDate,
+  listMinutes,
   updateMinutes,
 } from "../server/utils/minutes.ts";
 import { listSchedule } from "../server/utils/schedule.ts";
@@ -35,6 +37,25 @@ interface TestDbState {
   minutes: MinutesRow[];
   schedule: ScheduleRow[];
   chatMessages?: Array<{ schedule_id: number }>;
+}
+
+// SQLite の LIKE(ESCAPE '\')を正規表現でエミュレートする(大文字小文字非区別)
+function likeToRegExp(pattern: string): RegExp {
+  let regex = "";
+  for (let i = 0; i < pattern.length; i++) {
+    const char = pattern[i]!;
+    if (char === "\\") {
+      i += 1;
+      regex += (pattern[i] ?? "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    } else if (char === "%") {
+      regex += "[\\s\\S]*";
+    } else if (char === "_") {
+      regex += "[\\s\\S]";
+    } else {
+      regex += char.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+  }
+  return new RegExp(`^${regex}$`, "i");
 }
 
 function createDb(state: TestDbState): D1DatabaseLike {
@@ -106,6 +127,29 @@ function createDb(state: TestDbState): D1DatabaseLike {
                   resolved_minutes_slug:
                     state.minutes.find((minutes) => minutes.date === row.date)?.slug ?? null,
                 })) as T[],
+            };
+          }
+
+          if (query.includes("WHERE title LIKE ?")) {
+            const matcher = likeToRegExp(String(boundValues[0]));
+            return {
+              results: state.minutes
+                .filter(
+                  (row) =>
+                    matcher.test(row.title) ||
+                    matcher.test(row.topics) ||
+                    matcher.test(row.content_md),
+                )
+                .slice()
+                .sort((a, b) => b.date.localeCompare(a.date)) as T[],
+            };
+          }
+
+          if (query.includes("FROM minutes ORDER BY date DESC")) {
+            return {
+              results: state.minutes
+                .slice()
+                .sort((a, b) => b.date.localeCompare(a.date)) as T[],
             };
           }
 
@@ -230,6 +274,83 @@ test("getMinutesDetail resolves scheduleId and hasChat from schedule with the sa
   );
   assert.equal(withoutSchedule?.scheduleId, null);
   assert.equal(withoutSchedule?.hasChat, false);
+});
+
+function searchTestState(): TestDbState {
+  return {
+    minutes: [
+      {
+        id: 1,
+        slug: "2026-08-13",
+        title: "第29回 社内AI勉強会",
+        date: "2026-08-13",
+        attendees: '["本川"]',
+        topics: '["バージョン管理"]',
+        content_md: "## Jujutsu の紹介\n本川さんが Jujutsu について発表。",
+        content_html: "",
+      },
+      {
+        id: 2,
+        slug: "2026-08-20",
+        title: "第30回 社内AI勉強会",
+        date: "2026-08-20",
+        attendees: "[]",
+        topics: '["ChatGPT"]',
+        content_md: "進捗は50%達成。",
+        content_html: "",
+      },
+    ],
+    schedule: [],
+  };
+}
+
+test("listMinutes without keyword returns all minutes in date-descending order", async () => {
+  const minutes = await listMinutes(createDb(searchTestState()));
+  assert.deepEqual(
+    minutes.map((item) => item.slug),
+    ["2026-08-20", "2026-08-13"],
+  );
+});
+
+test("listMinutes matches keyword against content_md, title, and topics", async () => {
+  const db = createDb(searchTestState());
+
+  // 本文のみに含まれる語
+  assert.deepEqual(
+    (await listMinutes(db, "Jujutsu")).map((item) => item.slug),
+    ["2026-08-13"],
+  );
+  // タイトルに含まれる語
+  assert.deepEqual(
+    (await listMinutes(db, "第30回")).map((item) => item.slug),
+    ["2026-08-20"],
+  );
+  // トピックに含まれる語
+  assert.deepEqual(
+    (await listMinutes(db, "バージョン管理")).map((item) => item.slug),
+    ["2026-08-13"],
+  );
+});
+
+test("listMinutes ignores ASCII letter case and returns empty for no match", async () => {
+  const db = createDb(searchTestState());
+
+  assert.deepEqual(
+    (await listMinutes(db, "jujutsu")).map((item) => item.slug),
+    ["2026-08-13"],
+  );
+  assert.deepEqual(await listMinutes(db, "存在しない語"), []);
+});
+
+test("listMinutes escapes LIKE wildcards in the keyword", async () => {
+  const db = createDb(searchTestState());
+
+  // "50%" は本文のリテラル一致のみ(% がワイルドカード扱いなら両件一致してしまう)
+  assert.deepEqual(
+    (await listMinutes(db, "50%")).map((item) => item.slug),
+    ["2026-08-20"],
+  );
+  assert.equal(escapeLikePattern("100%_\\"), "100\\%\\_\\\\");
 });
 
 test("listSchedule derives minutesSlug from minutes with the same date", async () => {

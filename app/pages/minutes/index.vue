@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import type { MinutesListResponse } from "~~/types/portal";
 
+const route = useRoute();
+const q = computed(() => (typeof route.query.q === "string" ? route.query.q : ""));
+
 const { data } = await useFetch<MinutesListResponse>("/api/minutes", {
+  query: { q },
   default: () => ({ minutes: [] }),
 });
 

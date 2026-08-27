@@ -11,31 +11,22 @@ const route = useRoute();
 const router = useRouter();
 const search = ref(typeof route.query.q === "string" ? route.query.q : "");
 
-function matchesKeyword(minutes: MinutesMeta, keyword: string) {
-  return (
-    minutes.title.toLowerCase().includes(keyword) ||
-    minutes.topics.some((topic) => topic.toLowerCase().includes(keyword))
-  );
-}
-
-const filteredMinutes = computed(() => {
-  const keyword = search.value.trim().toLowerCase();
-
-  if (!keyword) {
-    return props.minutes;
-  }
-
-  return props.minutes.filter((minutes) => matchesKeyword(minutes, keyword));
-});
+// 絞り込みはサーバ側(/api/minutes?q=)で行うため、route への反映のみデバウンスして行う
+let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 
 watch(search, (value) => {
-  router.replace({
-    query: {
-      ...route.query,
-      q: value.trim() || undefined,
-    },
-  });
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    router.replace({
+      query: {
+        ...route.query,
+        q: value.trim() || undefined,
+      },
+    });
+  }, 300);
 });
+
+onUnmounted(() => clearTimeout(debounceTimer));
 
 watch(
   () => route.query.q,
@@ -65,13 +56,13 @@ watch(
         type="search"
         autocomplete="off"
         class="w-full rounded-lg border border-border bg-surface px-4 py-3 text-sm text-foreground transition-[border-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-        placeholder="タイトルやトピックで検索…"
+        placeholder="タイトル・トピック・本文で検索…"
       >
     </div>
 
-    <div v-if="filteredMinutes.length" class="space-y-4">
+    <div v-if="props.minutes.length" class="space-y-4">
       <NuxtLink
-        v-for="minutes in filteredMinutes"
+        v-for="minutes in props.minutes"
         :key="minutes.slug"
         :to="`/minutes/${minutes.slug}`"
         :class="`${interactiveCardClass} block p-5`"
