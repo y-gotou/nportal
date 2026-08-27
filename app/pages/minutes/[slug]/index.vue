@@ -57,6 +57,11 @@ useSeoMeta({
           次の議事録
           <IconArrowRight />
         </NuxtLink>
+        <!-- 次の議事録がない場合も「前の議事録」の位置を保つための不可視プレースホルダー -->
+        <span v-else-if="minutes.prev" :class="secondaryButtonClass" class="invisible" aria-hidden="true">
+          次の議事録
+          <IconArrowRight />
+        </span>
       </div>
     </div>
 
