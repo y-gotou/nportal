@@ -77,14 +77,6 @@ test("resource file helpers validate allowed files and infer resource types", ()
       fileName: "archive.zip",
       size: 1024,
       mimeType: "application/zip",
-    }, { allowZip: true }),
-  );
-
-  assert.throws(() =>
-    validateResourceFile({
-      fileName: "archive.zip",
-      size: 1024,
-      mimeType: "application/zip",
     }),
   );
 
@@ -240,10 +232,10 @@ test("resources page and shared form expose user submission controls", async () 
   assert.match(form, /isDirty/);
   assert.match(form, /資料の投稿方法/);
   assert.match(form, /type="file"/);
-  assert.match(form, /canSubmitZip/);
-  assert.match(form, /:accept="fileAccept"/);
-  assert.match(form, /\.html/);
-  assert.match(form, /zipは管理者のみ投稿できます/);
+  assert.match(form, /accept="[^"]*\.zip[^"]*"/);
+  assert.match(form, /accept="[^"]*\.html[^"]*"/);
+  assert.doesNotMatch(form, /canSubmitZip/);
+  assert.doesNotMatch(form, /zipは管理者のみ投稿できます/);
   assert.doesNotMatch(form, /onUrlInput/);
   assert.doesNotMatch(form, /form\.url = ""/);
 });

@@ -55,7 +55,7 @@ export default defineEventHandler(async (event) => {
   const submittedMimeType = file?.type || "application/octet-stream";
   const mimeType = normalizeResourceMimeType(fileName, submittedMimeType);
   const size = file?.data.byteLength ?? 0;
-  validateResourceFile({ fileName, size, mimeType: submittedMimeType }, { allowZip: user.isAdmin === true });
+  validateResourceFile({ fileName, size, mimeType: submittedMimeType });
 
   const imageParts = getFileParts(parts, "images");
   if (imageParts.length > 0 && !isMarkdownFileName(fileName)) {
