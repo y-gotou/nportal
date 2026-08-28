@@ -2,13 +2,13 @@
 id: T-007
 title: ニュースページの配色トークン統一
 scale: medium
-status: doing
+status: done
 priority: mid
 updated: 2026-08-28
 approvals:
   spec: 2026-08-28
   plan: 2026-08-28
-  done: null
+  done: 2026-08-28
 ---
 # ニュースページの配色トークン統一
 
