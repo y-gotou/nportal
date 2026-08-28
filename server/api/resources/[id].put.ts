@@ -2,7 +2,7 @@ import { createError, readMultipartFormData } from "h3";
 import { getDb } from "~~/server/utils/db";
 import { getFilePart, getTextField } from "~~/server/utils/multipart";
 import { requireUser } from "~~/server/utils/auth";
-import { createResourceObjectKey, getResourcesBucket } from "~~/server/utils/r2";
+import { createResourceObjectKey, getResourcesBucket, toR2ObjectBody } from "~~/server/utils/r2";
 import {
   buildResourceContentDisposition,
   normalizeResourceMimeType,
@@ -70,7 +70,7 @@ export default defineEventHandler(async (event) => {
     const fileKey = createResourceObjectKey(event, fileName);
 
     try {
-      await bucket.put(fileKey, file.data, {
+      await bucket.put(fileKey, toR2ObjectBody(file.data), {
         httpMetadata: {
           contentType: mimeType,
           contentDisposition: buildResourceContentDisposition(fileName),

@@ -2,7 +2,7 @@ import { createError, readMultipartFormData } from "h3";
 import { getDb } from "~~/server/utils/db";
 import { getFilePart, getFileParts, getTextField } from "~~/server/utils/multipart";
 import { requireUser } from "~~/server/utils/auth";
-import { createResourceObjectKey, getResourcesBucket } from "~~/server/utils/r2";
+import { createResourceObjectKey, getResourcesBucket, toR2ObjectBody } from "~~/server/utils/r2";
 import {
   buildResourceContentDisposition,
   isMarkdownFileName,
@@ -86,7 +86,7 @@ export default defineEventHandler(async (event) => {
   let createdResourceId: number | null = null;
 
   try {
-    await bucket.put(fileKey, file?.data ?? null, {
+    await bucket.put(fileKey, file?.data ? toR2ObjectBody(file.data) : null, {
       httpMetadata: {
         contentType: mimeType,
         contentDisposition: buildResourceContentDisposition(fileName),
@@ -101,7 +101,7 @@ export default defineEventHandler(async (event) => {
     const imageRecords: { fileKey: string; fileName: string; fileSize: number; mimeType: string }[] = [];
     for (const image of images) {
       const imageKey = createResourceObjectKey(event, image.fileName);
-      await bucket.put(imageKey, image.data, {
+      await bucket.put(imageKey, toR2ObjectBody(image.data), {
         httpMetadata: {
           contentType: image.mimeType,
           contentDisposition: buildResourceContentDisposition(image.fileName),
