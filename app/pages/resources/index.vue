@@ -56,6 +56,11 @@ function matchesSelectedFilters(resource: ResourceItem) {
 
 const filteredResources = computed(() => resources.value.filter(matchesSelectedFilters));
 
+// ファイル資料の直接リンク(/api/ 配信)は新規タブで開く。Markdown はビューアーページ(同一タブ)のまま
+function opensInNewTab(resource: ResourceItem): boolean {
+  return resource.sourceType === "file" && resource.url?.startsWith("/api/") === true;
+}
+
 function syncQuery() {
   router.replace({
     query: {
@@ -273,6 +278,8 @@ useSeoMeta({
             <div class="flex shrink-0 flex-wrap gap-3">
               <a
                 :href="resource.url"
+                :target="opensInNewTab(resource) ? '_blank' : undefined"
+                :rel="opensInNewTab(resource) ? 'noopener' : undefined"
                 class="inline-flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
               >
                 資料を開く

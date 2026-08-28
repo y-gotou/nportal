@@ -56,7 +56,7 @@ export function isMarkdownFileName(fileName: string | null | undefined): boolean
   return getFileExtension(fileName ?? "") === "md";
 }
 
-function isHtmlFileName(fileName: string | null | undefined): boolean {
+export function isHtmlFileName(fileName: string | null | undefined): boolean {
   return getFileExtension(fileName ?? "") === "html";
 }
 
@@ -97,9 +97,14 @@ function buildAsciiFileNameFallback(fileName: string): string {
   return (fallback || "resource").slice(0, 180);
 }
 
-export function buildResourceContentDisposition(fileName: string | null | undefined): string {
+// HTML は既定でダウンロード(attachment)とする。CSP sandbox で隔離配信する経路のみ
+// htmlInline を指定して inline にできる(server/utils/r2.ts の streamR2Object を参照)。
+export function buildResourceContentDisposition(
+  fileName: string | null | undefined,
+  options: { htmlInline?: boolean } = {},
+): string {
   const safeName = sanitizeFileName(fileName ?? "resource");
-  const dispositionType = isHtmlFileName(safeName) ? "attachment" : "inline";
+  const dispositionType = isHtmlFileName(safeName) && options.htmlInline !== true ? "attachment" : "inline";
   return `${dispositionType}; filename="${buildAsciiFileNameFallback(safeName)}"; filename*=UTF-8''${encodeContentDispositionValue(safeName)}`;
 }
 
