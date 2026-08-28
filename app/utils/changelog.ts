@@ -38,6 +38,13 @@ export const changelogEntries: ChangelogEntry[] = [
   {
     date: "2026-08-28",
     category: "improvement",
+    title: "HTML資料をページとして閲覧可能に",
+    description:
+      "資料共有ページのHTMLファイルを、ダウンロードせずに新規タブでそのまま閲覧できるようにしました。",
+  },
+  {
+    date: "2026-08-28",
+    category: "improvement",
     title: "外部リンクを新規タブで開くように変更",
     description:
       "外部サイトへのリンクを新規タブで開くようにし、閲覧中のページをそのまま残せるようにしました。",

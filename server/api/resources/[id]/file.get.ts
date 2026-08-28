@@ -21,5 +21,6 @@ export default defineEventHandler(async (event) => {
     fileName: resource.file_name,
     mimeType: resource.mime_type,
     notFoundMessage: "Resource file not found.",
+    htmlInline: true,
   });
 });

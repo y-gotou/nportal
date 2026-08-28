@@ -11,6 +11,7 @@ import {
   validateResourceFile,
 } from "../server/utils/upload.ts";
 import { resolveMarkdownImageSources } from "../server/utils/resource-markdown.ts";
+import { streamR2Object } from "../server/utils/r2.ts";
 import {
   getResourceFileUrl,
   validateResourceUrl,
@@ -37,6 +38,14 @@ test("resource file helpers validate allowed files and infer resource types", ()
   assert.equal(
     buildResourceContentDisposition("sample.html"),
     `attachment; filename="sample.html"; filename*=UTF-8''sample.html`,
+  );
+  assert.equal(
+    buildResourceContentDisposition("sample.html", { htmlInline: true }),
+    `inline; filename="sample.html"; filename*=UTF-8''sample.html`,
+  );
+  assert.equal(
+    buildResourceContentDisposition("deck.pdf", { htmlInline: true }),
+    `inline; filename="deck.pdf"; filename*=UTF-8''deck.pdf`,
   );
 
   assert.doesNotThrow(() =>
@@ -96,6 +105,51 @@ test("resource file helpers validate allowed files and infer resource types", ()
   );
 });
 
+function createR2Event(fileKeys: string[]) {
+  const bucket = {
+    async put() {},
+    async get(key: string) {
+      if (!fileKeys.includes(key)) return null;
+      return { body: new Response("<html></html>").body! };
+    },
+    async delete() {},
+  };
+  return { context: { cloudflare: { env: { RESOURCES_BUCKET: bucket } } } } as unknown as Parameters<typeof streamR2Object>[0];
+}
+
+test("streamR2Object serves HTML as a sandboxed page only when htmlInline is set", async () => {
+  const event = createR2Event(["k1"]);
+
+  // 資料共有: HTML は inline + CSP sandbox でページ表示
+  const inlineRes = await streamR2Object(event, "k1", {
+    fileName: "sample.html",
+    mimeType: "text/html",
+    notFoundMessage: "not found",
+    htmlInline: true,
+  });
+  assert.match(inlineRes.headers.get("Content-Disposition") ?? "", /^inline; /);
+  assert.equal(inlineRes.headers.get("Content-Security-Policy"), "sandbox allow-scripts");
+
+  // htmlInline 未指定(chat 添付相当): HTML は従来どおりダウンロード
+  const attachmentRes = await streamR2Object(event, "k1", {
+    fileName: "sample.html",
+    mimeType: "text/html",
+    notFoundMessage: "not found",
+  });
+  assert.match(attachmentRes.headers.get("Content-Disposition") ?? "", /^attachment; /);
+  assert.equal(attachmentRes.headers.get("Content-Security-Policy"), null);
+
+  // HTML 以外は htmlInline を指定しても CSP を付けない
+  const pdfRes = await streamR2Object(event, "k1", {
+    fileName: "deck.pdf",
+    mimeType: "application/pdf",
+    notFoundMessage: "not found",
+    htmlInline: true,
+  });
+  assert.match(pdfRes.headers.get("Content-Disposition") ?? "", /^inline; /);
+  assert.equal(pdfRes.headers.get("Content-Security-Policy"), null);
+});
+
 test("resource URL validation only accepts http and https", () => {
   assert.equal(validateResourceUrl("https://example.com/path"), "https://example.com/path");
   assert.throws(() => validateResourceUrl("javascript:alert(1)"));
@@ -120,6 +174,8 @@ test("resources page and shared form expose user submission controls", async () 
   assert.match(markdownPage, /ファイルを保存/);
   assert.match(markdownPage, /:download="resource\.fileName \|\| true"/);
   assert.doesNotMatch(page, /target="_blank"/);
+  assert.match(page, /:target="opensInNewTab\(resource\) \? '_blank' : undefined"/);
+  assert.match(page, /:rel="opensInNewTab\(resource\) \? 'noopener' : undefined"/);
   assert.match(markdownApi, /renderMarkdown/);
   assert.match(markdownApi, /isMarkdownFileName/);
   assert.match(markdownApi, /resolveMarkdownImageSources/);

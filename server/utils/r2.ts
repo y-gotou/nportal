@@ -2,6 +2,7 @@ import { createError, type H3Event } from "h3";
 import { getCloudflareEnv } from "./cloudflare.ts";
 import {
   buildResourceContentDisposition,
+  isHtmlFileName,
   normalizeResourceMimeType,
   sanitizeFileName,
 } from "./upload.ts";
@@ -55,6 +56,8 @@ export async function streamR2Object(
     normalizeMimeType?: boolean;
     // R2 メタデータを Content-Type のフォールバックに使うか(chat 添付は使わない従来挙動)
     useObjectMetadata?: boolean;
+    // HTML を inline + CSP sandbox でページ表示させるか(資料共有のみ。chat 添付は従来どおりダウンロード)
+    htmlInline?: boolean;
   },
 ): Promise<Response> {
   const object = await getResourcesBucket(event).get(fileKey);
@@ -74,7 +77,12 @@ export async function streamR2Object(
       ? fallback
       : normalizeResourceMimeType(options.fileName ?? "resource", fallback),
   );
-  headers.set("Content-Disposition", buildResourceContentDisposition(options.fileName));
+  const htmlInline = options.htmlInline === true && isHtmlFileName(options.fileName);
+  headers.set("Content-Disposition", buildResourceContentDisposition(options.fileName, { htmlInline }));
+  if (htmlInline) {
+    // 投稿 HTML を不透明オリジンで描画し、ポータル本体(Cookie・API)から隔離する
+    headers.set("Content-Security-Policy", "sandbox allow-scripts");
+  }
   headers.set("X-Content-Type-Options", "nosniff");
 
   return new Response(object.body, { headers });
