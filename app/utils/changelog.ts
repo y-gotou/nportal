@@ -38,9 +38,9 @@ export const changelogEntries: ChangelogEntry[] = [
   {
     date: "2026-08-28",
     category: "improvement",
-    title: "zip ファイルを誰でも投稿できるように変更",
+    title: "zip ファイルを投稿可能に変更",
     description:
-      "管理者のみに限定していた zip ファイルの投稿制限を解除し、資料共有とチャット添付のいずれでも投稿できるようにしました。",
+      "資料共有とチャットでzip ファイルを投稿できるようにしました。",
   },
   {
     date: "2026-08-28",
