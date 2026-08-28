@@ -2,13 +2,13 @@
 id: T-008
 title: HTML資料のページ表示
 scale: medium
-status: doing
+status: done
 priority: mid
 updated: 2026-08-28
 approvals:
   spec: 2026-08-28
   plan: 2026-08-28
-  done: null
+  done: 2026-08-28
 ---
 # HTML資料のページ表示
 
