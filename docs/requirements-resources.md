@@ -17,6 +17,7 @@
 - HTML 資料の配信には `Content-Security-Policy: sandbox allow-scripts` を付与する。
 - これにより投稿 HTML は不透明オリジン(opaque origin)で描画され、スクリプトは動作するが、ポータル本体の Cookie・API にはアクセスできない(投稿 HTML による持続型 XSS の防止)。
 - 前提条件として、Cloudflare Access の Cookie の SameSite 属性は `Lax` 以上とする(サンドボックスからの認証付きリクエストを防ぐ)。
+- 制約: 不透明オリジンでは `localStorage` 等の Web Storage へのアクセスが例外になる。try/catch なしで参照する投稿 HTML は該当スクリプトが停止する(`allow-same-origin` の追加は隔離を無効化するため行わない)。
 
 ## 資料を開くリンク
 
