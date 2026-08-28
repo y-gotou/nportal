@@ -26,7 +26,7 @@ const isOpen = ref(false);
     <span
       v-if="isOpen"
       role="tooltip"
-      class="absolute left-0 top-full z-20 mt-1.5 block w-66 rounded-[10px] border border-border bg-surface px-3.5 py-3 text-left text-xs leading-[1.75] shadow-[0_14px_30px_-14px_rgba(15,23,42,0.4)]"
+      class="absolute left-0 top-full z-20 mt-1.5 block w-66 rounded-[10px] border border-border bg-surface px-3.5 py-3 text-left text-xs leading-[1.75] shadow-lg"
     >
       <span class="block font-bold text-foreground">{{ term }}</span>
       <span class="mt-1 block text-muted">{{ description }}</span>

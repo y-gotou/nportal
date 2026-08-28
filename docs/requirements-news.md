@@ -235,6 +235,8 @@ adjusted_score = ai_score × clamp(w_source × w_category × w_impact_axis, 0.7,
 
 画面は Claude Design のデザイン案「紙面型」(プロジェクト `nportal ニュースページ デザイン案比較` の `News Page.dc.html`)を正とする。カードの箱を使わず、罫線と余白で区切った番号付きの一覧に圧縮する構成である。
 
+ただし配色(ページ背景・本文色・パネルの枠線と影)はデザイン案の直値ではなく、ポータル共通のデザイントークン(`app/assets/css/main.css` の CSS 変数)に従う。ページ背景は他ページと同じ `--background`、本文パネルは他ページのカードと同じ `--border` / `--surface` と `shadow-sm`、要点まとめの本文は `--muted` とする。デザイン案から採るのは、罫線と余白による一覧構成・見出し・余白・タイポグラフィである。
+
 ### 8.1 ページ構成
 
 - URL: `/news`(単一ページ、タブ切替)

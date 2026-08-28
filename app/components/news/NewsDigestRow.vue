@@ -42,7 +42,7 @@ const summaryText = computed(() => stripTermMarkers(props.article.summary));
       </h3>
 
       <p
-        class="mt-[7px] text-[13.5px] leading-[1.85] text-slate-600 dark:text-slate-300"
+        class="mt-[7px] text-[13.5px] leading-[1.85] text-muted"
         :class="japaneseTextClass"
       >
         {{ summaryText }}
