@@ -10,7 +10,7 @@ import {
   parseChatId,
   validateChatMessageBody,
 } from "~~/server/utils/chat";
-import { getResourceObjectPrefix, getResourcesBucket } from "~~/server/utils/r2";
+import { getResourceObjectPrefix, getResourcesBucket, toR2ObjectBody } from "~~/server/utils/r2";
 import {
   normalizeResourceMimeType,
   sanitizeFileName,
@@ -77,8 +77,7 @@ export default defineEventHandler(async (event) => {
     const date = utcToday();
     const fileKey = `${getResourceObjectPrefix(event)}/chat/${date}/${crypto.randomUUID()}-${fileName}`;
 
-    // multipart解析後のBufferはbyteOffset付きビューのことがあり、そのままではminiflareのR2 putが失敗する
-    await getResourcesBucket(event).put(fileKey, new Uint8Array(filePart.data), {
+    await getResourcesBucket(event).put(fileKey, toR2ObjectBody(filePart.data), {
       httpMetadata: { contentType: mimeType },
     });
 

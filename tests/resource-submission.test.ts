@@ -11,7 +11,7 @@ import {
   validateResourceFile,
 } from "../server/utils/upload.ts";
 import { resolveMarkdownImageSources } from "../server/utils/resource-markdown.ts";
-import { streamR2Object } from "../server/utils/r2.ts";
+import { streamR2Object, toR2ObjectBody } from "../server/utils/r2.ts";
 import {
   getResourceFileUrl,
   validateResourceUrl,
@@ -105,12 +105,12 @@ test("resource file helpers validate allowed files and infer resource types", ()
   );
 });
 
-function createR2Event(fileKeys: string[]) {
+function createR2Event(fileKeys: string[], objectExtras: Record<string, unknown> = {}) {
   const bucket = {
     async put() {},
     async get(key: string) {
       if (!fileKeys.includes(key)) return null;
-      return { body: new Response("<html></html>").body! };
+      return { body: new Response("<html></html>").body!, ...objectExtras };
     },
     async delete() {},
   };
@@ -148,6 +148,60 @@ test("streamR2Object serves HTML as a sandboxed page only when htmlInline is set
   });
   assert.match(pdfRes.headers.get("Content-Disposition") ?? "", /^inline; /);
   assert.equal(pdfRes.headers.get("Content-Security-Policy"), null);
+});
+
+// miniflare のバインディングプロキシは Node の Headers を直列化できないため、
+// writeHttpMetadata を呼ぶとローカル dev の配信が 500 になる(T-009)
+test("streamR2Object resolves Content-Type without calling writeHttpMetadata", async () => {
+  const event = createR2Event(["k1"], {
+    httpMetadata: { contentType: "application/pdf" },
+    writeHttpMetadata() {
+      throw new Error("writeHttpMetadata must not be called");
+    },
+  });
+
+  const res = await streamR2Object(event, "k1", {
+    fileName: "deck.pdf",
+    mimeType: null,
+    notFoundMessage: "not found",
+  });
+  assert.equal(res.headers.get("Content-Type"), "application/pdf");
+
+  // chat 添付は従来どおり R2 メタデータを参照しない
+  const chatRes = await streamR2Object(event, "k1", {
+    fileName: "deck.pdf",
+    mimeType: null,
+    notFoundMessage: "not found",
+    useObjectMetadata: false,
+  });
+  assert.equal(chatRes.headers.get("Content-Type"), "application/octet-stream");
+});
+
+// miniflare のプロキシは標準 TypedArray しか復元できず、Buffer のまま put すると
+// ローカル dev のアップロードが 500 になる(T-009)
+test("toR2ObjectBody converts multipart Buffers into a plain Uint8Array", () => {
+  const buffer = Buffer.from("資料本文", "utf8");
+  const body = toR2ObjectBody(buffer);
+
+  assert.equal(body.constructor, Uint8Array);
+  assert.deepEqual([...body], [...buffer]);
+});
+
+test("every R2 upload passes its file data through toR2ObjectBody", async () => {
+  const paths = [
+    "../server/api/resources.post.ts",
+    "../server/api/resources/[id].put.ts",
+    "../server/api/chat/[scheduleId]/messages.post.ts",
+  ];
+
+  for (const path of paths) {
+    const source = await readFile(new URL(path, import.meta.url), "utf8");
+    assert.equal(
+      (source.match(/toR2ObjectBody\(/g) ?? []).length,
+      (source.match(/\.put\(/g) ?? []).length,
+      `${path} の put 呼び出しが toR2ObjectBody を経由していない`,
+    );
+  }
 });
 
 test("resource URL validation only accepts http and https", () => {
