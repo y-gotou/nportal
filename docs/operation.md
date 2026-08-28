@@ -43,10 +43,12 @@ GitHub の branch protection または ruleset で、次の設定を適用しま
 PR 作成者は、PR テンプレートに沿って次の内容を記載します。
 
 - 変更概要。
-- Cloudflare Pages Preview の結果。
-- 表示確認または動作確認の内容。
-- D1 スキーマ変更または本番データ操作の有無。
-- Cloudflare Access、アプリ内 Admin 権限、Cloudflare Pages / D1 / R2 設定を変更していないこと。
+- `npm test` と `npm run check` の実施結果。
+- Preview での表示確認または動作確認の内容。
+- 更新履歴(`app/utils/changelog.ts`)への追記、または掲載基準外として追記しない判断。
+- 該当する運用影響(D1 スキーマ変更、本番 D1 データ操作、Cloudflare Pages 環境変数の追加・変更、Cloudflare Access / アプリ内 Admin 権限 / Cloudflare Pages・D1・R2 設定の変更)と、必要な手順。
+
+Cloudflare Pages Preview のデプロイ結果と Preview URL は、Cloudflare の自動コメントと必須 status check で確認できるため、PR 本文には転記しません。
 
 Admin は、Cloudflare Pages Preview が成功していること、変更内容が目的と一致していること、本番データ操作が必要な場合は手順が明確であることを確認してから merge します。
 
