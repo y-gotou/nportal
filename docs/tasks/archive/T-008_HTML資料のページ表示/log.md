@@ -1,11 +1,12 @@
 # T-008 作業ログ
 
 ## 引き継ぎサマリ
-- 現状: PR #87 作成済み。Preview でユーザーが JS 付き HTML(自己展開型バンドル)の表示を確認済み(2026-08-28)。マージ待ち。
-- 次の作業: マージ(Admin)・本番反映後に既存 HTML 資料の表示確認 → changelog の日付調整(必要時)→ G3。
-- 未確定点: なし。changelog の date はマージ日に合わせて要調整(現在 2026-08-28 を仮置き)。
+- 現状: 完了(G3 承認 2026-08-28)。PR #87 マージ・本番反映済み。
+- 次の作業: なし。
+- 未確定点: なし。
 
 ## 時系列ログ
+- 2026-08-28: PR #87 をユーザーが GitHub UI からマージ(必須 status check の解除もユーザーが UI で実施)。本番デプロイ(`7d8919b`)成功を確認し、本番の既存 HTML 資料の配信ヘッダー(`inline` + `sandbox allow-scripts` + `nosniff`)を Access 認証付き curl で確認。changelog の date はマージ日と一致し調整不要。G3 承認、アーカイブへ移動。
 - 2026-08-28: PR #87 が「Cloudflare Pages」必須 status check 待ちでマージ不可に(head が docs のみのコミットで、ビルド監視パスの除外によりビルドが起動せず status が報告されない。Cloudflare はスキップ時に status を送らない仕様)。対処としてユーザーが「必須 status check から外す」方針を決定。docs/operation.md を更新。ブランチ保護の設定変更コマンドはユーザーが実行。
 - 2026-08-28: Preview でユーザーが動作確認。自己展開型バンドル HTML が新規タブで正常に表示・動作。コンソールに投稿 HTML 側スクリプトの `localStorage` 読み取りによる SecurityError が 1 件出るが表示への影響なし(サンドボックスの想定挙動)。この制約を requirements-resources.md に追記。
 - 2026-08-28: ユーザー承認のうえ push・PR #87 を作成。Preview での動作確認はユーザーが実施予定。
