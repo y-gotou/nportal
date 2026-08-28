@@ -43,7 +43,7 @@ const rank = computed(() => formatRank(props.index));
 
       <NewsSummary
         v-if="article.summary"
-        class="mt-[7px] text-[13.5px] leading-[1.85] text-slate-600 dark:text-slate-300"
+        class="mt-[7px] text-[13.5px] leading-[1.85] text-muted"
         :class="japaneseTextClass"
         :text="article.summary"
         :glossary="article.glossary"
