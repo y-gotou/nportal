@@ -69,10 +69,7 @@ export default defineEventHandler(async (event) => {
     const fileName = sanitizeFileName(filePart.filename);
     const mimeType = normalizeResourceMimeType(fileName, filePart.type);
 
-    validateResourceFile(
-      { fileName, size: filePart.data.byteLength, mimeType: filePart.type },
-      { allowZip: user.isAdmin === true },
-    );
+    validateResourceFile({ fileName, size: filePart.data.byteLength, mimeType: filePart.type });
 
     const date = utcToday();
     const fileKey = `${getResourceObjectPrefix(event)}/chat/${date}/${crypto.randomUUID()}-${fileName}`;

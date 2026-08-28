@@ -128,7 +128,6 @@ export function inferResourceType(input: { fileName?: string | null; url?: strin
 
 export function validateResourceFile(
   file: { fileName: string; size: number; mimeType?: string | null },
-  options: { allowZip?: boolean } = {},
 ) {
   if (file.size < 1) {
     throw createError({ statusCode: 400, statusMessage: "file is empty." });
@@ -143,13 +142,6 @@ export function validateResourceFile(
 
   if (!allowedMimes) {
     throw createError({ statusCode: 400, statusMessage: "file extension is not allowed." });
-  }
-
-  if (extension === "zip" && options.allowZip !== true) {
-    throw createError({
-      statusCode: 403,
-      statusMessage: "zip files can only be submitted by administrators.",
-    });
   }
 
   const mimeType = getBaseMimeType(file.mimeType);

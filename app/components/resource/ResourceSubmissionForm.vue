@@ -20,32 +20,6 @@ const selectedImages = ref<File[]>([]);
 const isSubmitting = ref(false);
 const serverError = ref<string | null>(null);
 const sourceMode = ref<"url" | "file">("url");
-const currentUser = useCurrentUser();
-const canSubmitZip = computed(() => currentUser.value?.isAdmin === true);
-const fileAccept = computed(() => [
-  ".pdf",
-  ".ppt",
-  ".pptx",
-  ".doc",
-  ".docx",
-  ".xls",
-  ".xlsx",
-  ".csv",
-  ".txt",
-  ".md",
-  ".html",
-  ".png",
-  ".jpg",
-  ".jpeg",
-  ".gif",
-  ".webp",
-  ...(canSubmitZip.value ? [".zip"] : []),
-].join(","));
-const fileHint = computed(() =>
-  canSubmitZip.value
-    ? "50MB まで。PDF、Office、画像、CSV、テキスト等に対応します。"
-    : "50MB まで。PDF、Office、画像、CSV、テキスト等に対応します。zipは管理者のみ投稿できます。",
-);
 
 const form = reactive({
   title: "",
@@ -127,10 +101,6 @@ watch(showImageField, (visible) => {
   }
 });
 
-function isZipFile(file: File): boolean {
-  return file.name.toLowerCase().endsWith(".zip");
-}
-
 function isImageFile(file: File): boolean {
   return /\.(png|jpe?g|gif|webp)$/i.test(file.name);
 }
@@ -149,13 +119,6 @@ function validate() {
     nextErrors.source = "URLを入力してください。";
   } else if (sourceMode.value === "file" && !hasSelectedFile && !canKeepExistingFile) {
     nextErrors.source = "ファイルを選択してください。";
-  } else if (
-    sourceMode.value === "file" &&
-    selectedFile.value &&
-    isZipFile(selectedFile.value) &&
-    !canSubmitZip.value
-  ) {
-    nextErrors.source = "zipは管理者のみ投稿できます。";
   }
 
   if (showImageField.value && selectedImages.value.some((file) => !isImageFile(file))) {
@@ -260,13 +223,13 @@ async function submit() {
         label="ファイル"
         field-id="resource-file"
         :error="errors.source"
-        :hint="fileHint"
+        hint="50MB まで。PDF、Office、画像、CSV、テキスト、zip 等に対応します。"
       >
         <input
           id="resource-file"
           ref="fileInput"
           type="file"
-          :accept="fileAccept"
+          accept=".pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.csv,.txt,.md,.html,.png,.jpg,.jpeg,.gif,.webp,.zip"
           class="block w-full text-sm text-foreground file:mr-4 file:rounded-lg file:border-0 file:bg-surface-hover file:px-4 file:py-2 file:text-sm file:font-medium file:text-foreground hover:file:bg-border"
           @change="onFileChange"
         >
