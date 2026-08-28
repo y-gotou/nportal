@@ -6,6 +6,7 @@
 - 未確定点: なし。changelog の date はマージ日に合わせて要調整(現在 2026-08-28 を仮置き)。
 
 ## 時系列ログ
+- 2026-08-28: PR #87 が「Cloudflare Pages」必須 status check 待ちでマージ不可に(head が docs のみのコミットで、ビルド監視パスの除外によりビルドが起動せず status が報告されない。Cloudflare はスキップ時に status を送らない仕様)。対処としてユーザーが「必須 status check から外す」方針を決定。docs/operation.md を更新。ブランチ保護の設定変更コマンドはユーザーが実行。
 - 2026-08-28: Preview でユーザーが動作確認。自己展開型バンドル HTML が新規タブで正常に表示・動作。コンソールに投稿 HTML 側スクリプトの `localStorage` 読み取りによる SecurityError が 1 件出るが表示への影響なし(サンドボックスの想定挙動)。この制約を requirements-resources.md に追記。
 - 2026-08-28: ユーザー承認のうえ push・PR #87 を作成。Preview での動作確認はユーザーが実施予定。
 - 2026-08-28: 実装完了。`npm test`(166件)・`npm run check` 通過。ローカル検証は `wrangler pages dev dist` 上で実施し、HTML 配信レスポンスに `Content-Disposition: inline` と `Content-Security-Policy: sandbox allow-scripts` が付与されること、新規タブ(`target="_blank"` / `rel="noopener"`)でページ表示されること、サンドボックス内で `window.origin === "null"`・`document.cookie` が SecurityError・`fetch("/api/me")` が失敗することを確認。新規タブ付与はファイル直接リンク(`/api/` 配信)に限定し、Markdown ビューアーは同一タブを維持(plan に詳細化を反映)。
