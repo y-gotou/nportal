@@ -34,8 +34,8 @@ GitHub の branch protection または ruleset で、次の設定を適用しま
 - `main` の force push を禁止する。
 - `main` の削除を禁止する。
 - merge可能者を Admin に限定する。
-- Cloudflare Pages Preview の成功を merge 条件にする。
-- Cloudflare のチェック名は `Cloudflare Pages` を必須 status check として固定する。
+- Cloudflare Pages Preview の成功を merge 条件にする(Admin が merge 前に目視で確認する)。
+- `Cloudflare Pages` は必須 status check に設定しない。ビルド監視パスで docs 等を除外しているため、スキップされたビルドは status を送信せず、必須にすると docs のみの PR が永久にブロックされる(2026-08-28 に必須指定を解除)。
 - squash merge と rebase merge は、リポジトリ設定で無効化可能であれば無効化する。
 
 ## PR 確認項目
@@ -48,7 +48,7 @@ PR 作成者は、PR テンプレートに沿って次の内容を記載しま�
 - 更新履歴(`app/utils/changelog.ts`)への追記、または掲載基準外として追記しない判断。
 - 該当する運用影響(D1 スキーマ変更、本番 D1 データ操作、Cloudflare Pages 環境変数の追加・変更、Cloudflare Access / アプリ内 Admin 権限 / Cloudflare Pages・D1・R2 設定の変更)と、必要な手順。
 
-Cloudflare Pages Preview のデプロイ結果と Preview URL は、Cloudflare の自動コメントと必須 status check で確認できるため、PR 本文には転記しません。
+Cloudflare Pages Preview のデプロイ結果と Preview URL は、Cloudflare の自動コメントと status check で確認できるため、PR 本文には転記しません。
 
 Admin は、Cloudflare Pages Preview が成功していること、変更内容が目的と一致していること、本番データ操作が必要な場合は手順が明確であることを確認してから merge します。
 
