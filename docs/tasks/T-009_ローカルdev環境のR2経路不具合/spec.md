@@ -2,12 +2,12 @@
 id: T-009
 title: ローカルdev環境のR2経路不具合
 scale: medium
-status: todo
+status: doing
 priority: mid
 updated: 2026-08-28
 approvals:
-  spec: null
-  plan: null
+  spec: 2026-08-28
+  plan: 2026-08-28
   done: null
 ---
 # ローカルdev環境のR2経路不具合
