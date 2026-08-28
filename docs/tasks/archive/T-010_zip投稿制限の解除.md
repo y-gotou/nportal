@@ -2,12 +2,12 @@
 id: T-010
 title: zip 投稿制限の解除
 scale: small
-status: blocked
+status: done
 priority: mid
 updated: 2026-08-28
 approvals:
   spec: 2026-08-28
-  done: null
+  done: 2026-08-28
 ---
 # zip 投稿制限の解除
 
@@ -49,8 +49,8 @@ zip ファイルの投稿は 2026-05-07 に「安全性確保のため」管理�
 
 ## 作業ログ
 ### 引き継ぎサマリ
-- 現状: PR #91 を作成し、Admin のマージ待ち。
-- 次の作業: マージ・本番反映の確認後に G3(完了判定)。
+- 現状: 完了(G3 承認 2026-08-28)。PR #91 マージ・本番反映済み。
+- 次の作業: なし。
 - 未確定点: なし。
 
 ### 時系列
@@ -59,3 +59,4 @@ zip ファイルの投稿は 2026-05-07 に「安全性確保のため」管理�
 - 2026-08-28: 実装完了。`validateResourceFile` の `allowZip` オプションと zip 拒否分岐、3 箇所の呼び出し、投稿フォームの `canSubmitZip` / `isZipFile` / 権限別 `accept`・注意文を削除。`docs/requirements-chat.md` の「zip は管理者のみ」記載を削除し、許可形式の列挙に ZIP を追記。更新履歴に 1 項目追記。
 - 2026-08-28: 検証。`npm test` 169 件パス、`npm run check` 成功。ローカル dev(モックログイン)で資料投稿フォームから zip を投稿し、一覧に ZIP として表示されることを確認(`accept` に `.zip` を含み、ヒント文も更新済みであることを併せて確認)。検証用に投稿した 2 件はローカルから削除済み。
 - 2026-08-28: PR #91 を作成。
+- 2026-08-28: PR #91 をユーザーが GitHub UI からマージ(マージコミット `0c49561`)。Cloudflare Pages の Production デプロイ `2e336ee7`(source `0c49561`)が Active であることを確認。更新履歴の date はマージ日と一致し調整不要。恒久仕様書(`docs/requirements-chat.md`)への反映は実装 PR に同梱済みで、main 上の内容と一致することを確認。G3 承認、アーカイブへ移動。
