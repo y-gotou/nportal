@@ -25,6 +25,12 @@
 - Markdown 資料のビューアーページと関連議事録へのリンクは同一タブで開く。
 - URL 資料は外部リンク動作([requirements-links.md](requirements-links.md))に従う。
 
+## 発表応募との紐付け
+
+- 資料は発表者募集の応募 1 件と紐付けられる(1 対 1)。紐付けの設定・解除は発表者募集側で行う([requirements-speakers.md](requirements-speakers.md) §5)。
+- 紐付いた資料も資料一覧に通常どおり掲載する。紐付けがある場合のみ、カードに「発表: {応募タイトル}」をテキストで表示する(リンクにはしない)。
+- 紐付け時に `presenter` と `related_minutes_slug` へ応募側の値が反映されるのは、それらが未設定の場合に限る。手動で設定した値は上書きされない。
+
 ## 対象外
 
 - チャット添付ファイル(`GET /api/chat/messages/{id}/file`)は本要件の対象外とし、HTML を含めダウンロード形式で配信する([requirements-chat.md](requirements-chat.md) に従う)。
