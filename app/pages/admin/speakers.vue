@@ -1,22 +1,31 @@
 <script setup lang="ts">
-import type { MinutesListResponse, SpeakerApplication, SpeakerApplicationStatus, SpeakersListResponse } from "~~/types/portal";
+import type { MinutesListResponse, ResourcesListResponse, SpeakerApplication, SpeakerApplicationStatus, SpeakersListResponse } from "~~/types/portal";
 import { formatDisplayDate } from "#shared/utils/content";
 import { speakerStatusClass, speakerStatusLabel } from "~/utils/status";
 
 definePageMeta({ layout: "admin" });
 await useAdminGuard();
 
-const [{ data, refresh }, { data: minutesData }] = await Promise.all([
+const [{ data, refresh }, { data: minutesData }, { data: resourcesData, refresh: refreshResources }] = await Promise.all([
   useFetch<SpeakersListResponse>("/api/speakers", {
     default: () => ({ applications: [] }),
   }),
   useFetch<MinutesListResponse>("/api/minutes", {
     default: () => ({ minutes: [] }),
   }),
+  useFetch<ResourcesListResponse>("/api/resources", {
+    default: () => ({ resources: [] }),
+  }),
 ]);
 
 const applications = computed(() => data.value?.applications ?? []);
 const minutesOptions = computed(() => minutesData.value?.minutes ?? []);
+// 管理者は全資料から選べるが、他の応募に紐付いているものは候補から除く
+function resourceOptions(app: SpeakerApplication) {
+  return (resourcesData.value?.resources ?? []).filter(
+    (resource) => !resource.linkedApplication || resource.linkedApplication.id === app.id,
+  );
+}
 
 const statusOptions: { value: SpeakerApplicationStatus; label: string }[] = (
   ["pending", "scheduled", "done"] as const
@@ -57,6 +66,24 @@ async function changeMinutes(app: SpeakerApplication, slug: string) {
   }
 }
 
+async function changeResource(app: SpeakerApplication, value: string) {
+  const newResourceId = value === "" ? null : Number(value);
+  if (app.resource_id === newResourceId) return;
+  updatingId.value = app.id;
+  try {
+    await $fetch(`/api/admin/speakers/${app.id}`, {
+      method: "PUT",
+      body: { resource_id: newResourceId },
+    });
+    await Promise.all([refresh(), refreshResources()]);
+  } catch (e: unknown) {
+    alert(e instanceof Error ? e.message : "資料の紐付けに失敗しました。");
+    await refresh();
+  } finally {
+    updatingId.value = null;
+  }
+}
+
 useSeoMeta({ title: "発表募集管理" });
 </script>
 
@@ -73,6 +100,7 @@ useSeoMeta({ title: "発表募集管理" });
             <th class="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted md:table-cell">時間</th>
             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">ステータス</th>
             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">議事録</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">資料</th>
             <th class="px-4 py-3" />
           </tr>
         </thead>
@@ -121,6 +149,24 @@ useSeoMeta({ title: "発表募集管理" });
                   :selected="minutes.slug === app.minutes_slug"
                 >
                   {{ formatDisplayDate(minutes.date) }} {{ minutes.title }}
+                </option>
+              </select>
+            </td>
+            <td class="px-4 py-3">
+              <!-- select の value 属性は SSR で選択状態にならないため option の selected で指定する -->
+              <select
+                :disabled="updatingId === app.id"
+                class="max-w-48 rounded-lg border border-border bg-surface px-2 py-1.5 text-xs font-medium text-foreground focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                @change="changeResource(app, ($event.target as HTMLSelectElement).value)"
+              >
+                <option value="" :selected="app.resource_id === null">紐付けなし</option>
+                <option
+                  v-for="resource in resourceOptions(app)"
+                  :key="resource.id"
+                  :value="resource.id"
+                  :selected="resource.id === app.resource_id"
+                >
+                  {{ resource.title }}
                 </option>
               </select>
             </td>

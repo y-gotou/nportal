@@ -1,7 +1,17 @@
 <script setup lang="ts">
-import type { SpeakerApplication, SpeakersListResponse } from "~~/types/portal";
+import type {
+  ResourceItem,
+  ResourcesListResponse,
+  SpeakerApplication,
+  SpeakersListResponse,
+} from "~~/types/portal";
 import { primaryButtonClass, secondaryButtonClass, surfaceCardClass } from "~/utils/ui";
-import { isSpeakerFormDirty, type SpeakerFormValues } from "~/utils/speakers";
+import {
+  isSpeakerFormDirty,
+  selectableResourcesForApplication,
+  type SpeakerFormValues,
+} from "~/utils/speakers";
+import { resourceOpensInNewTab } from "~/utils/resources";
 import { useCurrentUser } from "~/composables/useCurrentUser";
 import { speakerStatusClass, speakerStatusLabel } from "~/utils/status";
 
@@ -9,6 +19,35 @@ const currentUser = useCurrentUser();
 
 const { data, refresh, error } = await useFetch<SpeakersListResponse>("/api/speakers");
 const applications = computed(() => data.value?.applications ?? []);
+
+const { data: resourcesData, refresh: refreshResources } = await useFetch<ResourcesListResponse>(
+  "/api/resources",
+  { default: () => ({ resources: [] }) },
+);
+const resources = computed(() => resourcesData.value?.resources ?? []);
+
+function linkedResource(app: SpeakerApplication): ResourceItem | null {
+  if (app.resource_id === null) return null;
+  return resources.value.find((resource) => resource.id === app.resource_id) ?? null;
+}
+
+function selectableResources(app: SpeakerApplication): ResourceItem[] {
+  if (!currentUser.value) return [];
+  return selectableResourcesForApplication(resources.value, app.id, currentUser.value.email);
+}
+
+async function updateLinkedResource(app: SpeakerApplication, value: string) {
+  try {
+    await $fetch(`/api/speakers/${app.id}/resource`, {
+      method: "PUT",
+      body: { resource_id: value === "" ? null : Number(value) },
+    });
+    await Promise.all([refresh(), refreshResources()]);
+  } catch (e: unknown) {
+    alert(e instanceof Error ? e.message : "資料の紐付けに失敗しました。");
+    await refresh();
+  }
+}
 
 const pendingApplications = computed(() =>
   applications.value.filter((a) => a.status === "pending"),
@@ -259,12 +298,43 @@ useSeoMeta({
                     <span>{{ app.duration }}分</span>
                   </div>
                   <p v-if="app.note" class="whitespace-pre-wrap break-words text-sm text-muted">{{ app.note }}</p>
+                  <div
+                    v-if="currentUser?.email === app.user_email"
+                    class="flex flex-wrap items-center gap-2 pt-1"
+                  >
+                    <label :for="`resource-${app.id}`" class="text-xs font-medium text-muted">発表資料</label>
+                    <!-- select の value 属性は SSR で選択状態にならないため option の selected で指定する -->
+                    <select
+                      :id="`resource-${app.id}`"
+                      class="max-w-xs rounded-lg border border-border bg-surface px-2 py-1 text-xs text-foreground focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      @change="updateLinkedResource(app, ($event.target as HTMLSelectElement).value)"
+                    >
+                      <option value="" :selected="app.resource_id === null">紐付けなし</option>
+                      <option
+                        v-for="resource in selectableResources(app)"
+                        :key="resource.id"
+                        :value="resource.id"
+                        :selected="resource.id === app.resource_id"
+                      >
+                        {{ resource.title }}
+                      </option>
+                    </select>
+                  </div>
                 </div>
 
                 <div
-                  v-if="app.minutes_slug || (currentUser?.email === app.user_email && app.status !== 'done')"
+                  v-if="app.minutes_slug || linkedResource(app) || (currentUser?.email === app.user_email && app.status !== 'done')"
                   class="flex shrink-0 flex-wrap items-center gap-2"
                 >
+                  <a
+                    v-if="linkedResource(app)"
+                    :href="linkedResource(app)!.url"
+                    :target="resourceOpensInNewTab(linkedResource(app)!) ? '_blank' : undefined"
+                    :rel="resourceOpensInNewTab(linkedResource(app)!) ? 'noopener' : undefined"
+                    :class="secondaryButtonClass"
+                  >
+                    資料を見る
+                  </a>
                   <NuxtLink
                     v-if="app.minutes_slug"
                     :to="`/minutes/${app.minutes_slug}`"
