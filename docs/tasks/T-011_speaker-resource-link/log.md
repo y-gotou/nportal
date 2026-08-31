@@ -2,8 +2,8 @@
 
 ## 引き継ぎサマリ
 <!-- 常に最新状態へ上書きする。別セッションのエージェントがこの節だけで再開できること -->
-- 現状: ブランチ `feat/speaker-resource-link` で作業項目 1〜4 を完了。エージェント実施の検証(`npm test` 187 件 / `npm run check` / ローカルブラウザ確認)はすべて消化済み。
-- 次の作業: ユーザー承認を得て push・PR 作成。マージ後に本番 D1 へマイグレーションを適用し(コマンドは下記)、本番画面を確認して G3 へ。
+- 現状: 実装完了。PR #93 作成済み(ブランチ `feat/speaker-resource-link`)。エージェント実施の検証(`npm test` 187 件 / `npm run check` / ローカルブラウザ確認)はすべて消化済み。Admin のマージ待ち。
+- 次の作業: マージ後に本番 D1 へ `ALTER TABLE speaker_applications ADD COLUMN resource_id INTEGER;` と `CREATE UNIQUE INDEX IF NOT EXISTS idx_speaker_applications_resource ON speaker_applications(resource_id);` をユーザーが適用(本番反映前に実施)。その後に本番画面を確認して G3 へ。
 - 未確定点: changelog の日付を 2026-08-31 で起案済み。マージ日が変わる場合は差し替えが必要。
 
 ## 時系列ログ
@@ -15,3 +15,4 @@
 - 2026-08-31: 作業項目 3 を実装。発表者募集ページの応募カードに資料セレクトと「資料を見る」リンク、管理画面に資料列、資料一覧に「発表: …」テキストを追加。`opensInNewTab` を `app/utils/resources.ts` の `resourceOpensInNewTab` へ移設し 2 ページで共用(既存テストの参照名も更新)。候補絞り込みは `selectableResourcesForApplication` に切り出してテスト追加。
 - 2026-08-31: ローカルブラウザ確認を実施。本人 API での紐付けで資料の `related_minutes_slug` に応募の議事録が反映されること、重複紐付け 409・他人の応募 403・存在しない資料 404、発表済み応募でもセレクトが表示され付け替え可能(編集ボタンは非表示のまま)、管理画面のセレクトが他の応募に紐付いた資料を候補から除外すること、資料一覧の「発表: テスト」表示、資料削除で `resource_id` が NULL に戻り「資料を見る」が消えることを確認。検証用に作成したローカルデータは削除して原状復帰。
 - 2026-08-31: 作業項目 4 を実施。`docs/requirements-speakers.md` §2 更新・§5 新設、`docs/requirements-resources.md` に紐付け節を追加、`app/utils/changelog.ts` へ feature 1 件を起案。`npm test` 187 件成功、`npm run check` 成功。
+- 2026-08-31: push・PR 作成の承認を得て PR #93 を作成。status を blocked(マージと本番 D1 適用のユーザー実施待ち)へ変更。

@@ -6,7 +6,7 @@
 
 | ID | 件名 | 規模 | 状態 | 優先度 | 更新日 | 票 |
 |----|------|------|------|--------|--------|----|
-| T-011 | 発表応募と資料の紐付け | medium | doing | mid | 2026-08-31 | [T-011](T-011_speaker-resource-link/spec.md) |
+| T-011 | 発表応募と資料の紐付け | medium | blocked | mid | 2026-08-31 | [T-011](T-011_speaker-resource-link/spec.md) |
 
 ### アーカイブ済み
 
