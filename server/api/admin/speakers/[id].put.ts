@@ -3,6 +3,7 @@ import { assertAdmin } from "~~/server/utils/admin";
 import { getDb } from "~~/server/utils/db";
 import {
   adminUpdateSpeakerApplication,
+  parseResourceIdInput,
   parseSpeakerId,
   type AdminSpeakerUpdates,
 } from "~~/server/utils/speakers";
@@ -11,6 +12,7 @@ import type { SpeakerApplicationStatus } from "~~/types/portal";
 interface AdminUpdateBody {
   status?: string;
   minutes_slug?: string | null;
+  resource_id?: number | string | null;
 }
 
 const VALID_STATUSES: SpeakerApplicationStatus[] = ["pending", "scheduled", "done"];
@@ -35,6 +37,10 @@ export default defineEventHandler(async (event) => {
 
   if ("minutes_slug" in body) {
     updates.minutesSlug = body.minutes_slug ?? null;
+  }
+
+  if ("resource_id" in body) {
+    updates.resourceId = parseResourceIdInput(body.resource_id ?? null);
   }
 
   const db = getDb(event);

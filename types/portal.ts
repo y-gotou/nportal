@@ -25,6 +25,8 @@ export interface ResourceItem {
   mimeType?: string | null;
   submittedBy?: string | null;
   canEdit?: boolean;
+  // 紐付いている発表応募（未紐付けは null）
+  linkedApplication?: { id: number; title: string } | null;
 }
 
 export interface MinutesMeta {
@@ -192,6 +194,7 @@ export interface SpeakerApplication {
   note: string | null;
   status: SpeakerApplicationStatus;
   minutes_slug: string | null;
+  resource_id: number | null;
   created_at: string;
   updated_at: string;
 }

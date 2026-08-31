@@ -220,8 +220,8 @@ test("resources page and shared form expose user submission controls", async () 
   assert.match(markdownPage, /ファイルを保存/);
   assert.match(markdownPage, /:download="resource\.fileName \|\| true"/);
   assert.doesNotMatch(page, /target="_blank"/);
-  assert.match(page, /:target="opensInNewTab\(resource\) \? '_blank' : undefined"/);
-  assert.match(page, /:rel="opensInNewTab\(resource\) \? 'noopener' : undefined"/);
+  assert.match(page, /:target="resourceOpensInNewTab\(resource\) \? '_blank' : undefined"/);
+  assert.match(page, /:rel="resourceOpensInNewTab\(resource\) \? 'noopener' : undefined"/);
   assert.match(markdownApi, /renderMarkdown/);
   assert.match(markdownApi, /isMarkdownFileName/);
   assert.match(markdownApi, /resolveMarkdownImageSources/);
