@@ -105,14 +105,18 @@ CREATE TABLE IF NOT EXISTS speaker_applications (
   note       TEXT,
   status     TEXT NOT NULL DEFAULT 'pending',
   minutes_slug TEXT,
+  resource_id INTEGER,
   created_at TEXT DEFAULT (datetime('now')),
   updated_at TEXT DEFAULT (datetime('now'))
 );
 -- status: 'pending'（応募中）/ 'scheduled'（発表予定）/ 'done'（発表済み）
 -- minutes_slug: 発表回の議事録slug（管理者が手動で紐付け。未紐付けは NULL）
+-- resource_id: 発表資料の resources.id（未紐付けは NULL）
 
 CREATE INDEX IF NOT EXISTS idx_speaker_applications_email ON speaker_applications(user_email);
 CREATE INDEX IF NOT EXISTS idx_speaker_applications_status ON speaker_applications(status);
+-- 応募と資料は1対1。SQLite の UNIQUE は NULL を重複扱いしないため未紐付けは複数行あってよい
+CREATE UNIQUE INDEX IF NOT EXISTS idx_speaker_applications_resource ON speaker_applications(resource_id);
 
 CREATE TABLE IF NOT EXISTS reports (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,

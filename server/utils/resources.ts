@@ -22,7 +22,14 @@ interface ResourceRow {
   file_size: number | null;
   mime_type: string | null;
   submitted_by: string | null;
+  linked_application_id: number | null;
+  linked_application_title: string | null;
 }
+
+// 紐付いた発表応募を同時に取得する(応募と資料は1対1のため行は増えない)
+const RESOURCE_SELECT = `SELECT r.*, a.id AS linked_application_id, a.title AS linked_application_title
+   FROM resources r
+   LEFT JOIN speaker_applications a ON a.resource_id = r.id`;
 
 export interface ResourceImageRow {
   id: number;
@@ -62,6 +69,9 @@ function toResourceItem(row: ResourceRow, user?: ResourceUser): ResourceItem {
     mimeType: row.mime_type,
     submittedBy: row.submitted_by,
     canEdit: canEditResource(row, user),
+    linkedApplication: row.linked_application_id
+      ? { id: row.linked_application_id, title: row.linked_application_title ?? "" }
+      : null,
   };
 }
 
@@ -119,15 +129,15 @@ export async function listResources(
   db: D1DatabaseLike,
   opts: ListResourcesOptions = {},
 ): Promise<ResourceItem[]> {
-  let query = "SELECT * FROM resources";
+  let query = RESOURCE_SELECT;
   const bindings: unknown[] = [];
 
   if (opts.minutesSlug) {
-    query += " WHERE related_minutes_slug = ?";
+    query += " WHERE r.related_minutes_slug = ?";
     bindings.push(opts.minutesSlug);
   }
 
-  query += " ORDER BY date DESC, id DESC";
+  query += " ORDER BY r.date DESC, r.id DESC";
 
   const stmt = db.prepare(query);
   const { results } = await (bindings.length > 0 ? stmt.bind(...bindings) : stmt).all<ResourceRow>();
@@ -139,7 +149,7 @@ export async function getResourceRow(
   id: number,
 ): Promise<ResourceRow | null> {
   return await db
-    .prepare("SELECT * FROM resources WHERE id = ?")
+    .prepare(`${RESOURCE_SELECT} WHERE r.id = ?`)
     .bind(id)
     .first<ResourceRow>();
 }
@@ -282,6 +292,13 @@ export async function deleteResourceItem(
   }
 
   const imageKeys = (await listResourceImages(db, id)).map((image) => image.file_key);
+  // 紐付いている発表応募があれば自動で解除する
+  await db
+    .prepare(
+      "UPDATE speaker_applications SET resource_id = NULL, updated_at = ? WHERE resource_id = ?",
+    )
+    .bind(new Date().toISOString(), id)
+    .first();
   await db.prepare("DELETE FROM resource_images WHERE resource_id = ?").bind(id).first();
   await db.prepare("DELETE FROM resources WHERE id = ?").bind(id).first();
   return { fileKey: existing.file_key, imageKeys };

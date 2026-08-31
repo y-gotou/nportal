@@ -19,6 +19,7 @@ function toApplication(row: Record<string, unknown>): SpeakerApplication {
     note: (row.note as string | null) ?? null,
     status: parseStatus(row.status as string),
     minutes_slug: (row.minutes_slug as string | null) ?? null,
+    resource_id: (row.resource_id as number | null) ?? null,
     created_at: row.created_at as string,
     updated_at: row.updated_at as string,
   };
@@ -156,10 +157,137 @@ export async function deleteSpeakerApplication(
     .first();
 }
 
+// ボディの resource_id を number | null へ整形する(空文字は解除扱い)
+export function parseResourceIdInput(value: unknown): number | null {
+  if (value === null || value === "") {
+    return null;
+  }
+
+  const id = Number(value);
+  if (!Number.isInteger(id) || id < 1) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "resource_id must be a positive integer or null.",
+    });
+  }
+
+  return id;
+}
+
+function isUniqueViolation(error: unknown): boolean {
+  return error instanceof Error && /UNIQUE constraint failed/i.test(error.message);
+}
+
+function resourceConflictError() {
+  return createError({
+    statusCode: 409,
+    statusMessage: "Resource is already linked to another application.",
+  });
+}
+
+// 紐付け可能な資料かを検証する。submittedBy 指定時は本人が投稿した資料のみ許可する
+async function assertLinkableResource(
+  db: D1DatabaseLike,
+  applicationId: number,
+  resourceId: number,
+  submittedBy?: string,
+): Promise<void> {
+  const resource = await db
+    .prepare("SELECT id, submitted_by FROM resources WHERE id = ?")
+    .bind(resourceId)
+    .first<{ id: number; submitted_by: string | null }>();
+
+  if (!resource) {
+    throw createError({ statusCode: 404, statusMessage: "Resource not found." });
+  }
+
+  if (submittedBy !== undefined && resource.submitted_by !== submittedBy) {
+    throw createError({ statusCode: 403, statusMessage: "Forbidden." });
+  }
+
+  const linked = await db
+    .prepare("SELECT id FROM speaker_applications WHERE resource_id = ? AND id != ?")
+    .bind(resourceId, applicationId)
+    .first<{ id: number }>();
+
+  if (linked) {
+    throw resourceConflictError();
+  }
+}
+
+// 紐付いた資料の未設定項目に応募側の値を反映する(設定済みの値は上書きしない)
+export async function syncLinkedResourceFields(
+  db: D1DatabaseLike,
+  application: SpeakerApplication,
+): Promise<void> {
+  if (application.resource_id === null) {
+    return;
+  }
+
+  await db
+    .prepare(
+      `UPDATE resources
+       SET presenter = COALESCE(NULLIF(presenter, ''), ?),
+           related_minutes_slug = COALESCE(NULLIF(related_minutes_slug, ''), ?),
+           updated_at = datetime('now')
+       WHERE id = ?`,
+    )
+    .bind(application.user_email, application.minutes_slug, application.resource_id)
+    .first();
+}
+
+// 応募に資料を紐付ける。userEmail 指定時は本人の応募・本人が投稿した資料に限定する
+export async function setSpeakerApplicationResource(
+  db: D1DatabaseLike,
+  id: number,
+  resourceId: number | null,
+  userEmail?: string,
+): Promise<SpeakerApplication> {
+  const existing = await db
+    .prepare("SELECT user_email FROM speaker_applications WHERE id = ?")
+    .bind(id)
+    .first<{ user_email: string }>();
+
+  if (!existing) {
+    throw createError({ statusCode: 404, statusMessage: "Application not found." });
+  }
+
+  if (userEmail !== undefined && existing.user_email !== userEmail) {
+    throw createError({ statusCode: 403, statusMessage: "Forbidden." });
+  }
+
+  if (resourceId !== null) {
+    await assertLinkableResource(db, id, resourceId, userEmail);
+  }
+
+  const row = await db
+    .prepare(
+      `UPDATE speaker_applications
+       SET resource_id = ?, updated_at = ?
+       WHERE id = ?
+       RETURNING *`,
+    )
+    .bind(resourceId, new Date().toISOString(), id)
+    .first<Record<string, unknown>>()
+    .catch((error) => {
+      if (isUniqueViolation(error)) throw resourceConflictError();
+      throw error;
+    });
+
+  if (!row) {
+    throw createError({ statusCode: 404, statusMessage: "Application not found." });
+  }
+
+  const application = toApplication(row);
+  await syncLinkedResourceFields(db, application);
+  return application;
+}
+
 export interface AdminSpeakerUpdates {
   status?: SpeakerApplicationStatus;
   // null は紐付け解除、undefined は変更なし
   minutesSlug?: string | null;
+  resourceId?: number | null;
 }
 
 export async function adminUpdateSpeakerApplication(
@@ -183,6 +311,14 @@ export async function adminUpdateSpeakerApplication(
     values.push(updates.minutesSlug);
   }
 
+  if (updates.resourceId !== undefined) {
+    if (updates.resourceId !== null) {
+      await assertLinkableResource(db, id, updates.resourceId);
+    }
+    sets.push("resource_id = ?");
+    values.push(updates.resourceId);
+  }
+
   if (sets.length === 0) {
     throw createError({ statusCode: 400, statusMessage: "No fields to update." });
   }
@@ -198,13 +334,20 @@ export async function adminUpdateSpeakerApplication(
        RETURNING *`,
     )
     .bind(...values, id)
-    .first<Record<string, unknown>>();
+    .first<Record<string, unknown>>()
+    .catch((error) => {
+      if (isUniqueViolation(error)) throw resourceConflictError();
+      throw error;
+    });
 
   if (!row) {
     throw createError({ statusCode: 404, statusMessage: "Application not found." });
   }
 
-  return toApplication(row);
+  const application = toApplication(row);
+  // 応募側の変更(minutes_slug 等)に資料側の未設定項目を追従させる
+  await syncLinkedResourceFields(db, application);
+  return application;
 }
 
 export async function adminDeleteSpeakerApplication(
