@@ -2,13 +2,13 @@
 id: T-011
 title: 発表応募と資料の紐付け
 scale: medium
-status: blocked
+status: done
 priority: mid
 updated: 2026-08-31
 approvals:
   spec: 2026-08-31
   plan: 2026-08-31
-  done: null
+  done: 2026-08-31
 ---
 # 発表応募と資料の紐付け
 

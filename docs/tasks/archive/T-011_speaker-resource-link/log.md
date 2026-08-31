@@ -2,9 +2,9 @@
 
 ## 引き継ぎサマリ
 <!-- 常に最新状態へ上書きする。別セッションのエージェントがこの節だけで再開できること -->
-- 現状: 実装完了。PR #93 作成済み(ブランチ `feat/speaker-resource-link`)。エージェント実施の検証(`npm test` 187 件 / `npm run check` / ローカルブラウザ確認)はすべて消化済み。Admin のマージ待ち。
-- 次の作業: マージ後に本番 D1 へ `ALTER TABLE speaker_applications ADD COLUMN resource_id INTEGER;` と `CREATE UNIQUE INDEX IF NOT EXISTS idx_speaker_applications_resource ON speaker_applications(resource_id);` をユーザーが適用(本番反映前に実施)。その後に本番画面を確認して G3 へ。
-- 未確定点: changelog の日付を 2026-08-31 で起案済み。マージ日が変わる場合は差し替えが必要。
+- 現状: 完了。PR #93 を 2026-08-31 にマージし本番反映・本番動作確認済み。G3 承認済み。
+- 次の作業: なし(完了記録の PR をマージすれば終結)。
+- 未確定点: なし。
 
 ## 時系列ログ
 <!-- 追記専用。日付+要点。検証結果の詳細もここに記載する(spec/plan には書かない) -->
@@ -16,3 +16,7 @@
 - 2026-08-31: ローカルブラウザ確認を実施。本人 API での紐付けで資料の `related_minutes_slug` に応募の議事録が反映されること、重複紐付け 409・他人の応募 403・存在しない資料 404、発表済み応募でもセレクトが表示され付け替え可能(編集ボタンは非表示のまま)、管理画面のセレクトが他の応募に紐付いた資料を候補から除外すること、資料一覧の「発表: テスト」表示、資料削除で `resource_id` が NULL に戻り「資料を見る」が消えることを確認。検証用に作成したローカルデータは削除して原状復帰。
 - 2026-08-31: 作業項目 4 を実施。`docs/requirements-speakers.md` §2 更新・§5 新設、`docs/requirements-resources.md` に紐付け節を追加、`app/utils/changelog.ts` へ feature 1 件を起案。`npm test` 187 件成功、`npm run check` 成功。
 - 2026-08-31: push・PR 作成の承認を得て PR #93 を作成。status を blocked(マージと本番 D1 適用のユーザー実施待ち)へ変更。
+- 2026-08-31: ユーザーが本番 D1(nportal-db)と preview D1(nportal-preview-db)へマイグレーションを適用。Cloudflare MCP で両 DB の `resource_id` 列と UNIQUE インデックス `idx_speaker_applications_resource` の存在を確認。
+- 2026-08-31: PR #93 マージ(merge commit b71a489)。Pages の production デプロイ成功を API で確認(2026-08-31T07:51:31Z、stage=deploy/status=success)。
+- 2026-08-31: 本番画面を確認。応募 10(done)→資料 24、応募 7(done)→資料 16 が紐付き、カードに「資料を見る」が議事録リンクと並んで表示。資料側の `presenter`・`related_minutes_slug`(2026-07-02 / 2026-05-28)が自動反映、資料一覧に「発表: …」を表示、管理画面の資料セレクトが他の応募に紐付いた資料を候補から除外することを確認。発表済み応募での紐付けという設計上の要点が実運用で成立することを確認できた。
+- 2026-08-31: G3 承認。仕様書反映は実装 PR 同梱済みのため追認。changelog の日付はマージ日(JST 2026-08-31)と一致し差し替え不要。アーカイブへ移動。
