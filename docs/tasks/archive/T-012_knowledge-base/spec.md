@@ -2,9 +2,9 @@
 id: T-012
 title: ナレッジベース(PoC)
 scale: large
-status: doing
+status: dropped
 priority: mid
-updated: 2026-09-02
+updated: 2026-09-03
 approvals:
   spec: 2026-09-02
   plan: 2026-09-02
