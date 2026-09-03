@@ -23,6 +23,7 @@
 | T-009 | ローカルdev環境のR2経路不具合 | done |
 | T-010 | zip 投稿制限の解除 | done |
 | T-011 | 発表応募と資料の紐付け | done |
+| T-012 | ナレッジベース(PoC) | dropped |
 
 <!-- backlog:auto:end -->
 
