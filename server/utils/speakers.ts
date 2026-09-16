@@ -33,9 +33,10 @@ export async function listSpeakerApplications(
       `SELECT * FROM speaker_applications
        ORDER BY
          CASE status WHEN 'pending' THEN 0 WHEN 'scheduled' THEN 1 ELSE 2 END ASC,
-         -- 応募中・発表予定は古い順。発表済みは NULL となり次の降順キーに委ねる
-         CASE WHEN status <> 'done' THEN created_at END ASC,
-         created_at DESC`,
+         -- created_at は datetime('now') 形式と ISO 8601 が混在するため julianday() で数値化して比較する
+         -- 応募中・発表予定は古い順、発表済みのみ新しい順のため符号を反転する
+         CASE WHEN status = 'done' THEN -julianday(created_at) ELSE julianday(created_at) END ASC,
+         CASE WHEN status = 'done' THEN -id ELSE id END ASC`,
     )
     .all<Record<string, unknown>>();
 
