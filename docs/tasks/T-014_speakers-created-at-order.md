@@ -1,0 +1,44 @@
+---
+id: T-014
+title: 応募一覧の並び順が created_at の形式混在で崩れる問題
+scale: small
+status: todo
+priority: mid
+updated: 2026-09-16
+approvals:
+  spec: null
+  done: null
+---
+# 応募一覧の並び順が created_at の形式混在で崩れる問題
+
+## 目的・背景
+
+`speaker_applications.created_at` には 2 種類の形式が混在している。スキーマ既定値の `datetime('now')` は `YYYY-MM-DD HH:MM:SS`、アプリからの応募登録・更新(`server/utils/speakers.ts`)は ISO 8601(`YYYY-MM-DDTHH:MM:SS.sssZ`)を書き込む。
+
+一覧クエリは `created_at` を文字列として比較するため、同一日付の行同士で形式が異なる場合、半角スペースが `T` より小さいことにより実際の時刻と前後関係が一致しない。日付が異なる行の順序には影響しない。T-013(PR #96)で確認した既存事象で、同タスクの変更以前から存在する。
+
+同種の問題を持つ `reports` では `ORDER BY datetime(created_at) DESC, id DESC` として解決済みであり(`server/utils/reports.ts:50`)、本タスクはこのパターンを踏襲する。`datetime()` は両形式を解釈でき、ミリ秒は切り捨てられるため同秒内の順序は `id` で決める。データ移行は行わない。
+
+依存: T-013(PR #96)と同一の `ORDER BY` を変更するため、PR #96 のマージ後に着手する。
+
+## 受入条件
+- 一覧クエリが `created_at` の形式によらず実時刻どおりに並ぶ(同一日付で形式が混在する行を含む)。
+- 同秒の行は `id` の昇順・降順(各グループの並び方向に従う)で安定して並ぶ。
+- T-013 で定めた並び順(応募中・発表予定は昇順、発表済みは降順、グループ順は不変)が維持される。
+
+## 仕様書反映
+
+なし(`docs/requirements-speakers.md` に記載済みの並び順の解釈を変えないため)。
+
+## 検証方法
+- [ ] `datetime('now')` 形式と ISO 8601 形式を同一日付で混在させた行に対し、実時刻どおりに並ぶことを検証する単体テストを追加し、`npm test` が通る。
+- [ ] `npm run check`(typecheck + build)が通る。
+
+## 作業ログ
+### 引き継ぎサマリ
+- 現状: 起票済み。G1 承認待ち。
+- 次の作業: G1 承認後、PR #96 のマージを待って `listSpeakerApplications` の `ORDER BY` を `datetime(created_at)` + `id` に変更する。
+- 未確定点: なし。
+
+### 時系列
+- 2026-09-16: T-013 の検証中に判明した既存事象を別タスクとして起票。ブランチは T-013 との競合を避けるため `feat/speakers-sort-order` から分岐。
