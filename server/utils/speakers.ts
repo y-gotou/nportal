@@ -33,6 +33,8 @@ export async function listSpeakerApplications(
       `SELECT * FROM speaker_applications
        ORDER BY
          CASE status WHEN 'pending' THEN 0 WHEN 'scheduled' THEN 1 ELSE 2 END ASC,
+         -- 応募中・発表予定は古い順。発表済みは NULL となり次の降順キーに委ねる
+         CASE WHEN status <> 'done' THEN created_at END ASC,
          created_at DESC`,
     )
     .all<Record<string, unknown>>();

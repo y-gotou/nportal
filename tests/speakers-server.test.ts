@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { adminUpdateSpeakerApplication } from "../server/utils/speakers.ts";
+import { DatabaseSync } from "node:sqlite";
+import { adminUpdateSpeakerApplication, listSpeakerApplications } from "../server/utils/speakers.ts";
 import type { D1DatabaseLike, D1PreparedStatement } from "../types/portal.ts";
 
 interface SpeakerRow {
@@ -118,5 +119,84 @@ test("adminUpdateSpeakerApplication rejects unknown application", async () => {
   await assert.rejects(
     () => adminUpdateSpeakerApplication(createDb([]), 99, { status: "done" }),
     /Application not found/,
+  );
+});
+
+// 並び順は SQL の ORDER BY が決めるため、スタブではなく実 SQLite で検証する
+function createSqliteDb(rows: SpeakerRow[]): D1DatabaseLike {
+  const sqlite = new DatabaseSync(":memory:");
+  sqlite.exec(`CREATE TABLE speaker_applications (
+    id INTEGER PRIMARY KEY,
+    user_email TEXT NOT NULL,
+    title TEXT NOT NULL,
+    duration INTEGER NOT NULL,
+    note TEXT,
+    status TEXT NOT NULL,
+    minutes_slug TEXT,
+    resource_id INTEGER,
+    created_at TEXT,
+    updated_at TEXT
+  )`);
+
+  const insert = sqlite.prepare(
+    `INSERT INTO speaker_applications
+       (id, user_email, title, duration, note, status, minutes_slug, resource_id, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, ?)`,
+  );
+  for (const row of rows) {
+    insert.run(
+      row.id,
+      row.user_email,
+      row.title,
+      row.duration,
+      row.note,
+      row.status,
+      row.minutes_slug,
+      row.created_at,
+      row.updated_at,
+    );
+  }
+
+  return {
+    prepare(query: string) {
+      const statement = sqlite.prepare(query);
+      let boundValues: unknown[] = [];
+
+      const stmt: D1PreparedStatement = {
+        bind(...values: unknown[]) {
+          boundValues = values;
+          return stmt;
+        },
+        async first<T = unknown>(): Promise<T | null> {
+          return (statement.get(...(boundValues as never[])) as T) ?? null;
+        },
+        async all<T = unknown>(): Promise<{ results: T[] }> {
+          return { results: statement.all(...(boundValues as never[])) as T[] };
+        },
+      };
+
+      return stmt;
+    },
+    async batch() {
+      return [];
+    },
+  };
+}
+
+test("listSpeakerApplications orders pending and scheduled oldest first, done newest first", async () => {
+  const db = createSqliteDb([
+    makeRow({ id: 1, status: "pending", created_at: "2026-08-03T00:00:00.000Z" }),
+    makeRow({ id: 2, status: "pending", created_at: "2026-08-01T00:00:00.000Z" }),
+    makeRow({ id: 3, status: "scheduled", created_at: "2026-08-05T00:00:00.000Z" }),
+    makeRow({ id: 4, status: "scheduled", created_at: "2026-08-02T00:00:00.000Z" }),
+    makeRow({ id: 5, status: "done", created_at: "2026-08-04T00:00:00.000Z" }),
+    makeRow({ id: 6, status: "done", created_at: "2026-08-06T00:00:00.000Z" }),
+  ]);
+
+  const applications = await listSpeakerApplications(db);
+
+  assert.deepEqual(
+    applications.map((application) => application.id),
+    [2, 1, 4, 3, 6, 5],
   );
 });
