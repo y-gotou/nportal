@@ -19,6 +19,7 @@
 - main への同期: 実装 PR のマージ時にまとめて同期する。main は保護ブランチのため、途中の状態変化ごとに docs 専用 PR は作らない
 - 仕様書反映のタイミング: 実装 PR に同梱し G3 で追認する
 - G3 の時期: マージ・本番反映の確認後
+- 完了記録の載せ方: 完了処理(frontmatter 更新・archive 移動・BACKLOG 再生成)は docs 専用ブランチ(`docs/t-NNN-close`)から PR を作成する。`docs/` は Cloudflare Pages の監視パスから除外されており、専用 PR でもデプロイは発生しない
 
 ## 固有規約
 

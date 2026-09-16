@@ -2,12 +2,12 @@
 id: T-013
 title: 発表者募集の並び順を投稿日の古い順に変更
 scale: small
-status: doing
+status: done
 priority: mid
 updated: 2026-09-16
 approvals:
   spec: 2026-09-16
-  done: null
+  done: 2026-09-16
 ---
 # 発表者募集の並び順を投稿日の古い順に変更
 
@@ -34,8 +34,8 @@ approvals:
 
 ## 作業ログ
 ### 引き継ぎサマリ
-- 現状: 実装・検証完了。PR #96 をレビュー・マージ待ち。
-- 次の作業: マージ・本番反映の確認後に G3 へ進む。
+- 現状: 完了(G3 承認済み)。
+- 次の作業: なし。
 - 未確定点: なし。
 
 ### 時系列
@@ -43,3 +43,4 @@ approvals:
 - 2026-09-16: G1 承認。`listSpeakerApplications` の ORDER BY を変更し、`tests/speakers-server.test.ts` に実 SQLite(`node:sqlite`)での並び順テストを追加。変更前のクエリでは当該テストが失敗することを確認済み。`npm test`(188 件)・`npm run check` ともに成功。ローカル dev で `/speakers`・`/admin/speakers` の応募中グループが応募日時の昇順になることを確認。
 - 2026-09-16: 既知の課題として、`created_at` に 2 種類の形式(`datetime('now')` の `YYYY-MM-DD HH:MM:SS` と、アプリ登録時の ISO 8601)が混在することを確認。文字列比較のため、同一日付内で形式が異なる行同士の前後関係が実時刻と一致しない場合がある(本タスクの変更以前から存在する事象。別タスクで扱う)。
 - 2026-09-16: PR #96 を作成。
+- 2026-09-16: PR #96 マージ。Production デプロイ(`a129ea1`)の成功を確認し G3 承認。仕様書反映は PR #96 に同梱済み。
