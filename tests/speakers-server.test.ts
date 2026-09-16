@@ -200,3 +200,23 @@ test("listSpeakerApplications orders pending and scheduled oldest first, done ne
     [2, 1, 4, 3, 6, 5],
   );
 });
+
+test("listSpeakerApplications orders mixed created_at formats by actual time", async () => {
+  const db = createSqliteDb([
+    // datetime('now') 形式と ISO 8601 形式が同一日付で混在する
+    makeRow({ id: 1, status: "pending", created_at: "2026-08-27 05:00:00" }),
+    makeRow({ id: 2, status: "pending", created_at: "2026-08-27T04:58:51.143Z" }),
+    makeRow({ id: 3, status: "done", created_at: "2026-08-27 05:00:00" }),
+    makeRow({ id: 4, status: "done", created_at: "2026-08-27T04:58:51.143Z" }),
+    // 同時刻の行は id で安定させる
+    makeRow({ id: 5, status: "scheduled", created_at: "2026-08-27T06:00:00.000Z" }),
+    makeRow({ id: 6, status: "scheduled", created_at: "2026-08-27T06:00:00.000Z" }),
+  ]);
+
+  const applications = await listSpeakerApplications(db);
+
+  assert.deepEqual(
+    applications.map((application) => application.id),
+    [2, 1, 5, 6, 3, 4],
+  );
+});

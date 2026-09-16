@@ -2,11 +2,11 @@
 id: T-014
 title: 応募一覧の並び順が created_at の形式混在で崩れる問題
 scale: small
-status: todo
+status: doing
 priority: mid
 updated: 2026-09-16
 approvals:
-  spec: null
+  spec: 2026-09-16
   done: null
 ---
 # 応募一覧の並び順が created_at の形式混在で崩れる問題
@@ -31,14 +31,15 @@ approvals:
 なし(`docs/requirements-speakers.md` に記載済みの並び順の解釈を変えないため)。
 
 ## 検証方法
-- [ ] `datetime('now')` 形式と ISO 8601 形式を同一日付で混在させた行に対し、実時刻どおりに並ぶことを検証する単体テストを追加し、`npm test` が通る。
-- [ ] `npm run check`(typecheck + build)が通る。
+- [x] `datetime('now')` 形式と ISO 8601 形式を同一日付で混在させた行に対し、実時刻どおりに並ぶことを検証する単体テストを追加し、`npm test` が通る。
+- [x] `npm run check`(typecheck + build)が通る。
 
 ## 作業ログ
 ### 引き継ぎサマリ
-- 現状: 起票済み。G1 承認待ち。
-- 次の作業: G1 承認後、PR #96 のマージを待って `listSpeakerApplications` の `ORDER BY` を `datetime(created_at)` + `id` に変更する。
+- 現状: 実装・検証完了。PR 作成待ち(push・PR はユーザー承認後)。
+- 次の作業: PR を作成し、マージ・本番反映後に G3 へ進む。
 - 未確定点: なし。
 
 ### 時系列
 - 2026-09-16: T-013 の検証中に判明した既存事象を別タスクとして起票。ブランチは T-013 との競合を避けるため `feat/speakers-sort-order` から分岐。
+- 2026-09-16: G1 承認。PR #96 のマージを受けてブランチを main へリベースし実装。`datetime()` は秒未満を切り捨てるため、`reports` の踏襲先を `julianday()` に変更し、同時刻の行は `id` で安定させた(発表済みは符号反転で降順)。形式混在の並び順テストを追加し、変更前のクエリでは失敗することを確認済み。`npm test`(189 件)・`npm run check` ともに成功。
