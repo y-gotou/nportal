@@ -298,7 +298,7 @@ useSeoMeta({
                     <span class="text-border">|</span>
                     <span>{{ app.duration }}分</span>
                     <span class="text-border">|</span>
-                    <span>投稿日時 {{ formatPostedDateTime(app.created_at) }}</span>
+                    <span>応募日時 {{ formatPostedDateTime(app.created_at) }}</span>
                   </div>
                   <p v-if="app.note" class="whitespace-pre-wrap break-words text-sm text-muted">{{ app.note }}</p>
                   <div
