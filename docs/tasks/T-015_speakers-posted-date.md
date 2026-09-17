@@ -2,7 +2,7 @@
 id: T-015
 title: 発表者募集カードへの投稿日表示
 scale: small
-status: todo
+status: doing
 priority: mid
 updated: 2026-09-17
 approvals:
@@ -34,16 +34,17 @@ approvals:
 - 追加: §2 機能概要 に「応募カードに投稿日(応募日時の JST 日付)を表示する」を追記する。
 
 ## 検証方法
-- [ ] 2 形式および日付境界(UTC 15:00 前後)の日付変換を検証する単体テストを追加し、`npm test` が通る。
-- [ ] `npm run check`(typecheck + build)が通る。
-- [ ] `npm run dev` + モックログインで `/speakers` の表示を確認する。
+- [x] 2 形式および日付境界(UTC 15:00 前後)の日付変換を検証する単体テストを追加し、`npm test` が通る。
+- [x] `npm run check`(typecheck + build)が通る。
+- [x] `npm run dev` + モックログインで `/speakers` の表示を確認する。
 
 ## 作業ログ
 ### 引き継ぎサマリ
-- 現状: G1 承認済み。実装未着手。
-- 次の作業: 日付変換の実装・テスト、`/speakers` への表示追加、仕様書反映、更新履歴(`improvement`)の追記。
+- 現状: 実装・検証完了。ブランチ `feat/speakers-posted-date` にコミット済み、push・PR 作成は未実施(ユーザー承認待ち)。
+- 次の作業: push・PR 作成(承認後)。マージ後に更新履歴の `date` をマージ日(JST)に合わせ、本番反映確認のうえ G3。
 - 未確定点: なし。
 
 ### 時系列
 - 2026-09-17: 起票。ヒアリングにより、基準は応募日時(`created_at`)、形式は JST の日付のみ(`YYYY年M月D日`)、表示位置はメタ情報行の末尾、適用範囲は `/speakers` のみで確定。
 - 2026-09-17: G1 承認。
+- 2026-09-17: 着手。`parseD1Timestamp` が ISO 8601 形式を Invalid Date にするため、同関数を両形式対応に修正し(既存呼び出し元は datetime('now') 形式のみで影響なし)、JST 日付の表示関数を追加。2 形式と UTC 15:00 境界のテストを追加し、実装前に失敗することを確認済み。`npm test`(192 件)・`npm run check` ともに成功。ローカル dev で `/speakers` の全カード(応募中 2 件は両形式、発表済み 1 件)のメタ情報行に投稿日が表示され、`/admin/speakers` には表示されないことを確認。ローカルに発表予定の応募はないが、カードのテンプレートは全ステータス共通。仕様書 §2 反映と更新履歴(`improvement`)の追記を同梱。

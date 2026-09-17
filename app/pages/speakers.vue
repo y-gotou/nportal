@@ -7,6 +7,7 @@ import type {
 } from "~~/types/portal";
 import { primaryButtonClass, secondaryButtonClass, surfaceCardClass } from "~/utils/ui";
 import {
+  formatPostedDate,
   isSpeakerFormDirty,
   selectableResourcesForApplication,
   type SpeakerFormValues,
@@ -296,6 +297,8 @@ useSeoMeta({
                     <span>{{ app.user_email }}</span>
                     <span class="text-border">|</span>
                     <span>{{ app.duration }}分</span>
+                    <span class="text-border">|</span>
+                    <span>投稿日 {{ formatPostedDate(app.created_at) }}</span>
                   </div>
                   <p v-if="app.note" class="whitespace-pre-wrap break-words text-sm text-muted">{{ app.note }}</p>
                   <div

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  formatPostedDate,
   isSpeakerFormDirty,
   selectableResourcesForApplication,
   type SpeakerFormValues,
@@ -86,4 +87,14 @@ test("ファイル資料の直接リンクのみ新規タブで開く", () => {
     resourceOpensInNewTab(makeResource({ sourceType: "url", url: "https://example.com" })),
     false,
   );
+});
+
+test("formatPostedDate は datetime('now') 形式を JST の日付で表示する", () => {
+  assert.equal(formatPostedDate("2026-09-16 14:59:59"), "2026年9月16日");
+  assert.equal(formatPostedDate("2026-09-16 15:00:00"), "2026年9月17日");
+});
+
+test("formatPostedDate は ISO 8601 形式を JST の日付で表示する", () => {
+  assert.equal(formatPostedDate("2026-09-16T14:59:59.999Z"), "2026年9月16日");
+  assert.equal(formatPostedDate("2026-09-16T15:00:00.000Z"), "2026年9月17日");
 });

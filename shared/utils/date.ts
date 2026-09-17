@@ -26,8 +26,9 @@ export function addUtcDays(date: string, days: number): string {
 }
 
 // D1 の datetime('now')(UTC の "YYYY-MM-DD HH:MM:SS")を Date にする
+// アプリが toISOString() で書き込んだ ISO 8601 の行も混在するため、そちらはそのまま解釈する
 export function parseD1Timestamp(value: string): Date {
-  return new Date(`${value.replace(" ", "T")}Z`);
+  return new Date(value.endsWith("Z") ? value : `${value.replace(" ", "T")}Z`);
 }
 
 // "YYYY-MM-DD" をローカルタイムの 0 時として Date にする
