@@ -30,15 +30,17 @@ export function selectableResourcesForApplication(
   );
 }
 
-const postedDateFormatter = new Intl.DateTimeFormat("ja-JP", {
+const postedDateTimeFormatter = new Intl.DateTimeFormat("ja-JP", {
   year: "numeric",
   month: "long",
   day: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
   timeZone: "Asia/Tokyo",
 });
 
-// created_at(UTC)を JST の日付で表示する
-export function formatPostedDate(createdAt: string): string {
+// created_at(UTC)を JST の日時(時分まで)で表示する
+export function formatPostedDateTime(createdAt: string): string {
   const parsed = parseD1Timestamp(createdAt);
-  return Number.isNaN(parsed.getTime()) ? createdAt : postedDateFormatter.format(parsed);
+  return Number.isNaN(parsed.getTime()) ? createdAt : postedDateTimeFormatter.format(parsed);
 }

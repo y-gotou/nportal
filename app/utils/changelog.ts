@@ -38,8 +38,8 @@ export const changelogEntries: ChangelogEntry[] = [
   {
     date: "2026-09-17",
     category: "improvement",
-    title: "発表者募集に投稿日を表示",
-    description: "発表者募集ページの各応募カードに投稿日を表示するようにしました。",
+    title: "発表者募集に投稿日時を表示",
+    description: "発表者募集ページの各応募カードに投稿日時を表示するようにしました。",
   },
   {
     date: "2026-08-31",
