@@ -32,6 +32,11 @@ test("parseD1Timestamp は D1 の UTC 文字列を Date にする", () => {
   assert.equal(date.toISOString(), "2026-08-19T03:00:00.000Z");
 });
 
+test("parseD1Timestamp は ISO 8601 の UTC 文字列もそのまま解釈する", () => {
+  const date = parseD1Timestamp("2026-08-19T03:00:00.123Z");
+  assert.equal(date.toISOString(), "2026-08-19T03:00:00.123Z");
+});
+
 test("parseDateOnly はローカルの 0 時として解釈する", () => {
   const date = parseDateOnly("2026-08-19");
   assert.equal(date.getFullYear(), 2026);

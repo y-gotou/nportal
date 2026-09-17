@@ -1,4 +1,5 @@
 import type { ResourceItem } from "~~/types/portal";
+import { parseD1Timestamp } from "#shared/utils/date";
 
 // 発表申し込みフォームの入力値
 export interface SpeakerFormValues {
@@ -27,4 +28,19 @@ export function selectableResourcesForApplication(
       resource.submittedBy === userEmail &&
       (!resource.linkedApplication || resource.linkedApplication.id === applicationId),
   );
+}
+
+const postedDateTimeFormatter = new Intl.DateTimeFormat("ja-JP", {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  timeZone: "Asia/Tokyo",
+});
+
+// created_at(UTC)を JST の日時(時分まで)で表示する
+export function formatPostedDateTime(createdAt: string): string {
+  const parsed = parseD1Timestamp(createdAt);
+  return Number.isNaN(parsed.getTime()) ? createdAt : postedDateTimeFormatter.format(parsed);
 }
