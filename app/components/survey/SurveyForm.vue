@@ -49,6 +49,7 @@ async function submitSurvey() {
       },
     });
 
+    clearNuxtData(surveyDetailKey(props.survey.id));
     isSubmitted.value = true;
     await nextTick();
     successRef.value?.focus();
