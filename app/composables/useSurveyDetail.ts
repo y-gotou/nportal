@@ -5,6 +5,8 @@ interface UseSurveyDetailOptions {
   failureMessage: string;
 }
 
+export const surveyDetailKey = (surveyId: number) => `survey-detail:${surveyId}`;
+
 export async function useSurveyDetail(
   surveyId: number,
   options: UseSurveyDetailOptions,
@@ -17,6 +19,7 @@ export async function useSurveyDetail(
   }
 
   const { data, error } = await useFetch<SurveyGetResponse>("/api/survey", {
+    key: surveyDetailKey(surveyId),
     query: { surveyId },
   });
 
