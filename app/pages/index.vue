@@ -70,6 +70,7 @@ useSeoMeta({
           <dt class="text-xs font-semibold tracking-[0.14em] text-white/50">テーマ</dt>
           <dd>{{ nextEvent.topics.join("、") }}</dd>
         </dl>
+        <ScheduleAgenda :agenda="nextEvent.agenda" class="mt-4 text-slate-200" />
       </template>
       <template #actions>
         <a

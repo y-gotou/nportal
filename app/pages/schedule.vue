@@ -57,6 +57,7 @@ useSeoMeta({
                   {{ topic }}
                 </span>
               </div>
+              <ScheduleAgenda :agenda="item.agenda" class="text-foreground" />
             </div>
             <div class="flex shrink-0 flex-wrap gap-3">
               <a
@@ -110,6 +111,7 @@ useSeoMeta({
                   {{ topic }}
                 </span>
               </div>
+              <ScheduleAgenda :agenda="item.agenda" class="text-muted" />
             </div>
             <div class="flex shrink-0 flex-wrap gap-3">
               <NuxtLink

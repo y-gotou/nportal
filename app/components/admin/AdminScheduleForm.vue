@@ -16,6 +16,7 @@ const form = reactive({
   location: props.item?.location ?? "",
   meetingUrl: props.item?.meetingUrl ?? "",
   topics: props.item?.topics.join(", ") ?? "",
+  agenda: props.item?.agenda ?? "",
 });
 
 const { errors, isSubmitting, serverError, applyErrors, submitWith } = useAdminForm(
@@ -42,6 +43,7 @@ async function submit() {
         location: form.location.trim() || null,
         meetingUrl: form.meetingUrl.trim() || null,
         topics: form.topics.split(",").map((s) => s.trim()).filter(Boolean),
+        agenda: form.agenda.trim() || null,
       },
     });
     await router.push("/admin/schedule");
@@ -98,6 +100,15 @@ async function submit() {
         class="w-full rounded-lg border border-border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
         :placeholder="isEdit ? undefined : 'ChatGPT, プロンプト設計'"
       >
+    </AdminFormField>
+
+    <AdminFormField label="議題" field-id="agenda" hint="任意（会議の予定内容。改行はそのまま表示されます）">
+      <textarea
+        id="agenda"
+        v-model="form.agenda"
+        rows="4"
+        class="w-full rounded-lg border border-border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+      />
     </AdminFormField>
 
     <AdminFormField label="開催場所" field-id="location" hint="任意">
