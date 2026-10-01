@@ -70,7 +70,6 @@ useSeoMeta({
           <dt class="text-xs font-semibold tracking-[0.14em] text-white/50">テーマ</dt>
           <dd>{{ nextEvent.topics.join("、") }}</dd>
         </dl>
-        <ScheduleAgenda :agenda="nextEvent.agenda" class="mt-4 text-slate-200" />
       </template>
       <template #actions>
         <a
@@ -82,6 +81,10 @@ useSeoMeta({
         >
           会議に参加する
         </a>
+        <ScheduleAgenda
+          :agenda="nextEvent.agenda"
+          :class="`${secondaryButtonClass} !bg-transparent border-white/20 text-white hover:!bg-white/10 hover:text-white`"
+        />
         <NuxtLink
           :to="`/chat/${nextEvent.id}`"
           :class="`${secondaryButtonClass} !bg-transparent border-white/20 text-white hover:!bg-white/10 hover:text-white`"

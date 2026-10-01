@@ -57,7 +57,6 @@ useSeoMeta({
                   {{ topic }}
                 </span>
               </div>
-              <ScheduleAgenda :agenda="item.agenda" class="text-foreground" />
             </div>
             <div class="flex shrink-0 flex-wrap gap-3">
               <a
@@ -69,6 +68,7 @@ useSeoMeta({
               >
                 会議に参加する
               </a>
+              <ScheduleAgenda :agenda="item.agenda" :class="secondaryButtonClass" />
               <NuxtLink
                 :to="`/chat/${item.id}`"
                 :class="secondaryButtonClass"
@@ -111,7 +111,6 @@ useSeoMeta({
                   {{ topic }}
                 </span>
               </div>
-              <ScheduleAgenda :agenda="item.agenda" class="text-muted" />
             </div>
             <div class="flex shrink-0 flex-wrap gap-3">
               <NuxtLink
@@ -121,6 +120,7 @@ useSeoMeta({
               >
                 議事録を見る
               </NuxtLink>
+              <ScheduleAgenda :agenda="item.agenda" :class="secondaryButtonClass" />
               <NuxtLink
                 v-if="item.hasChat"
                 :to="`/chat/${item.id}`"

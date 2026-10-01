@@ -102,7 +102,7 @@ async function submit() {
       >
     </AdminFormField>
 
-    <AdminFormField label="議題" field-id="agenda" hint="任意（会議の予定内容。改行はそのまま表示されます）">
+    <AdminFormField label="議題" field-id="agenda" hint="任意">
       <textarea
         id="agenda"
         v-model="form.agenda"
