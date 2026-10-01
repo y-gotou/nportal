@@ -2,12 +2,12 @@
 id: T-017
 title: 会議スケジュールへの議題追加
 scale: medium
-status: todo
+status: doing
 priority: mid
 updated: 2026-10-01
 approvals:
   spec: 2026-10-01
-  plan: null
+  plan: 2026-10-01
   done: null
 ---
 # 会議スケジュールへの議題追加
