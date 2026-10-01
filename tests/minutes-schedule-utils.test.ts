@@ -8,7 +8,7 @@ import {
   listMinutes,
   updateMinutes,
 } from "../server/utils/minutes.ts";
-import { listSchedule } from "../server/utils/schedule.ts";
+import { listSchedule, parseSchedulePayload } from "../server/utils/schedule.ts";
 import type { D1DatabaseLike, D1PreparedStatement } from "../types/portal.ts";
 
 interface MinutesRow {
@@ -31,6 +31,7 @@ interface ScheduleRow {
   minutes_slug: string | null;
   topics: string;
   location: string | null;
+  agenda?: string | null;
 }
 
 interface TestDbState {
@@ -458,5 +459,45 @@ test("listSchedule derives minutesSlug from minutes with the same date", async (
       ["2026-04-23", "2026-04-23"],
       ["2026-04-24", null],
     ],
+  );
+});
+
+test("parseSchedulePayload trims agenda and treats blank or non-string as unset", () => {
+  const base = { date: "2026-10-08", time: "19:00", title: "次回", topics: [] };
+
+  assert.equal(
+    parseSchedulePayload({ ...base, agenda: "  1. 近況共有\n2. デモ\n" }).agenda,
+    "1. 近況共有\n2. デモ",
+  );
+  assert.equal(parseSchedulePayload({ ...base, agenda: " \n " }).agenda, null);
+  assert.equal(parseSchedulePayload(base).agenda, null);
+  assert.equal(
+    parseSchedulePayload({ ...base, agenda: 123 as unknown as string }).agenda,
+    null,
+  );
+});
+
+test("listSchedule returns agenda and null for rows without it", async () => {
+  const row = {
+    time: "19:00",
+    title: "回",
+    meeting_url: null,
+    minutes_slug: null,
+    topics: "[]",
+    location: null,
+  };
+  const db = createDb({
+    minutes: [],
+    schedule: [
+      { ...row, id: 1, date: "2026-10-01" },
+      { ...row, id: 2, date: "2026-10-08", agenda: "1. 近況共有\n2. デモ" },
+    ],
+  });
+
+  const schedule = await listSchedule(db);
+
+  assert.deepEqual(
+    schedule.map((item) => item.agenda),
+    [null, "1. 近況共有\n2. デモ"],
   );
 });
