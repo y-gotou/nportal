@@ -2,7 +2,7 @@
 id: T-018
 title: アンケート回答への管理者コメント
 scale: medium
-status: doing
+status: blocked
 priority: mid
 updated: 2026-10-02
 approvals:
