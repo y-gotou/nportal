@@ -25,7 +25,7 @@ const past = computed(() =>
 
 useSeoMeta({
   title: "スケジュール",
-  description: "今後の勉強会予定を確認できます。",
+  description: "今後の会議予定を確認できます。",
 });
 </script>
 
@@ -58,7 +58,7 @@ useSeoMeta({
                 </span>
               </div>
             </div>
-            <div class="flex shrink-0 flex-wrap gap-3">
+            <div class="flex shrink-0 flex-wrap gap-3 lg:flex-row-reverse">
               <a
                 v-if="item.meetingUrl"
                 :href="item.meetingUrl"
@@ -73,13 +73,13 @@ useSeoMeta({
                 :to="`/schedule/${item.id}`"
                 :class="secondaryButtonClass"
               >
-                議題
+                議題を見る
               </NuxtLink>
               <NuxtLink
                 :to="`/chat/${item.id}`"
                 :class="secondaryButtonClass"
               >
-                チャット
+                チャットを開く
               </NuxtLink>
             </div>
           </div>
@@ -118,7 +118,7 @@ useSeoMeta({
                 </span>
               </div>
             </div>
-            <div class="flex shrink-0 flex-wrap gap-3">
+            <div class="flex shrink-0 flex-wrap gap-3 lg:flex-row-reverse">
               <NuxtLink
                 v-if="item.minutesSlug"
                 :to="`/minutes/${item.minutesSlug}`"
@@ -131,14 +131,14 @@ useSeoMeta({
                 :to="`/schedule/${item.id}`"
                 :class="secondaryButtonClass"
               >
-                議題
+                議題を見る
               </NuxtLink>
               <NuxtLink
                 v-if="item.hasChat"
                 :to="`/chat/${item.id}`"
                 :class="secondaryButtonClass"
               >
-                チャット
+                チャットを開く
               </NuxtLink>
             </div>
           </div>
@@ -150,7 +150,7 @@ useSeoMeta({
       v-if="!upcoming.length && !past.length"
       class="rounded-xl border border-dashed border-border bg-surface px-5 py-8 text-center text-sm text-muted"
     >
-      スケジュールはまだ登録されていません。
+      スケジュールはまだありません。
     </p>
   </PageContainer>
 </template>

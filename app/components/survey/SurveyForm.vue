@@ -120,7 +120,7 @@ async function submitSurvey() {
     </div>
 
     <p class="text-xs text-muted">
-      <span class="text-rose-500" aria-hidden="true">*</span> は必須項目です
+      <span class="text-red-500" aria-hidden="true">*</span> は必須項目です
     </p>
 
     <button

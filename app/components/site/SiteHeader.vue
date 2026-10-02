@@ -244,7 +244,7 @@ onUnmounted(() => {
         </button>
       </div>
 
-      <nav class="flex-1 overflow-y-auto px-3 py-4" aria-label="グローバルナビゲーション（モバイル）">
+      <nav class="flex-1 overflow-y-auto px-3 py-4" aria-label="グローバルナビゲーション(モバイル)">
         <SiteNavLinks :items="navItems" variant="mobile" @navigate="closeMobileMenu" />
 
         <div v-if="currentUser" class="mt-6 border-t border-border pt-6">

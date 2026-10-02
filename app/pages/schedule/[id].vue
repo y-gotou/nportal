@@ -58,7 +58,7 @@ useSeoMeta({
       v-else
       class="rounded-xl border border-dashed border-border bg-surface px-5 py-8 text-center text-sm text-muted"
     >
-      議題はまだ登録されていません。
+      議題はまだありません。
     </p>
   </PageContainer>
 </template>

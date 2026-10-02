@@ -240,10 +240,10 @@ async function submit() {
 
       <AdminFormField
         v-if="sourceMode === 'file' && showImageField"
-        label="添付画像（任意）"
+        label="添付画像(任意)"
         field-id="resource-images"
         :error="errors.images"
-        hint="Markdown本文から相対パス（例: screenshots/画像名.png）で参照している画像を選択します。ファイル名で照合されます。"
+        hint="Markdown本文から相対パス(例: screenshots/画像名.png)で参照している画像を選択します。ファイル名で照合されます。"
       >
         <input
           id="resource-images"
@@ -255,7 +255,7 @@ async function submit() {
           @change="onImagesChange"
         >
         <p v-if="selectedImages.length" class="text-xs text-muted">
-          選択中: {{ selectedImages.length }}枚（{{ selectedImages.map((image) => image.name).join(", ") }}）
+          選択中: {{ selectedImages.length }}枚({{ selectedImages.map((image) => image.name).join(", ") }})
         </p>
       </AdminFormField>
     </div>
@@ -277,7 +277,7 @@ async function submit() {
           v-model="form.relatedMinutesSlug"
           class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
         >
-          <option value="">未選択</option>
+          <option value="">なし</option>
           <option
             v-for="minutes in minutesOptions"
             :key="minutes.slug"
@@ -291,7 +291,7 @@ async function submit() {
 
     <div class="flex flex-wrap gap-3">
       <button type="submit" :class="primaryButtonClass" :disabled="isSubmitting">
-        {{ isSubmitting ? "保存中..." : (isEditing ? "保存する" : "投稿する") }}
+        {{ isSubmitting ? "保存中…" : (isEditing ? "保存する" : "投稿する") }}
       </button>
       <button type="button" :class="secondaryButtonClass" @click="emit('cancel')">
         キャンセル

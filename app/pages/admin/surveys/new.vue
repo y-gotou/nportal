@@ -90,7 +90,7 @@ useSeoMeta({ title: "アンケートを作成" });
       <AdminSurveyQuestionEditor
         :editor="editor"
         :errors="errors"
-        question-placeholder="質問の内容を入力"
+        question-placeholder="設問の内容を入力"
       />
 
       <div class="flex gap-3">
@@ -99,7 +99,7 @@ useSeoMeta({ title: "アンケートを作成" });
           class="inline-flex items-center gap-2 rounded-lg bg-blue-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-600 disabled:opacity-50"
           :disabled="isSubmitting"
         >
-          {{ isSubmitting ? "作成中..." : "作成する" }}
+          {{ isSubmitting ? "作成中…" : "作成する" }}
         </button>
         <NuxtLink to="/admin/surveys" class="inline-flex items-center rounded-lg border border-border px-5 py-2.5 text-sm font-medium text-foreground hover:bg-surface-hover">
           キャンセル

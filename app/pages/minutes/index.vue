@@ -13,7 +13,7 @@ const minutes = computed(() => data.value?.minutes ?? []);
 
 useSeoMeta({
   title: "議事録",
-  description: "開催済み勉強会の議事録一覧です。",
+  description: "開催済み会議の議事録一覧です。",
 });
 </script>
 

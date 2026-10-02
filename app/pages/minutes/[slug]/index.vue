@@ -39,7 +39,7 @@ useSeoMeta({
           :to="`/chat/${minutes.scheduleId}`"
           :class="secondaryButtonClass"
         >
-          チャットを見る
+          チャットを開く
         </NuxtLink>
       </div>
       <div class="flex flex-wrap gap-3">

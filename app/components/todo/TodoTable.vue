@@ -155,7 +155,7 @@ function remove(todo: Todo) {
                 <button type="button" :class="iconButtonClass" aria-label="保存" title="保存" :disabled="isSaving" @click="saveEdit">
                   <Check class="h-4 w-4" />
                 </button>
-                <button type="button" :class="iconButtonClass" aria-label="取り消し" title="取り消し" @click="editing = null">
+                <button type="button" :class="iconButtonClass" aria-label="キャンセル" title="キャンセル" @click="editing = null">
                   <X class="h-4 w-4" />
                 </button>
               </td>

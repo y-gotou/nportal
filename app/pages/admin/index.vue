@@ -93,7 +93,7 @@ useSeoMeta({ title: "ダッシュボード" });
               :to="stat.newTo"
               class="text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
             >
-              新規追加
+              新規作成
             </NuxtLink>
           </template>
         </div>

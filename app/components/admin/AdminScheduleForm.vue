@@ -91,7 +91,7 @@ async function submit() {
     <AdminFormField
       label="トピック"
       field-id="topics"
-      :hint="isEdit ? 'カンマ区切り' : 'カンマ区切り（例: ChatGPT, プロンプト設計）'"
+      :hint="isEdit ? 'カンマ区切り' : 'カンマ区切り(例: ChatGPT, プロンプト設計)'"
     >
       <input
         id="topics"
@@ -102,7 +102,7 @@ async function submit() {
       >
     </AdminFormField>
 
-    <AdminFormField label="議題（Markdown）" field-id="agenda" hint="任意">
+    <AdminFormField label="議題(Markdown)" field-id="agenda" hint="任意">
       <textarea
         id="agenda"
         v-model="form.agenda"
@@ -124,7 +124,7 @@ async function submit() {
     <AdminFormField
       label="会議URL"
       field-id="meetingUrl"
-      :hint="isEdit ? '任意' : '任意（Zoom / Teams など）'"
+      :hint="isEdit ? '任意' : '任意(Zoom / Teams など)'"
     >
       <input
         id="meetingUrl"
@@ -141,7 +141,7 @@ async function submit() {
         class="inline-flex items-center gap-2 rounded-lg bg-blue-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-600 disabled:opacity-50"
         :disabled="isSubmitting"
       >
-        {{ isEdit ? (isSubmitting ? "更新中..." : "保存する") : (isSubmitting ? "作成中..." : "作成する") }}
+        {{ isEdit ? (isSubmitting ? "保存中…" : "保存する") : (isSubmitting ? "作成中…" : "作成する") }}
       </button>
       <NuxtLink to="/admin/schedule" class="inline-flex items-center rounded-lg border border-border px-5 py-2.5 text-sm font-medium text-foreground hover:bg-surface-hover">
         キャンセル

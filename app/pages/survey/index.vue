@@ -58,13 +58,13 @@ useSeoMeta({
             </div>
             <p class="text-sm leading-6 text-muted">{{ survey.description }}</p>
             <div class="flex flex-wrap gap-2 text-sm text-muted">
-              <span class="rounded-full bg-surface-hover px-3 py-1">設問数 {{ survey.questions.length }}問</span>
+              <span class="rounded-full bg-surface-hover px-3 py-1">設問数: {{ survey.questions.length }}問</span>
               <span class="rounded-full bg-surface-hover px-3 py-1">
-                回答者 {{ survey.responseCount ?? 0 }}人
+                回答者数: {{ survey.responseCount ?? 0 }}人
               </span>
             </div>
           </div>
-          <div class="flex shrink-0 flex-wrap gap-3">
+          <div class="flex shrink-0 flex-wrap gap-3 sm:flex-row-reverse">
             <NuxtLink
               v-if="survey.status === 'active' && !survey.hasResponded"
               :to="`/survey/${survey.id}`"

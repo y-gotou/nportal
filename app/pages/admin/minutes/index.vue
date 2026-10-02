@@ -58,7 +58,7 @@ useSeoMeta({ title: "議事録管理" });
     </div>
 
     <p v-else class="rounded-xl border border-dashed border-border bg-surface px-5 py-8 text-center text-sm text-muted">
-      議事録はまだ登録されていません。
+      議事録はまだありません。
     </p>
   </div>
 </template>

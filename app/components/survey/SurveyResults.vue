@@ -64,7 +64,7 @@ function isMyOtherText(
           v-if="!block.freeTextAnswers.length"
           class="rounded-lg border border-dashed border-border bg-background px-4 py-6 text-center text-sm text-muted"
         >
-          まだ自由記述の回答はありません。
+          自由記述の回答はまだありません。
         </p>
         <SurveyTextAnswer
           v-for="answer in block.freeTextAnswers"

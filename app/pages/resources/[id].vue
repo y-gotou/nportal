@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { formatDisplayDate } from "#shared/utils/content";
+import { chatDisplayName } from "#shared/utils/chat";
 import { secondaryButtonClass } from "~/utils/ui";
 import type { ResourceMarkdownResponse } from "~~/types/portal";
 
@@ -26,7 +27,7 @@ useSeoMeta({
     <div class="mb-4 flex flex-wrap gap-3">
       <NuxtLink to="/resources" :class="secondaryButtonClass">
         <IconArrowLeft />
-        資料共有へ戻る
+        一覧へ戻る
       </NuxtLink>
       <a
         :href="`/api/resources/${resource.id}/file`"
@@ -49,7 +50,7 @@ useSeoMeta({
         <dt class="text-xs font-semibold tracking-[0.14em] text-muted">ファイル</dt>
         <dd>{{ resource.fileName }}</dd>
         <dt v-if="resource.submittedBy" class="text-xs font-semibold tracking-[0.14em] text-muted">投稿者</dt>
-        <dd v-if="resource.submittedBy">{{ resource.submittedBy }}</dd>
+        <dd v-if="resource.submittedBy">{{ chatDisplayName(resource.submittedBy) }}</dd>
       </dl>
     </div>
 
@@ -60,7 +61,7 @@ useSeoMeta({
 
     <div v-if="resource.relatedMinutesSlug" class="mt-6">
       <NuxtLink :to="`/minutes/${resource.relatedMinutesSlug}`" :class="secondaryButtonClass">
-        関連議事録
+        議事録を見る
       </NuxtLink>
     </div>
   </PageContainer>
