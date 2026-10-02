@@ -44,14 +44,12 @@ test("todo page shows the add form only to admins", async () => {
   assert.match(page, /:editable="isAdmin"/);
 });
 
-test("minutes page lists linked todos read-only between the body and related resources", async () => {
+test("minutes page lists linked todos as a bare read-only table between the body and related resources", async () => {
   const page = await read("app/pages/minutes/[slug]/index.vue");
   const section = page.match(/<section v-if="todos\.length"[\s\S]*?<\/section>/)?.[0] ?? "";
 
   assert.match(page, /useFetch<TodosResponse>\("\/api\/todos", \{ query: \{ minutesSlug: slug \}/);
-  assert.match(section, /<SectionHeader title="課題">/);
-  assert.match(section, /<TodoTable :todos="todos" \/>/);
-  assert.match(section, /to="\/todos"/);
+  assert.match(section, /^<section v-if="todos\.length" class="mt-4" aria-label="課題">\s*<TodoTable :todos="todos" \/>\s*<\/section>$/);
   assert.ok(page.indexOf("v-html=\"minutes.contentHtml\"") < page.indexOf(section));
   assert.ok(page.indexOf(section) < page.indexOf("title=\"関連資料\""));
 });

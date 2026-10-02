@@ -86,13 +86,7 @@ useSeoMeta({
       v-html="minutes.contentHtml"
     />
 
-    <section v-if="todos.length" class="mt-8">
-      <SectionHeader title="課題">
-        <template #action>
-          <NuxtLink to="/todos" :class="secondaryButtonClass">課題一覧へ</NuxtLink>
-        </template>
-      </SectionHeader>
-
+    <section v-if="todos.length" class="mt-4" aria-label="課題">
       <TodoTable :todos="todos" />
     </section>
 
