@@ -2,13 +2,13 @@
 id: T-024
 title: 資料一覧の表形式化と絞り込みの拡充
 scale: medium
-status: blocked
+status: done
 priority: mid
 updated: 2026-10-02
 approvals:
   spec: 2026-10-02
   plan: 2026-10-02
-  done: null
+  done: 2026-10-02
 ---
 # 資料一覧の表形式化と絞り込みの拡充
 
