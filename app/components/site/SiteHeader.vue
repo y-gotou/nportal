@@ -10,8 +10,9 @@ const navItems = [
   { to: "/minutes", label: "議事録" },
   { to: "/schedule", label: "スケジュール" },
   { to: "/survey", label: "アンケート" },
-  { to: "/resources", label: "資料共有" },
-  { to: "/speakers", label: "発表募集" },
+  { to: "/todos", label: "課題" },
+  { to: "/resources", label: "資料" },
+  { to: "/speakers", label: "発表" },
   { to: "/news", label: "ニュース" },
   { to: "https://nsp-channel.pages.dev/", label: "BBS", external: true },
 ];
