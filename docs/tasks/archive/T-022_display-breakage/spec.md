@@ -2,13 +2,13 @@
 id: T-022
 title: 表示の崩れ・欠落の修正
 scale: medium
-status: blocked
+status: done
 priority: mid
 updated: 2026-10-02
 approvals:
   spec: 2026-10-02
   plan: 2026-10-02
-  done: null
+  done: 2026-10-02
 ---
 # 表示の崩れ・欠落の修正
 
