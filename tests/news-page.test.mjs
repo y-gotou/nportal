@@ -46,3 +46,18 @@ test("news glossary popover uses the shared shadow scale", async () => {
   assert.match(term, /shadow-lg/);
   assert.doesNotMatch(term, /shadow-\[/);
 });
+
+// タブと掲載日ナビの幅の合計がバーの幅を超えると、タブの文字が 1 文字ずつ縦に折り返していた
+test("news tab bar wraps the date navigation instead of the tab labels", async () => {
+  const page = await readSource("../app/pages/news.vue");
+
+  assert.match(page, /class="sticky top-\[73px\][^"]*\bflex-wrap\b[^"]*"/);
+  assert.match(page, /class="[^"]*\bwhitespace-nowrap\b[^"]*"\s+:class="tabClass\(tab\)"/);
+  assert.match(page, /v-if="currentDate" class="[^"]*\bml-auto\b[^"]*"/);
+});
+
+test("news page sets its browser tab title", async () => {
+  const page = await readSource("../app/pages/news.vue");
+
+  assert.match(page, /useSeoMeta\(\{\s*title: "AIニュース",/);
+});
