@@ -8,7 +8,6 @@ const readSource = (path) => readFile(new URL(`../app/${path}`, import.meta.url)
 // 横並びになる幅から並びを反転し、先頭のボタンを常に右端に置く
 test("card action groups reverse their order once they sit beside the content", async () => {
   const expected = [
-    ["pages/resources/index.vue", /sm:flex-row-reverse/g, 1],
     ["pages/index.vue", /sm:flex-row-reverse/g, 2],
     ["pages/survey/index.vue", /sm:flex-row-reverse/g, 1],
     ["pages/speakers.vue", /sm:flex-row-reverse/g, 1],
@@ -29,11 +28,24 @@ test("speakers page follows the shared header and button styles", async () => {
   assert.doesNotMatch(page, /<span class="text-border">\|<\/span>/);
 });
 
-test("resources page hides the tag row without tags and shares the danger button style", async () => {
+test("resources page hides the tag row without tags", async () => {
   const page = await readSource("pages/resources/index.vue");
 
-  assert.match(page, /<div v-if="allTags\.length" class="flex flex-wrap items-center gap-2">/);
-  assert.match(page, /:class="dangerButtonClass"\s+@click="deleteResource\(resource\)"/);
+  assert.match(page, /<template v-if="allTags\.length">/);
+});
+
+// 操作を課題一覧の表に揃える。ボタンを行ごとに出し分けると、編集・削除の位置がずれて押し間違える
+test("resources table opens a resource from its title and shares the todo table's icon buttons", async () => {
+  const page = await readSource("pages/resources/index.vue");
+  const todoTable = await readSource("components/todo/TodoTable.vue");
+
+  assert.match(page, /class="text-blue-600 hover:underline dark:text-blue-400"\s*>\s*\{\{ resource\.title \}\}\s*<\/a>/);
+  assert.match(page, /<th class="[^"]*">議事録<\/th>/);
+  assert.match(page, /:class="iconButtonClass" aria-label="編集" title="編集" @click="openEditForm\(resource\)"/);
+  assert.match(page, /:class="iconButtonClass" aria-label="削除" title="削除" @click="deleteResource\(resource\)"/);
+  assert.doesNotMatch(page, /primaryButtonClass, rowButtonClass|class="invisible"/);
+  assert.doesNotMatch(page, /resource\.fileName|resource\.fileSize|resource\.linkedApplication/);
+  assert.match(todoTable, /import \{ iconButtonClass, inputClass \} from "~\/utils\/ui";/);
 });
 
 test("minutes list matches the home cards and the resources search panel", async () => {
