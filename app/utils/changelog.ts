@@ -50,11 +50,13 @@ export const changelogEntries: ChangelogEntry[] = [
     date: "2026-10-02",
     category: "feature",
     title: "アンケートにコメントを表示する機能を追加",
+    description: "アンケートの結果ページで、運営からのコメントを確認できます。",
   },
   {
     date: "2026-10-02",
     category: "feature",
     title: "会議の議題ページを追加",
+    description: "スケジュールの「議題」ボタンから、会議の議題を確認できます。",
   },
   {
     date: "2026-09-18",
