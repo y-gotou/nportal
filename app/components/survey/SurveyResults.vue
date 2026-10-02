@@ -68,18 +68,20 @@ function isMyOtherText(
         <div
           v-for="answer in block.freeTextAnswers"
           :key="answer.responseId"
-          class="whitespace-pre-wrap rounded-lg border px-4 py-3 text-sm leading-6"
+          class="overflow-hidden rounded-lg border text-sm leading-6"
           :class="
             isMyFreeText(block.id, answer.text)
               ? 'border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-700 dark:bg-blue-900/20 dark:text-blue-300'
               : 'border-border bg-background text-foreground'
           "
         >
-          <span
-            v-if="isMyFreeText(block.id, answer.text)"
-            class="mb-1 block text-xs font-semibold text-blue-600 dark:text-blue-400"
-          >あなたの回答</span>
-          {{ answer.text }}
+          <div class="whitespace-pre-wrap px-4 py-3">
+            <span
+              v-if="isMyFreeText(block.id, answer.text)"
+              class="mb-1 block text-xs font-semibold text-blue-600 dark:text-blue-400"
+            >あなたの回答</span>
+            {{ answer.text }}
+          </div>
           <SurveyAnswerComment
             v-if="answer.comment"
             :comment="answer.comment"
@@ -139,18 +141,20 @@ function isMyOtherText(
           <div
             v-for="answer in block.otherTextAnswers"
             :key="answer.responseId"
-            class="whitespace-pre-wrap rounded-lg border px-4 py-3 text-sm leading-6"
+            class="overflow-hidden rounded-lg border text-sm leading-6"
             :class="
               isMyOtherText(block.id, answer.text, block.questionType)
                 ? 'border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-700 dark:bg-blue-900/20 dark:text-blue-300'
                 : 'border-border bg-background text-foreground'
             "
           >
-            <span
-              v-if="isMyOtherText(block.id, answer.text, block.questionType)"
-              class="mb-1 block text-xs font-semibold text-blue-600 dark:text-blue-400"
-            >あなたの回答</span>
-            {{ answer.text }}
+            <div class="whitespace-pre-wrap px-4 py-3">
+              <span
+                v-if="isMyOtherText(block.id, answer.text, block.questionType)"
+                class="mb-1 block text-xs font-semibold text-blue-600 dark:text-blue-400"
+              >あなたの回答</span>
+              {{ answer.text }}
+            </div>
             <SurveyAnswerComment
               v-if="answer.comment"
               :comment="answer.comment"

@@ -23,7 +23,8 @@
   - 本文は前後の空白を除去する。空なら削除、それ以外は `INSERT ... ON CONFLICT(response_id) DO UPDATE` で登録・更新し、`updated_at` を更新する。
   - 上限は 1000 文字とし、超過は 400。入力欄にも `maxlength` を付ける。
 - **結果の組み立て**: `shared/utils/survey.ts` の `buildSurveyResultBlocks` が返す `freeTextAnswers` / `otherTextAnswers` を、文字列の配列から `{ responseId, text, comment, commentUpdatedAt }` の配列へ変更する(`types/portal.ts` の `SurveyResultBlock`)。結果ページと回答閲覧ページの双方がこの結果を使う。
-- **結果ページの表示**: `app/components/survey/SurveyResults.vue` で、コメントのある回答の枠内下部に、左罫線付きの区画として本文と日付を表示する。本文は `whitespace-pre-wrap` とテキスト補間で出力する(`v-html` は使わないため HTML は文字列になる)。日付は `updated_at`(UTC)を JST の年月日に整形する。整形関数は `app/utils/survey.ts` を新設して置く(`app/utils/speakers.ts` の `formatPostedDateTime` と同じ方式)。
+- **結果ページの表示**: `app/components/survey/SurveyResults.vue` で、コメントのある回答の枠の下部を緑色の帯にし、吹き出しアイコン・本文・日付を表示する(部品は `app/components/survey/SurveyAnswerComment.vue`)。日付は本文と同じ行の右端に置き、幅が足りない場合は本文の下へ回り込ませる。帯を枠の端まで広げるため、回答の枠は余白を内側の要素へ移す。アイコンは装飾扱いとし、読み上げ用に「運営からのコメント」を非表示テキストで添える。本文は `whitespace-pre-wrap` とテキスト補間で出力する(`v-html` は使わないため HTML は文字列になる)。日付は `updated_at`(UTC)を JST の年月日に整形する。整形関数は `app/utils/survey.ts` を新設して置く(`app/utils/speakers.ts` の `formatPostedDateTime` と同じ方式)。
+- **表示方式の経緯**: 当初は回答の枠内に左罫線付きの区画で表示したが、回答本文の引用に見えるとの指摘を受け、7案(左罫線、返信カード、枠内の帯、チャット風、2列、アイコン付きテキスト、ラベル付き)を比較してユーザーが枠内の帯を選択した。配色は7種から緑、日付の位置は6種から本文の右を選択した。
 - **回答閲覧ページ**: `app/pages/admin/surveys/[id]/responses.vue` を新設する。`useSurveyDetail` と `buildSurveyResultBlocks` を使い、自由記述のある設問だけを設問ごとに並べる。回答ごとに `<textarea>` と保存ボタンを置く。状態が「終了」以外のときは入力欄を無効にし、終了後にコメントできる旨を表示する(既存コメントは表示する)。保存後は画面上の値を更新し、`clearNuxtData(surveyDetailKey(id))` で結果ページ側のキャッシュを破棄する(回答送信時の既存処理と同じ)。
 - **導線**: `app/pages/admin/surveys/index.vue` の各行、「編集」の左に「回答」リンクを追加する。
 - **更新履歴**: 結果ページの表示が変わるため、`feature` として1項目を追記する。

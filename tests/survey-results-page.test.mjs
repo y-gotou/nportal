@@ -8,7 +8,7 @@ test("survey results component preserves line breaks for free-text answers", asy
     "utf8",
   );
 
-  const matches = component.match(/whitespace-pre-wrap rounded-lg border px-4 py-3 text-sm leading-6/g) ?? [];
+  const matches = component.match(/<div class="whitespace-pre-wrap px-4 py-3">/g) ?? [];
 
   assert.equal(matches.length, 2);
 });
