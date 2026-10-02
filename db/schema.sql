@@ -218,6 +218,9 @@ CREATE TABLE IF NOT EXISTS news_digests (
 CREATE INDEX IF NOT EXISTS idx_news_articles_date ON news_articles(published_date);
 CREATE INDEX IF NOT EXISTS idx_news_votes_article ON news_votes(article_id);
 
+-- done_at: 完了にした日時(ISO 8601)。未完了は NULL
+-- minutes_slug: 議事録を削除すると紐付けのみ解除される(課題は残す)
+-- ファイル末尾の文の後ろにコメントを置くと、リモート適用時に wrangler が警告(leftover buffer)を出すため、文の前に置く
 CREATE TABLE IF NOT EXISTS todos (
   id           INTEGER PRIMARY KEY AUTOINCREMENT,
   title        TEXT NOT NULL,
@@ -228,5 +231,3 @@ CREATE TABLE IF NOT EXISTS todos (
   created_at   TEXT DEFAULT (datetime('now')),
   updated_at   TEXT DEFAULT (datetime('now'))
 );
--- done_at: 完了にした日時(ISO 8601)。未完了は NULL
--- minutes_slug: 議事録を削除すると紐付けのみ解除される(課題は残す)
