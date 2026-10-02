@@ -2,12 +2,12 @@
 id: T-020
 title: グローバルナビゲーションの折り返し解消
 scale: small
-status: blocked
+status: done
 priority: mid
 updated: 2026-10-02
 approvals:
   spec: 2026-10-02
-  done: null
+  done: 2026-10-02
 ---
 # グローバルナビゲーションの折り返し解消
 
@@ -43,8 +43,8 @@ approvals:
 
 ## 作業ログ
 ### 引き継ぎサマリ
-- 現状: PR #109 を 2026-10-02 に merge 済み。本番デプロイの成功を確認した。status は blocked(G3 承認待ち)。完了記録用のブランチは `docs/t-020-close`(push は未実施)。
-- 次の作業: ユーザーが本番環境の表示を確認し、G3 承認を得る。承認後に完了処理(frontmatter 更新・archive 移動・BACKLOG 再生成)を行い、`docs/t-020-close` から PR を作成する(push と PR 作成はユーザー承認後)。
+- 現状: 完了。PR #109 を 2026-10-02 に merge し本番反映・本番確認済み。G3 承認済み。
+- 次の作業: なし。
 - 未確定点: なし。
 
 ### 時系列
@@ -62,3 +62,4 @@ approvals:
 - 2026-10-02: `docs/requirements-todos.md` §7 に表示切り替えの幅を追記し、changelog に `fix` として1項目を追記した(日付は暫定で 2026-10-02。merge 日に合わせる)。
 - 2026-10-02: push と PR 作成の承認を受け、ブランチ `fix/nav-wrap` を push して PR #109 を作成した。status を blocked とした。
 - 2026-10-02: ユーザーが PR #109 を merge した(merge は 2026-10-02 13:55 JST。更新履歴の `date` と一致するため修正は不要)。merge コミットのチェック結果で、本番デプロイ(Cloudflare Pages)の成功を確認した。ローカルの main を更新し、作業ブランチを削除して、完了記録用のブランチ `docs/t-020-close` を作成した。
+- 2026-10-02: ユーザーが本番環境で表示を確認した。仕様書反映は PR #109 に同梱済みで、`docs/requirements-todos.md` §7 の記載が票の仕様書反映の内容と一致することを確認した。G3 承認。status を done とし、票を archive へ移動した。
