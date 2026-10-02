@@ -38,6 +38,13 @@ export const changelogEntries: ChangelogEntry[] = [
   {
     date: "2026-10-02",
     category: "feature",
+    title: "アンケートの自由記述に運営からのコメントを表示",
+    description:
+      "アンケートの結果ページで、自由記述の回答に運営からのコメントが表示されるようになりました。コメントは受付終了後に付けられます。",
+  },
+  {
+    date: "2026-10-02",
+    category: "feature",
     title: "会議の議題ページを追加",
     description:
       "スケジュールページとトップページの次回の会議に「議題」ボタンを追加しました。押すと、その回の議題を専用ページで確認できます。",

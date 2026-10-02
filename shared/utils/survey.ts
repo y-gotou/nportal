@@ -7,11 +7,13 @@ import type {
   SurveyResponse,
   SurveyResultBlock,
   SurveyStatus,
+  SurveyTextAnswer,
 } from "../../types/portal.ts";
 import { parseStringArray } from "./json.ts";
 
 export const SURVEY_OTHER_OPTION_VALUE = "__other__";
 export const SURVEY_OTHER_OPTION_LABEL = "その他";
+export const SURVEY_COMMENT_MAX_LENGTH = 1000;
 
 export function getSurveyStatusLabel(status: SurveyStatus): string {
   if (status === "draft") return "下書き";
@@ -156,6 +158,15 @@ function hasMeaningfulAnswer(
   return answer.selected.length > 0 || answer.otherText.trim().length > 0;
 }
 
+function toTextAnswer(response: SurveyResponse, text: string): SurveyTextAnswer {
+  return {
+    responseId: response.id,
+    text,
+    comment: response.comment,
+    commentUpdatedAt: response.commentUpdatedAt,
+  };
+}
+
 export function buildSurveyResultBlocks(
   survey: Survey,
   responses: SurveyResponse[],
@@ -167,8 +178,8 @@ export function buildSurveyResultBlocks(
 
     if (question.questionType === "free_text") {
       const freeTextAnswers = questionResponses
-        .map((response) => response.answer.trim())
-        .filter(Boolean);
+        .map((response) => toTextAnswer(response, response.answer.trim()))
+        .filter((answer) => answer.text);
 
       return {
         ...question,
@@ -185,7 +196,7 @@ export function buildSurveyResultBlocks(
         ...(question.allowOtherText ? [SURVEY_OTHER_OPTION_LABEL] : []),
       ].map((option) => [option, 0]),
     ) as Record<string, number>;
-    const otherTextAnswers: string[] = [];
+    const otherTextAnswers: SurveyTextAnswer[] = [];
     let responseCount = 0;
 
     for (const response of questionResponses) {
@@ -209,7 +220,7 @@ export function buildSurveyResultBlocks(
       }
 
       if (otherText) {
-        otherTextAnswers.push(otherText);
+        otherTextAnswers.push(toTextAnswer(response, otherText));
       }
     }
 

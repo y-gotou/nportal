@@ -32,6 +32,14 @@ CREATE TABLE IF NOT EXISTS submissions (
   UNIQUE(survey_id, user_email)
 );
 
+CREATE TABLE IF NOT EXISTS response_comments (
+  response_id INTEGER PRIMARY KEY REFERENCES responses(id) ON DELETE CASCADE,
+  body        TEXT NOT NULL,
+  updated_at  TEXT DEFAULT (datetime('now'))
+);
+-- 自由記述回答への管理者コメント(1回答につき1件)。
+-- 回答の再送信とアンケート削除は回答行を削除するため、コメントの削除は ON DELETE CASCADE に任せる
+
 CREATE INDEX IF NOT EXISTS idx_questions_survey_id ON questions(survey_id);
 CREATE INDEX IF NOT EXISTS idx_responses_question_id ON responses(question_id);
 CREATE INDEX IF NOT EXISTS idx_submissions_survey_user ON submissions(survey_id, user_email);
