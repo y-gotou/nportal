@@ -6,7 +6,7 @@ status: todo
 priority: mid
 updated: 2026-10-02
 approvals:
-  spec: null
+  spec: 2026-10-02
   plan: null
   done: null
 ---
