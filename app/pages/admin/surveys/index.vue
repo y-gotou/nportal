@@ -49,7 +49,7 @@ useSeoMeta({ title: "アンケート管理" });
       </NuxtLink>
     </div>
 
-    <p v-if="duplicateError" class="rounded-lg bg-red-50 p-3 text-sm text-red-600" role="alert">{{ duplicateError }}</p>
+    <p v-if="duplicateError" class="rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400" role="alert">{{ duplicateError }}</p>
 
     <div v-if="surveys.length" class="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
       <table class="min-w-full divide-y divide-border">

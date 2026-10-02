@@ -18,6 +18,7 @@ import {
   surfaceCardClass,
   topicTagClass,
 } from "~/utils/ui";
+import { surveyStatusClass } from "~/utils/status";
 
 const today = getTodayDate();
 
@@ -120,7 +121,10 @@ useSeoMeta({
                 <h2 class="min-w-0 text-pretty text-xl font-semibold tracking-tight text-foreground">
                   {{ survey.title }}
                 </h2>
-                <span class="shrink-0 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-600">
+                <span
+                  class="shrink-0 rounded-full px-2.5 py-1 text-xs font-medium"
+                  :class="surveyStatusClass(survey.status)"
+                >
                   受付中
                 </span>
               </div>

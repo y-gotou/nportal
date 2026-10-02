@@ -50,7 +50,7 @@ async function submit() {
 
 <template>
   <form class="space-y-6 rounded-xl border border-border bg-surface p-6 shadow-sm" @submit.prevent="submit">
-    <p v-if="serverError" class="rounded-lg bg-red-50 p-3 text-sm text-red-600" role="alert">{{ serverError }}</p>
+    <p v-if="serverError" class="rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400" role="alert">{{ serverError }}</p>
 
     <div class="grid gap-5 sm:grid-cols-2">
       <AdminFormField v-if="minutes" label="スラッグ" field-id="slug-display">

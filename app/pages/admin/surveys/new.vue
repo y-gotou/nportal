@@ -46,7 +46,7 @@ useSeoMeta({ title: "アンケートを作成" });
     <AdminPageHeader parent-label="アンケート" parent-to="/admin/surveys" title="新規作成" />
 
     <form class="space-y-6" @submit.prevent="submit">
-      <p v-if="serverError" class="rounded-lg bg-red-50 p-3 text-sm text-red-600" role="alert">{{ serverError }}</p>
+      <p v-if="serverError" class="rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400" role="alert">{{ serverError }}</p>
 
       <!-- 基本情報 -->
       <div class="space-y-5 rounded-xl border border-border bg-surface p-6 shadow-sm">

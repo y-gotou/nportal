@@ -186,7 +186,7 @@ async function submit() {
         <button
           type="button"
           class="rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-          :class="sourceMode === 'url' ? 'bg-surface text-blue-600 shadow-sm' : 'text-muted hover:text-foreground'"
+          :class="sourceMode === 'url' ? 'bg-surface text-blue-600 shadow-sm dark:text-blue-400' : 'text-muted hover:text-foreground'"
           @click="sourceMode = 'url'"
         >
           URL
@@ -194,7 +194,7 @@ async function submit() {
         <button
           type="button"
           class="rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-          :class="sourceMode === 'file' ? 'bg-surface text-blue-600 shadow-sm' : 'text-muted hover:text-foreground'"
+          :class="sourceMode === 'file' ? 'bg-surface text-blue-600 shadow-sm dark:text-blue-400' : 'text-muted hover:text-foreground'"
           @click="sourceMode = 'file'"
         >
           ファイル

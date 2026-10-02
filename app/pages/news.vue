@@ -100,6 +100,11 @@ watch([activeTab, selectedDate], () => {
   });
 });
 
+useSeoMeta({
+  title: "AIニュース",
+  description: "AI関連のニュースを日次と週次ダイジェストで確認できます。",
+});
+
 const tabClass = (tab: NewsTab) =>
   activeTab.value === tab
     ? "border-foreground font-bold text-foreground"
@@ -129,7 +134,7 @@ const dateNavClass =
       </header>
 
       <div
-        class="sticky top-[73px] z-30 mt-5 flex items-center justify-between border-b border-border bg-surface px-6 md:px-12"
+        class="sticky top-[73px] z-30 mt-5 flex flex-wrap items-center justify-between border-b border-border bg-surface px-6 md:px-12"
       >
         <div class="flex" role="tablist">
           <button
@@ -138,7 +143,7 @@ const dateNavClass =
             type="button"
             role="tab"
             :aria-selected="activeTab === tab"
-            class="-mb-px mx-3 border-b-2 px-1 py-3.5 text-[14.5px] transition-colors"
+            class="-mb-px mx-3 whitespace-nowrap border-b-2 px-1 py-3.5 text-[14.5px] transition-colors"
             :class="tabClass(tab)"
             @click="selectTab(tab)"
           >
@@ -146,7 +151,7 @@ const dateNavClass =
           </button>
         </div>
 
-        <div v-if="currentDate" class="flex items-center gap-0.5 pb-1.5">
+        <div v-if="currentDate" class="ml-auto flex items-center gap-0.5 pb-1.5">
           <button
             type="button"
             :class="dateNavClass"

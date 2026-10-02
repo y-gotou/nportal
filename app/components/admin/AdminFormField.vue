@@ -16,6 +16,6 @@ defineProps<{
     </label>
     <p v-if="hint" class="text-xs text-muted">{{ hint }}</p>
     <slot />
-    <p v-if="error" :id="`${fieldId}-error`" class="text-xs text-red-600" role="alert">{{ error }}</p>
+    <p v-if="error" :id="`${fieldId}-error`" class="text-xs text-red-600 dark:text-red-400" role="alert">{{ error }}</p>
   </div>
 </template>
