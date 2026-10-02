@@ -1,8 +1,8 @@
 # T-017 作業ログ
 
 ## 引き継ぎサマリ
-- 現状: 実装とエージェント実施の検証は完了し、PR #103 を作成済み。ユーザー実施の作業(本番 D1 への列追加・merge・本番確認)待ちのため status は blocked。作業ブランチは `feat/schedule-agenda`。
-- 次の作業: ユーザーが merge 前に本番 D1 へ次の2文を適用する。`ALTER TABLE schedule ADD COLUMN agenda TEXT;` と `ALTER TABLE schedule ADD COLUMN agenda_html TEXT;`。その後に merge し、本番画面で議題の保存と表示を確認する。merge 日が 2026-10-02 と異なる場合は changelog の日付を merge 日に直す。再開条件は merge と本番確認の完了で、満たされたら G3(完了処理は `docs/t-017-close` ブランチから PR)へ進む。
+- 現状: 完了。PR #103 を 2026-10-02 にマージし本番反映・本番動作確認済み。G3 承認済み。
+- 次の作業: なし。
 - 未確定点: なし。
 
 ## 時系列ログ
@@ -22,3 +22,5 @@
 - 2026-10-02: `docs/requirements-schedule.md` と changelog の文言を単独ページ・Markdown の仕様へ更新した(changelog の日付は暫定で 2026-10-02)。
 - 2026-10-02: ユーザーが議題ページの見た目を確認し、問題なしと回答。併せて要件変更(単独ページ化・Markdown 対応)の G1・G2 を再承認。承認日を更新した。本番用 SQL 2文を提示済み。ローカル開発サーバーは停止した。ローカル D1 には確認用の回(ID 910)と議題のサンプルが残っている。
 - 2026-10-02: ユーザーの承認を得て push し、PR #103 を作成した。ユーザー実施の作業待ちのため status を blocked にした。
+- 2026-10-02: ユーザーが本番 D1 と Preview D1 へ `agenda`・`agenda_html` の2列を追加し、PR #103 をマージした(09:22 JST)。両 DB に2列が存在することを読み取りのみで確認。マージコミットに対する Cloudflare Pages のチェックは成功。changelog の日付(2026-10-02)はマージ日と一致するため修正なし。
+- 2026-10-02: ユーザーが本番画面を確認し、問題なしと回答。G3 承認。仕様書反映(`docs/requirements-schedule.md` の新規作成。実装 PR に同梱済み)を追認。status を done とし、アーカイブへ移動した。
