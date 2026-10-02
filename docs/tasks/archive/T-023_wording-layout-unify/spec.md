@@ -2,13 +2,13 @@
 id: T-023
 title: 表記の統一と軽微なレイアウト調整
 scale: large
-status: blocked
+status: done
 priority: mid
 updated: 2026-10-02
 approvals:
   spec: 2026-10-02
   plan: 2026-10-02
-  done: null
+  done: 2026-10-02
 ---
 # 表記の統一と軽微なレイアウト調整
 
