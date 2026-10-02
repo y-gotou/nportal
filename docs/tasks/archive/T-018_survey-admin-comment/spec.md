@@ -2,13 +2,13 @@
 id: T-018
 title: アンケート回答への管理者コメント
 scale: medium
-status: blocked
+status: done
 priority: mid
 updated: 2026-10-02
 approvals:
   spec: 2026-10-02
   plan: 2026-10-02
-  done: null
+  done: 2026-10-02
 ---
 # アンケート回答への管理者コメント
 
