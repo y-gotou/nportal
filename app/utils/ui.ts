@@ -12,3 +12,6 @@ export const interactiveCardClass =
 
 export const topicTagClass =
   "rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-600 dark:bg-blue-900/20 dark:text-blue-400";
+
+export const inputClass =
+  "rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder-muted focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
