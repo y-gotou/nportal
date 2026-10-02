@@ -134,7 +134,7 @@ useSeoMeta({ title: `${survey.title} を編集` });
           class="inline-flex items-center gap-2 rounded-lg bg-blue-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-600 disabled:opacity-50"
           :disabled="isSubmitting"
         >
-          {{ isSubmitting ? "更新中..." : "保存する" }}
+          {{ isSubmitting ? "保存中…" : "保存する" }}
         </button>
         <NuxtLink to="/admin/surveys" class="inline-flex items-center rounded-lg border border-border px-5 py-2.5 text-sm font-medium text-foreground hover:bg-surface-hover">
           キャンセル

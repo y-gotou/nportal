@@ -120,13 +120,14 @@ const dateNavClass =
     <div class="rounded-xl border border-border bg-surface shadow-sm">
       <header class="px-6 pt-8 md:px-12">
         <p class="text-[11px] font-bold tracking-[0.2em] text-muted">AI NEWS</p>
-        <div class="mt-2.5 flex items-end justify-between gap-8">
+        <div class="mt-2.5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between sm:gap-8">
           <h1 class="text-[32px] font-bold leading-[1.25] tracking-tight text-foreground">
             {{ heading }}
           </h1>
-          <p v-if="dailyData?.updatedAt" class="text-right text-xs leading-relaxed text-muted">
-            最終更新<br>
-            <span class="text-[13px] font-semibold text-foreground">
+          <p v-if="dailyData?.updatedAt" class="text-xs leading-relaxed text-muted sm:text-right">
+            最終更新<br class="hidden sm:inline">
+            <!-- 1 行で表示する狭い画面では、改行の代わりに余白で区切る -->
+            <span class="ml-1.5 text-[13px] font-semibold text-foreground sm:ml-0">
               {{ formatUpdatedAt(dailyData.updatedAt) }}
             </span>
           </p>

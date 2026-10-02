@@ -43,7 +43,7 @@ async function changeStatus(app: SpeakerApplication, newStatus: SpeakerApplicati
     });
     await refresh();
   } catch (e: unknown) {
-    alert(e instanceof Error ? e.message : "ステータスの変更に失敗しました。");
+    alert(e instanceof Error ? e.message : "状態の変更に失敗しました。");
   } finally {
     updatingId.value = null;
   }
@@ -89,7 +89,7 @@ useSeoMeta({ title: "発表募集管理" });
 
 <template>
   <div class="space-y-6">
-    <h1 class="text-xl font-bold tracking-tight text-foreground">発表募集管理</h1>
+    <h1 class="text-xl font-bold tracking-tight text-foreground">発表募集</h1>
 
     <div v-if="applications.length" class="overflow-x-auto rounded-xl border border-border bg-surface shadow-sm">
       <table class="min-w-full divide-y divide-border">
@@ -98,7 +98,7 @@ useSeoMeta({ title: "発表募集管理" });
             <th class="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">発表テーマ</th>
             <th class="hidden whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted sm:table-cell">応募者</th>
             <th class="hidden whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted md:table-cell">時間</th>
-            <th class="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">ステータス</th>
+            <th class="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">状態</th>
             <th class="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">議事録</th>
             <th class="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">資料</th>
             <th class="px-4 py-3" />
@@ -141,7 +141,7 @@ useSeoMeta({ title: "発表募集管理" });
                 class="max-w-48 rounded-lg border border-border bg-surface px-2 py-1.5 text-xs font-medium text-foreground focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
                 @change="changeMinutes(app, ($event.target as HTMLSelectElement).value)"
               >
-                <option value="" :selected="!app.minutes_slug">紐付けなし</option>
+                <option value="" :selected="!app.minutes_slug">なし</option>
                 <option
                   v-for="minutes in minutesOptions"
                   :key="minutes.slug"
@@ -159,7 +159,7 @@ useSeoMeta({ title: "発表募集管理" });
                 class="max-w-48 rounded-lg border border-border bg-surface px-2 py-1.5 text-xs font-medium text-foreground focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
                 @change="changeResource(app, ($event.target as HTMLSelectElement).value)"
               >
-                <option value="" :selected="app.resource_id === null">紐付けなし</option>
+                <option value="" :selected="app.resource_id === null">なし</option>
                 <option
                   v-for="resource in resourceOptions(app)"
                   :key="resource.id"
@@ -183,7 +183,7 @@ useSeoMeta({ title: "発表募集管理" });
     </div>
 
     <p v-else class="rounded-xl border border-dashed border-border bg-surface px-5 py-8 text-center text-sm text-muted">
-      発表申し込みはまだありません。
+      応募はまだありません。
     </p>
   </div>
 </template>

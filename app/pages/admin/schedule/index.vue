@@ -60,7 +60,7 @@ useSeoMeta({ title: "スケジュール管理" });
     </div>
 
     <p v-else class="rounded-xl border border-dashed border-border bg-surface px-5 py-8 text-center text-sm text-muted">
-      スケジュールはまだ登録されていません。
+      スケジュールはまだありません。
     </p>
   </div>
 </template>

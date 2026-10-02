@@ -37,6 +37,12 @@ export const changelogCategoryClasses: Record<ChangelogCategory, string> = {
 export const changelogEntries: ChangelogEntry[] = [
   {
     date: "2026-10-02",
+    category: "improvement",
+    title: "画面の文言とボタンの並びを統一",
+    description: "ボタン名や用語を揃え、カードのボタン位置を固定しました。",
+  },
+  {
+    date: "2026-10-02",
     category: "fix",
     title: "ニュースのタブ崩れなど表示の不具合を修正",
     description: "スマホ幅のタブ、ダークモードの配色、エラーページを直しました。",

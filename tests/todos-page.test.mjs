@@ -17,7 +17,7 @@ test("global navigation lists the todo page after surveys with shortened labels"
 });
 
 test("resource and speaker pages keep their original headings", async () => {
-  assert.match(await read("app/pages/resources/index.vue"), /<SectionHeader title="資料共有">/);
+  assert.match(await read("app/pages/resources/index.vue"), /<SectionHeader title="資料一覧">/);
   assert.match(await read("app/pages/speakers.vue"), /title: "発表募集"/);
 });
 

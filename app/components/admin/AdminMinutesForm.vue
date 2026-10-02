@@ -97,7 +97,7 @@ async function submit() {
       field-id="attendees"
       :error="errors.attendees"
       required
-      :hint="isEdit ? 'カンマ区切り' : 'カンマ区切りで入力（例: 田中、鈴木、佐藤）'"
+      :hint="isEdit ? 'カンマ区切り' : 'カンマ区切り(例: 田中, 鈴木, 佐藤)'"
     >
       <input
         id="attendees"
@@ -114,7 +114,7 @@ async function submit() {
       field-id="topics"
       :error="errors.topics"
       required
-      :hint="isEdit ? 'カンマ区切り' : 'カンマ区切りで入力（例: ChatGPT, プロンプト設計）'"
+      :hint="isEdit ? 'カンマ区切り' : 'カンマ区切り(例: ChatGPT, プロンプト設計)'"
     >
       <input
         id="topics"
@@ -126,7 +126,7 @@ async function submit() {
       >
     </AdminFormField>
 
-    <AdminFormField label="本文（Markdown）" field-id="contentMd">
+    <AdminFormField label="本文(Markdown)" field-id="contentMd">
       <textarea
         id="contentMd"
         v-model="form.contentMd"
@@ -142,7 +142,7 @@ async function submit() {
         class="inline-flex items-center gap-2 rounded-lg bg-blue-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-600 disabled:opacity-50"
         :disabled="isSubmitting"
       >
-        {{ isEdit ? (isSubmitting ? "更新中..." : "保存する") : (isSubmitting ? "作成中..." : "作成する") }}
+        {{ isEdit ? (isSubmitting ? "保存中…" : "保存する") : (isSubmitting ? "作成中…" : "作成する") }}
       </button>
       <NuxtLink to="/admin/minutes" class="inline-flex items-center rounded-lg border border-border px-5 py-2.5 text-sm font-medium text-foreground hover:bg-surface-hover">
         キャンセル

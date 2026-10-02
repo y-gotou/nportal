@@ -161,7 +161,7 @@ useSeoMeta({
               :class="primaryButtonClass"
               :disabled="isSubmitting"
             >
-              {{ isSubmitting ? "送信中..." : "送信する" }}
+              {{ isSubmitting ? "送信中…" : "送信する" }}
             </button>
           </div>
         </form>

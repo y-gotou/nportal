@@ -176,7 +176,7 @@ useSeoMeta({
         v-if="isMobileMenuOpen"
         :id="mobileMenuId"
         class="fixed inset-y-0 right-0 z-50 flex w-full max-w-xs flex-col border-l border-border bg-surface shadow-2xl md:hidden"
-        aria-label="管理メニュー（モバイル）"
+        aria-label="管理メニュー(モバイル)"
       >
         <div class="flex items-center justify-between border-b border-border px-5 py-4">
           <span class="text-sm font-semibold text-foreground">管理メニュー</span>
@@ -192,7 +192,7 @@ useSeoMeta({
           </button>
         </div>
 
-        <nav class="flex-1 overflow-y-auto px-3 py-4" aria-label="管理メニュー（モバイル）">
+        <nav class="flex-1 overflow-y-auto px-3 py-4" aria-label="管理メニュー(モバイル)">
           <NuxtLink
             v-for="item in navItems"
             :key="item.to"

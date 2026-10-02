@@ -45,7 +45,7 @@ async function handleDelete() {
       :disabled="isDeleting"
       @click="handleDelete"
     >
-      {{ isDeleting ? "削除中..." : "削除" }}
+      {{ isDeleting ? "削除中…" : "削除" }}
     </button>
     <p v-if="error" class="mt-1 text-xs text-red-600 dark:text-red-400" role="alert">{{ error }}</p>
   </div>

@@ -49,7 +49,7 @@ useSeoMeta({
 
 <template>
   <PageContainer size="wide">
-    <SectionHeader title="課題" />
+    <SectionHeader title="課題一覧" />
 
     <form
       v-if="isAdmin"
@@ -99,7 +99,7 @@ useSeoMeta({
       v-else
       class="rounded-xl border border-dashed border-border bg-surface px-5 py-8 text-center text-sm text-muted"
     >
-      課題はまだ登録されていません。
+      課題はまだありません。
     </p>
   </PageContainer>
 </template>

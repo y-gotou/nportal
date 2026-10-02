@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { formatDisplayDate } from "#shared/utils/content";
-import { interactiveCardClass, primaryButtonClass, secondaryButtonClass, topicTagClass } from "~/utils/ui";
+import { dangerButtonClass, interactiveCardClass, primaryButtonClass, secondaryButtonClass, topicTagClass } from "~/utils/ui";
 import { resourceOpensInNewTab } from "~/utils/resources";
+import { chatDisplayName } from "#shared/utils/chat";
 import type { MinutesListResponse, ResourceItem, ResourcesListResponse } from "~~/types/portal";
 
 const { data, refresh } = await useFetch<ResourcesListResponse>("/api/resources", {
@@ -135,7 +136,7 @@ useSeoMeta({
 
 <template>
   <PageContainer size="wide">
-    <SectionHeader title="資料共有">
+    <SectionHeader title="資料一覧">
       <template #action>
         <button type="button" :class="primaryButtonClass" @click="openCreateForm">
           資料を投稿
@@ -178,7 +179,7 @@ useSeoMeta({
     <div class="space-y-4 rounded-xl border border-border bg-surface p-5 shadow-sm">
       <div class="space-y-2">
         <label for="resource-search" class="block text-sm font-medium text-foreground">
-          資料を検索
+          キーワード検索
         </label>
         <div class="flex items-center gap-2">
           <input
@@ -188,7 +189,7 @@ useSeoMeta({
             type="search"
             autocomplete="off"
             class="min-w-0 flex-1 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground transition-[border-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-            placeholder="タイトル・タグ・発表者で検索…"
+            placeholder="タイトル・タグ・投稿者で検索…"
           >
           <button
             type="button"
@@ -223,7 +224,7 @@ useSeoMeta({
         </button>
       </div>
 
-      <div class="flex flex-wrap items-center gap-2">
+      <div v-if="allTags.length" class="flex flex-wrap items-center gap-2">
         <span class="text-sm font-medium text-foreground">タグ</span>
         <button
           v-for="tag in allTags"
@@ -269,13 +270,13 @@ useSeoMeta({
                 {{ resource.fileName }} <span v-if="resource.fileSize">({{ formatFileSize(resource.fileSize) }})</span>
               </p>
               <p v-if="resource.submittedBy" class="text-xs text-muted">
-                投稿者: {{ resource.submittedBy }}
+                投稿者: {{ chatDisplayName(resource.submittedBy) }}
               </p>
               <p v-if="resource.linkedApplication" class="text-xs text-muted">
                 発表: {{ resource.linkedApplication.title }}
               </p>
             </div>
-            <div class="flex shrink-0 flex-wrap gap-3">
+            <div class="flex shrink-0 flex-wrap gap-3 sm:flex-row-reverse">
               <a
                 :href="resource.url"
                 :target="resourceOpensInNewTab(resource) ? '_blank' : undefined"
@@ -289,7 +290,7 @@ useSeoMeta({
                 :to="`/minutes/${resource.relatedMinutesSlug}`"
                 :class="secondaryButtonClass"
               >
-                関連議事録
+                議事録を見る
               </NuxtLink>
               <button
                 v-if="resource.canEdit"
@@ -302,7 +303,7 @@ useSeoMeta({
               <button
                 v-if="resource.canEdit"
                 type="button"
-                class="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-surface px-4 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+                :class="dangerButtonClass"
                 @click="deleteResource(resource)"
               >
                 削除
@@ -317,7 +318,7 @@ useSeoMeta({
       v-else
       class="mt-8 rounded-xl border border-dashed border-border bg-surface px-5 py-8 text-center text-sm text-muted"
     >
-      条件に合う資料はありません。
+      {{ resources.length ? "条件に合う資料はありません。" : "資料はまだありません。" }}
     </p>
   </PageContainer>
 </template>

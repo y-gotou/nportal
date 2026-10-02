@@ -78,7 +78,7 @@ useSeoMeta({
       v-else
       class="mt-8 space-y-4 rounded-xl border border-border bg-background p-6 shadow-sm"
     >
-      <h2 class="text-xl font-semibold tracking-tight text-foreground">まだ回答がありません</h2>
+      <h2 class="text-xl font-semibold tracking-tight text-foreground">回答はまだありません</h2>
       <p class="text-sm leading-6 text-muted">
         最初の回答を受け付けるまで、ここには集計結果が表示されません。
       </p>

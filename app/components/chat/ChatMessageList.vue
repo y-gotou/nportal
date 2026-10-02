@@ -77,7 +77,7 @@ function canDelete(message: ChatMessage): boolean {
     @scroll.passive="onScroll"
   >
     <p v-if="!visibleMessages.length" class="py-10 text-center text-sm text-muted">
-      まだ投稿はありません。
+      投稿はまだありません。
     </p>
     <ChatMessageItem
       v-for="message in visibleMessages"

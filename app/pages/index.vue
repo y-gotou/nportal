@@ -68,7 +68,7 @@ useSeoMeta({
             <dt class="text-xs font-semibold tracking-[0.14em] text-white/50">開催場所</dt>
             <dd>{{ nextEvent.location }}</dd>
           </template>
-          <dt class="text-xs font-semibold tracking-[0.14em] text-white/50">テーマ</dt>
+          <dt class="text-xs font-semibold tracking-[0.14em] text-white/50">トピック</dt>
           <dd>{{ nextEvent.topics.join("、") }}</dd>
         </dl>
       </template>
@@ -87,7 +87,7 @@ useSeoMeta({
           :to="`/schedule/${nextEvent.id}`"
           :class="`${secondaryButtonClass} !bg-transparent border-white/20 text-white hover:!bg-white/10 hover:text-white`"
         >
-          議題
+          議題を見る
         </NuxtLink>
         <NuxtLink
           :to="`/chat/${nextEvent.id}`"
@@ -99,7 +99,7 @@ useSeoMeta({
           to="/schedule"
           :class="`${secondaryButtonClass} !bg-transparent border-white/20 text-white hover:!bg-white/10 hover:text-white`"
         >
-          予定一覧を見る
+          スケジュール一覧を見る
         </NuxtLink>
       </template>
     </PageHero>
@@ -130,13 +130,13 @@ useSeoMeta({
               </div>
               <p class="text-sm leading-6 text-muted">{{ survey.description }}</p>
               <div class="flex flex-wrap gap-2 text-sm text-muted">
-                <span class="rounded-full bg-surface-hover px-3 py-1">設問数 {{ survey.questions.length }}問</span>
+                <span class="rounded-full bg-surface-hover px-3 py-1">設問数: {{ survey.questions.length }}問</span>
                 <span class="rounded-full bg-surface-hover px-3 py-1">
-                  回答者 {{ survey.responseCount ?? 0 }}人
+                  回答者数: {{ survey.responseCount ?? 0 }}人
                 </span>
               </div>
             </div>
-            <div class="flex shrink-0 flex-wrap gap-3">
+            <div class="flex shrink-0 flex-wrap gap-3 sm:flex-row-reverse">
               <NuxtLink :to="`/survey/${survey.id}`" :class="primaryButtonClass">
                 回答する
               </NuxtLink>
@@ -163,7 +163,7 @@ useSeoMeta({
       >
         <template #action>
           <NuxtLink to="/minutes" :class="secondaryButtonClass">
-            すべて見る
+            議事録一覧
           </NuxtLink>
         </template>
       </SectionHeader>
@@ -200,7 +200,7 @@ useSeoMeta({
       >
         <template #action>
           <NuxtLink to="/resources" :class="secondaryButtonClass">
-            資料一覧へ
+            資料一覧
           </NuxtLink>
         </template>
       </SectionHeader>
@@ -230,7 +230,7 @@ useSeoMeta({
                 </span>
               </div>
             </div>
-            <div class="flex shrink-0 flex-wrap gap-3">
+            <div class="flex shrink-0 flex-wrap gap-3 sm:flex-row-reverse">
               <a
                 :href="resource.url"
                 :class="primaryButtonClass"
@@ -242,7 +242,7 @@ useSeoMeta({
                 :to="`/minutes/${resource.relatedMinutesSlug}`"
                 :class="secondaryButtonClass"
               >
-                関連議事録
+                議事録を見る
               </NuxtLink>
             </div>
           </div>

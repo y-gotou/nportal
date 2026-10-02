@@ -65,7 +65,7 @@ useSeoMeta({ title: "資料管理" });
     </div>
 
     <p v-else class="rounded-xl border border-dashed border-border bg-surface px-5 py-8 text-center text-sm text-muted">
-      資料はまだ登録されていません。
+      資料はまだありません。
     </p>
   </div>
 </template>

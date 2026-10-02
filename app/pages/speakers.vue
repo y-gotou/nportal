@@ -5,7 +5,8 @@ import type {
   SpeakerApplication,
   SpeakersListResponse,
 } from "~~/types/portal";
-import { primaryButtonClass, secondaryButtonClass, surfaceCardClass } from "~/utils/ui";
+import { dangerButtonClass, primaryButtonClass, secondaryButtonClass, surfaceCardClass } from "~/utils/ui";
+import { chatDisplayName } from "#shared/utils/chat";
 import {
   formatPostedDateTime,
   isSpeakerFormDirty,
@@ -157,23 +158,24 @@ async function withdrawApplication(id: number) {
 
 useSeoMeta({
   title: "発表募集",
-  description: "AI勉強会の発表者を募集しています。発表を希望する方はエントリーしてください。",
+  description: "AI勉強会の発表者を募集しています。発表を希望する方は応募してください。",
 });
 </script>
 
 <template>
   <PageContainer size="wide">
-    <div class="flex items-start justify-between gap-4">
-      <SectionHeader title="発表者募集" />
-      <button
-        v-if="currentUser"
-        type="button"
-        :class="primaryButtonClass"
-        @click="openCreateForm"
-      >
-        発表を申し込む
-      </button>
-    </div>
+    <SectionHeader title="発表募集">
+      <template #action>
+        <button
+          v-if="currentUser"
+          type="button"
+          :class="primaryButtonClass"
+          @click="openCreateForm"
+        >
+          発表に応募する
+        </button>
+      </template>
+    </SectionHeader>
 
     <div
       v-if="error"
@@ -192,7 +194,7 @@ useSeoMeta({
       >
         <div class="w-full max-w-lg rounded-2xl bg-surface p-6 shadow-xl">
           <h2 class="text-lg font-bold text-foreground">
-            {{ editingId !== null ? "応募内容を編集" : "発表を申し込む" }}
+            {{ editingId !== null ? "応募内容を編集" : "発表に応募する" }}
           </h2>
 
           <form class="mt-5 space-y-4" @submit.prevent="submitForm">
@@ -212,7 +214,7 @@ useSeoMeta({
 
             <div>
               <label class="block text-sm font-medium text-foreground" for="form-duration">
-                発表時間（分）<span class="text-red-500">*</span>
+                発表時間(分) <span class="text-red-500">*</span>
               </label>
               <input
                 id="form-duration"
@@ -254,7 +256,7 @@ useSeoMeta({
                 :class="primaryButtonClass"
                 :disabled="isSubmitting"
               >
-                {{ isSubmitting ? "送信中..." : (editingId !== null ? "更新する" : "申し込む") }}
+                {{ isSubmitting ? "送信中…" : (editingId !== null ? "更新する" : "応募する") }}
               </button>
             </div>
           </form>
@@ -293,12 +295,13 @@ useSeoMeta({
                       {{ speakerStatusLabel(app.status) }}
                     </span>
                   </div>
-                  <div class="flex flex-wrap gap-3 text-sm text-muted">
-                    <span>{{ app.user_email }}</span>
-                    <span class="text-border">|</span>
-                    <span>{{ app.duration }}分</span>
-                    <span class="text-border">|</span>
-                    <span>{{ formatPostedDateTime(app.created_at) }}</span>
+                  <!-- 区切りは各項目の左の罫線。行頭に来た項目の罫線は枠の外へ出して隠し、折り返しても行頭・行末に区切りを残さない -->
+                  <div class="overflow-hidden">
+                    <div class="-ml-[25px] flex flex-wrap gap-y-1 text-sm text-muted">
+                      <span class="ml-3 border-l border-border pl-3">{{ chatDisplayName(app.user_email) }}</span>
+                      <span class="ml-3 border-l border-border pl-3">{{ app.duration }}分</span>
+                      <span class="ml-3 border-l border-border pl-3">{{ formatPostedDateTime(app.created_at) }}</span>
+                    </div>
                   </div>
                   <p v-if="app.note" class="whitespace-pre-wrap break-words text-sm text-muted">{{ app.note }}</p>
                   <div
@@ -312,7 +315,7 @@ useSeoMeta({
                       class="max-w-xs rounded-lg border border-border bg-surface px-2 py-1 text-xs text-foreground focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                       @change="updateLinkedResource(app, ($event.target as HTMLSelectElement).value)"
                     >
-                      <option value="" :selected="app.resource_id === null">紐付けなし</option>
+                      <option value="" :selected="app.resource_id === null">なし</option>
                       <option
                         v-for="resource in selectableResources(app)"
                         :key="resource.id"
@@ -327,7 +330,7 @@ useSeoMeta({
 
                 <div
                   v-if="app.minutes_slug || linkedResource(app) || (currentUser?.email === app.user_email && app.status !== 'done')"
-                  class="flex shrink-0 flex-wrap items-center gap-2"
+                  class="flex shrink-0 flex-wrap items-center gap-2 sm:flex-row-reverse"
                 >
                   <a
                     v-if="linkedResource(app)"
@@ -336,7 +339,7 @@ useSeoMeta({
                     :rel="resourceOpensInNewTab(linkedResource(app)!) ? 'noopener' : undefined"
                     :class="secondaryButtonClass"
                   >
-                    資料を見る
+                    資料を開く
                   </a>
                   <NuxtLink
                     v-if="app.minutes_slug"
@@ -348,14 +351,14 @@ useSeoMeta({
                   <template v-if="currentUser?.email === app.user_email && app.status !== 'done'">
                     <button
                       type="button"
-                      class="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted transition-colors hover:bg-surface-hover"
+                      :class="secondaryButtonClass"
                       @click="openEditForm(app)"
                     >
                       編集
                     </button>
                     <button
                       type="button"
-                      class="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+                      :class="dangerButtonClass"
                       @click="withdrawApplication(app.id)"
                     >
                       取り下げ
@@ -372,7 +375,7 @@ useSeoMeta({
         v-if="applications.length === 0"
         class="rounded-xl border border-dashed border-border bg-surface px-5 py-8 text-center text-sm text-muted"
       >
-        発表申し込みはまだありません。ぜひエントリーしてください！
+        応募はまだありません。
       </p>
     </div>
   </PageContainer>

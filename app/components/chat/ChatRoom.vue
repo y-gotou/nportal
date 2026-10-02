@@ -179,7 +179,7 @@ async function requestAiReply(messageId: number) {
 }
 
 async function removeMessage(messageId: number) {
-  if (!window.confirm("この投稿を削除しますか?")) return;
+  if (!window.confirm("この投稿を削除しますか？")) return;
 
   try {
     await $fetch(`/api/chat/messages/${messageId}`, { method: "DELETE" });
@@ -234,7 +234,7 @@ function setReplyTo(message: ChatMessage) {
       </div>
 
       <!-- メッセージ一覧 -->
-      <p v-if="loading" class="flex-1 py-10 text-center text-sm text-muted">読み込み中...</p>
+      <p v-if="loading" class="flex-1 py-10 text-center text-sm text-muted">読み込み中…</p>
       <ChatMessageList
         v-else
         ref="listRef"

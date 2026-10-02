@@ -95,7 +95,7 @@ useSeoMeta({ title: "アンケート管理" });
                   :disabled="duplicatingId !== null"
                   @click="duplicateSurvey(survey)"
                 >
-                  {{ duplicatingId === survey.id ? "複製中..." : "複製" }}
+                  {{ duplicatingId === survey.id ? "複製中…" : "複製" }}
                 </button>
               </div>
             </td>
@@ -105,7 +105,7 @@ useSeoMeta({ title: "アンケート管理" });
     </div>
 
     <p v-else class="rounded-xl border border-dashed border-border bg-surface px-5 py-8 text-center text-sm text-muted">
-      アンケートはまだ登録されていません。
+      アンケートはまだありません。
     </p>
   </div>
 </template>
