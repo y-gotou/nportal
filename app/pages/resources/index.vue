@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { formatDisplayDate } from "#shared/utils/content";
-import { dangerButtonClass, interactiveCardClass, primaryButtonClass, secondaryButtonClass, topicTagClass } from "~/utils/ui";
-import { resourceOpensInNewTab } from "~/utils/resources";
+import { dangerButtonClass, primaryButtonClass, secondaryButtonClass, topicTagClass } from "~/utils/ui";
+import { matchesResourceFilters, resourceOpensInNewTab, resourceTypeIcon } from "~/utils/resources";
+import { useCurrentUser } from "~/composables/useCurrentUser";
 import { chatDisplayName } from "#shared/utils/chat";
 import type { MinutesListResponse, ResourceItem, ResourcesListResponse } from "~~/types/portal";
 
@@ -15,6 +16,7 @@ const { data: minutesData } = await useFetch<MinutesListResponse>("/api/minutes"
 
 const route = useRoute();
 const router = useRouter();
+const currentUser = useCurrentUser();
 
 const search = ref(typeof route.query.q === "string" ? route.query.q : "");
 const selectedTag = ref<string | null>(
@@ -23,6 +25,7 @@ const selectedTag = ref<string | null>(
 const selectedType = ref<string | null>(
   typeof route.query.type === "string" ? route.query.type : null,
 );
+const mineOnly = ref(route.query.mine === "1");
 
 const resources = computed(() => data.value?.resources ?? []);
 const minutesOptions = computed(() => minutesData.value?.minutes ?? []);
@@ -32,31 +35,17 @@ const showForm = ref(false);
 const editingResource = ref<ResourceItem | null>(null);
 const isFormDirty = ref(false);
 
-function matchesSelectedFilters(resource: ResourceItem) {
-  if (selectedTag.value && !resource.tags.includes(selectedTag.value)) {
-    return false;
-  }
-
-  if (selectedType.value && resource.type !== selectedType.value) {
-    return false;
-  }
-
-  const keyword = search.value.trim().toLowerCase();
-
-  if (!keyword) {
-    return true;
-  }
-
-  return (
-    resource.title.toLowerCase().includes(keyword) ||
-    (resource.presenter?.toLowerCase().includes(keyword) ?? false) ||
-    (resource.fileName?.toLowerCase().includes(keyword) ?? false) ||
-    (resource.submittedBy?.toLowerCase().includes(keyword) ?? false) ||
-    resource.tags.some((tag) => tag.toLowerCase().includes(keyword))
-  );
-}
-
-const filteredResources = computed(() => resources.value.filter(matchesSelectedFilters));
+const filteredResources = computed(() =>
+  resources.value.filter((resource) =>
+    matchesResourceFilters(resource, {
+      keyword: search.value,
+      type: selectedType.value,
+      tag: selectedTag.value,
+      mineOnly: mineOnly.value,
+      userEmail: currentUser.value?.email ?? null,
+    }),
+  ),
+);
 
 // ファイル資料の直接リンク(/api/ 配信)は新規タブで開く。Markdown はビューアーページ(同一タブ)のまま
 function syncQuery() {
@@ -65,11 +54,12 @@ function syncQuery() {
       q: search.value.trim() || undefined,
       type: selectedType.value || undefined,
       tag: selectedTag.value || undefined,
+      mine: mineOnly.value ? "1" : undefined,
     },
   });
 }
 
-watch([search, selectedTag, selectedType], syncQuery);
+watch([search, selectedTag, selectedType, mineOnly], syncQuery);
 
 watch(
   () => route.query,
@@ -81,6 +71,7 @@ watch(
     if (nextSearch !== search.value) search.value = nextSearch;
     if (nextType !== selectedType.value) selectedType.value = nextType;
     if (nextTag !== selectedTag.value) selectedTag.value = nextTag;
+    if ((query.mine === "1") !== mineOnly.value) mineOnly.value = query.mine === "1";
   },
   { deep: true },
 );
@@ -122,11 +113,21 @@ async function deleteResource(resource: ResourceItem) {
   await refresh();
 }
 
-function formatFileSize(value?: number | null) {
-  if (!value) return "";
-  if (value < 1024 * 1024) return `${Math.ceil(value / 1024)}KB`;
-  return `${(value / (1024 * 1024)).toFixed(1)}MB`;
+function clearFilters() {
+  search.value = "";
+  selectedType.value = null;
+  selectedTag.value = null;
+  mineOnly.value = false;
 }
+
+const filterChipClass =
+  "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2";
+
+function filterChipStateClass(selected: boolean) {
+  return selected ? "bg-blue-500 text-white" : "bg-surface-hover text-muted hover:bg-border";
+}
+
+const rowButtonClass = "!rounded-md !px-2.5 !py-[5px] !text-[13px] !leading-[18px] whitespace-nowrap";
 
 useSeoMeta({
   title: "資料共有",
@@ -195,123 +196,182 @@ useSeoMeta({
             type="button"
             :class="secondaryButtonClass"
             class="!px-2.5 !py-0 !text-xs shrink-0 self-stretch"
-            @click="search = ''; selectedType = null; selectedTag = null;"
+            @click="clearFilters"
           >
             条件をクリア
           </button>
         </div>
       </div>
 
-      <div class="flex flex-wrap items-center gap-2">
+      <!-- 見出しとボタン群を別の列に置き、ボタンが折り返した行も左端を揃える -->
+      <div class="grid grid-cols-[max-content_minmax(0,1fr)] items-baseline gap-x-3 gap-y-4">
         <span class="text-sm font-medium text-foreground">種類</span>
-        <button
-          class="rounded-full px-3 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-          :class="selectedType === null ? 'bg-blue-500 text-white' : 'bg-surface-hover text-muted hover:bg-border'"
-          type="button"
-          @click="selectedType = null"
-        >
-          すべて
-        </button>
-        <button
-          v-for="type in allTypes"
-          :key="type"
-          class="rounded-full px-3 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-          :class="selectedType === type ? 'bg-blue-500 text-white' : 'bg-surface-hover text-muted hover:bg-border'"
-          type="button"
-          @click="selectedType = selectedType === type ? null : type"
-        >
-          {{ type }}
-        </button>
-      </div>
+        <div class="flex flex-wrap gap-2">
+          <button
+            :class="[filterChipClass, filterChipStateClass(selectedType === null)]"
+            :aria-pressed="selectedType === null"
+            type="button"
+            @click="selectedType = null"
+          >
+            すべて
+          </button>
+          <button
+            v-for="type in allTypes"
+            :key="type"
+            :class="[filterChipClass, filterChipStateClass(selectedType === type)]"
+            :aria-pressed="selectedType === type"
+            type="button"
+            @click="selectedType = selectedType === type ? null : type"
+          >
+            <component
+              :is="resourceTypeIcon(type).icon"
+              class="h-4 w-4 shrink-0"
+              :class="selectedType === type ? '' : resourceTypeIcon(type).colorClass"
+              aria-hidden="true"
+            />
+            {{ type }}
+          </button>
+        </div>
 
-      <div v-if="allTags.length" class="flex flex-wrap items-center gap-2">
-        <span class="text-sm font-medium text-foreground">タグ</span>
-        <button
-          v-for="tag in allTags"
-          :key="tag"
-          class="rounded-full px-3 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-          :class="selectedTag === tag ? 'bg-blue-500 text-white' : 'bg-surface-hover text-muted hover:bg-border'"
-          type="button"
-          @click="selectedTag = selectedTag === tag ? null : tag"
-        >
-          {{ tag }}
-        </button>
-      </div>
+        <template v-if="allTags.length">
+          <span class="text-sm font-medium text-foreground">タグ</span>
+          <div class="flex flex-wrap gap-2">
+            <button
+              v-for="tag in allTags"
+              :key="tag"
+              :class="[filterChipClass, filterChipStateClass(selectedTag === tag)]"
+              :aria-pressed="selectedTag === tag"
+              type="button"
+              @click="selectedTag = selectedTag === tag ? null : tag"
+            >
+              {{ tag }}
+            </button>
+          </div>
+        </template>
 
+        <span class="text-sm font-medium text-foreground">投稿者</span>
+        <div class="flex flex-wrap gap-2">
+          <button
+            :class="[filterChipClass, filterChipStateClass(!mineOnly)]"
+            :aria-pressed="!mineOnly"
+            type="button"
+            @click="mineOnly = false"
+          >
+            すべて
+          </button>
+          <button
+            :class="[filterChipClass, filterChipStateClass(mineOnly)]"
+            :aria-pressed="mineOnly"
+            type="button"
+            @click="mineOnly = true"
+          >
+            自分の投稿
+          </button>
+        </div>
+      </div>
     </div>
 
-    <section v-if="filteredResources.length" class="mt-8 space-y-4">
-
-      <div class="space-y-3">
-        <article
-          v-for="resource in filteredResources"
-          :key="resource.id"
-          :class="`${interactiveCardClass} p-5`"
-        >
-          <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div class="min-w-0 space-y-2">
-              <p class="text-sm text-muted">
-                {{ formatDisplayDate(resource.date) }}
-                <span class="ml-1 rounded-full bg-surface-hover px-2.5 py-1 text-xs text-muted">{{ resource.type }}</span>
-              </p>
-              <h2 class="text-pretty text-lg font-semibold tracking-tight text-foreground">
-                {{ resource.title }}
-              </h2>
-              <div class="flex flex-wrap gap-2">
+    <!-- lg 未満では行を flex にし、order で 日付・種類・投稿者/資料/タグ/ボタン の 4 段に積む -->
+    <section
+      v-if="filteredResources.length"
+      class="mt-8 overflow-hidden rounded-xl border border-border bg-surface shadow-sm"
+    >
+      <table class="block w-full text-sm lg:table">
+        <thead class="hidden border-b border-border bg-background text-left text-xs text-muted lg:table-header-group">
+          <tr>
+            <th class="px-4 py-2.5 font-medium">資料</th>
+            <th class="px-2 py-2.5 font-medium">種類</th>
+            <th class="px-2 py-2.5 font-medium">タグ</th>
+            <th class="px-2 py-2.5 font-medium">投稿者</th>
+            <th class="px-2 py-2.5 font-medium">日付</th>
+            <th class="px-4 py-2.5 font-medium"><span class="sr-only">操作</span></th>
+          </tr>
+        </thead>
+        <tbody class="block divide-y divide-border lg:table-row-group">
+          <tr
+            v-for="resource in filteredResources"
+            :key="resource.id"
+            class="flex flex-wrap items-center gap-x-2 gap-y-1.5 px-4 py-3 lg:table-row"
+          >
+            <td class="order-4 basis-full break-words font-medium text-foreground lg:px-4 lg:py-2.5">
+              {{ resource.title }}
+            </td>
+            <td class="order-2 lg:px-2 lg:py-2.5">
+              <span class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-surface-hover px-2 py-0.5 text-xs text-muted">
+                <component
+                  :is="resourceTypeIcon(resource.type).icon"
+                  class="h-4 w-4 shrink-0"
+                  :class="resourceTypeIcon(resource.type).colorClass"
+                  aria-hidden="true"
+                />
+                {{ resource.type }}
+              </span>
+            </td>
+            <td
+              class="order-5 basis-full lg:px-2 lg:py-2.5"
+              :class="{ 'hidden lg:table-cell': !resource.tags.length }"
+            >
+              <div class="flex flex-wrap gap-1.5">
                 <span
                   v-for="tag in resource.tags"
                   :key="tag"
                   :class="topicTagClass"
+                  class="whitespace-nowrap"
                 >
                   {{ tag }}
                 </span>
               </div>
-              <p v-if="resource.fileName" class="text-sm text-muted">
-                {{ resource.fileName }} <span v-if="resource.fileSize">({{ formatFileSize(resource.fileSize) }})</span>
-              </p>
-              <p v-if="resource.submittedBy" class="text-xs text-muted">
-                投稿者: {{ chatDisplayName(resource.submittedBy) }}
-              </p>
-              <p v-if="resource.linkedApplication" class="text-xs text-muted">
-                発表: {{ resource.linkedApplication.title }}
-              </p>
-            </div>
-            <div class="flex shrink-0 flex-wrap gap-3 sm:flex-row-reverse">
-              <a
-                :href="resource.url"
-                :target="resourceOpensInNewTab(resource) ? '_blank' : undefined"
-                :rel="resourceOpensInNewTab(resource) ? 'noopener' : undefined"
-                class="inline-flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-              >
-                資料を開く
-              </a>
-              <NuxtLink
-                v-if="resource.relatedMinutesSlug"
-                :to="`/minutes/${resource.relatedMinutesSlug}`"
-                :class="secondaryButtonClass"
-              >
-                議事録を見る
-              </NuxtLink>
-              <button
-                v-if="resource.canEdit"
-                type="button"
-                :class="secondaryButtonClass"
-                @click="openEditForm(resource)"
-              >
-                編集
-              </button>
-              <button
-                v-if="resource.canEdit"
-                type="button"
-                :class="dangerButtonClass"
-                @click="deleteResource(resource)"
-              >
-                削除
-              </button>
-            </div>
-          </div>
-        </article>
-      </div>
+            </td>
+            <td class="order-3 whitespace-nowrap text-muted lg:px-2 lg:py-2.5">
+              <template v-if="resource.submittedBy">
+                <span class="lg:hidden">投稿者: </span>{{ chatDisplayName(resource.submittedBy) }}
+              </template>
+            </td>
+            <td class="order-1 whitespace-nowrap text-muted lg:px-2 lg:py-2.5">
+              {{ formatDisplayDate(resource.date) }}
+            </td>
+            <td class="order-6 basis-full lg:px-4 lg:py-2">
+              <!-- 表示しないボタンも同じ寸法の空枠を置き、行ごとにボタンの位置が変わらないようにする -->
+              <div class="flex gap-2 lg:flex-row-reverse">
+                <a
+                  :href="resource.url"
+                  :target="resourceOpensInNewTab(resource) ? '_blank' : undefined"
+                  :rel="resourceOpensInNewTab(resource) ? 'noopener' : undefined"
+                  :class="[primaryButtonClass, rowButtonClass]"
+                >
+                  開く
+                </a>
+                <NuxtLink
+                  v-if="resource.relatedMinutesSlug"
+                  :to="`/minutes/${resource.relatedMinutesSlug}`"
+                  :class="[secondaryButtonClass, rowButtonClass]"
+                >
+                  議事録
+                </NuxtLink>
+                <span v-else aria-hidden="true" :class="[secondaryButtonClass, rowButtonClass]" class="invisible">議事録</span>
+                <button
+                  v-if="resource.canEdit"
+                  type="button"
+                  :class="[secondaryButtonClass, rowButtonClass]"
+                  @click="openEditForm(resource)"
+                >
+                  編集
+                </button>
+                <span v-else aria-hidden="true" :class="[secondaryButtonClass, rowButtonClass]" class="invisible">編集</span>
+                <button
+                  v-if="resource.canEdit"
+                  type="button"
+                  :class="[dangerButtonClass, rowButtonClass]"
+                  @click="deleteResource(resource)"
+                >
+                  削除
+                </button>
+                <span v-else aria-hidden="true" :class="[dangerButtonClass, rowButtonClass]" class="invisible">削除</span>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </section>
 
     <p

@@ -8,7 +8,7 @@ const readSource = (path) => readFile(new URL(`../app/${path}`, import.meta.url)
 // 横並びになる幅から並びを反転し、先頭のボタンを常に右端に置く
 test("card action groups reverse their order once they sit beside the content", async () => {
   const expected = [
-    ["pages/resources/index.vue", /sm:flex-row-reverse/g, 1],
+    ["pages/resources/index.vue", /lg:flex-row-reverse/g, 1],
     ["pages/index.vue", /sm:flex-row-reverse/g, 2],
     ["pages/survey/index.vue", /sm:flex-row-reverse/g, 1],
     ["pages/speakers.vue", /sm:flex-row-reverse/g, 1],
@@ -32,8 +32,17 @@ test("speakers page follows the shared header and button styles", async () => {
 test("resources page hides the tag row without tags and shares the danger button style", async () => {
   const page = await readSource("pages/resources/index.vue");
 
-  assert.match(page, /<div v-if="allTags\.length" class="flex flex-wrap items-center gap-2">/);
-  assert.match(page, /:class="dangerButtonClass"\s+@click="deleteResource\(resource\)"/);
+  assert.match(page, /<template v-if="allTags\.length">/);
+  assert.match(page, /:class="\[dangerButtonClass, rowButtonClass\]"\s+@click="deleteResource\(resource\)"/);
+});
+
+// 表示しないボタンの位置を詰めると、行ごとに「編集」「削除」の位置が変わり押し間違える
+test("resources table reserves the slot of every hidden button and omits the file details", async () => {
+  const page = await readSource("pages/resources/index.vue");
+  const slots = page.match(/<span v-else aria-hidden="true" :class="\[\w+, rowButtonClass\]" class="invisible">/g);
+
+  assert.equal(slots?.length ?? 0, 3);
+  assert.doesNotMatch(page, /resource\.fileName|resource\.fileSize|resource\.linkedApplication/);
 });
 
 test("minutes list matches the home cards and the resources search panel", async () => {

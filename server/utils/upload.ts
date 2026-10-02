@@ -2,7 +2,7 @@ import { createError } from "h3";
 
 export const MAX_RESOURCE_FILE_SIZE = 50 * 1024 * 1024;
 
-const RESOURCE_TYPE_BY_EXTENSION: Record<string, string> = {
+export const RESOURCE_TYPE_BY_EXTENSION: Record<string, string> = {
   pdf: "PDF",
   ppt: "PowerPoint",
   pptx: "PowerPoint",

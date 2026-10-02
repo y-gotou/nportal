@@ -38,6 +38,12 @@ export const changelogEntries: ChangelogEntry[] = [
   {
     date: "2026-10-02",
     category: "improvement",
+    title: "資料一覧を表形式に変更",
+    description: "種類のアイコンと、自分の投稿だけの絞り込みを追加しました。",
+  },
+  {
+    date: "2026-10-02",
+    category: "improvement",
     title: "画面の文言とボタンの並びを統一",
     description: "ボタン名や用語を揃え、カードのボタン位置を固定しました。",
   },
