@@ -2,7 +2,7 @@
 id: T-022
 title: 表示の崩れ・欠落の修正
 scale: medium
-status: doing
+status: blocked
 priority: mid
 updated: 2026-10-02
 approvals:
