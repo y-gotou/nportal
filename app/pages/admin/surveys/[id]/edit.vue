@@ -74,7 +74,7 @@ useSeoMeta({ title: `${survey.title} を編集` });
     </AdminPageHeader>
 
     <form class="space-y-6" @submit.prevent="submit">
-      <p v-if="serverError" class="rounded-lg bg-red-50 p-3 text-sm text-red-600" role="alert">{{ serverError }}</p>
+      <p v-if="serverError" class="rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400" role="alert">{{ serverError }}</p>
 
       <!-- 基本情報 -->
       <div class="space-y-5 rounded-xl border border-border bg-surface p-6 shadow-sm">
@@ -121,7 +121,7 @@ useSeoMeta({ title: `${survey.title} を編集` });
         <template #notice>
           <p
             v-if="isQuestionEditingLocked"
-            class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800"
+            class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-400"
           >
             回答済みのアンケートは設問を編集できません。基本情報と状態のみ更新できます。設問変更が必要な場合は、新しいアンケートを作成してください。
           </p>

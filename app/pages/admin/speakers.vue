@@ -91,29 +91,29 @@ useSeoMeta({ title: "発表募集管理" });
   <div class="space-y-6">
     <h1 class="text-xl font-bold tracking-tight text-foreground">発表募集管理</h1>
 
-    <div v-if="applications.length" class="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
+    <div v-if="applications.length" class="overflow-x-auto rounded-xl border border-border bg-surface shadow-sm">
       <table class="min-w-full divide-y divide-border">
         <thead class="bg-background">
           <tr>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">発表テーマ</th>
-            <th class="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted sm:table-cell">応募者</th>
-            <th class="hidden px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted md:table-cell">時間</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">ステータス</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">議事録</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">資料</th>
+            <th class="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">発表テーマ</th>
+            <th class="hidden whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted sm:table-cell">応募者</th>
+            <th class="hidden whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted md:table-cell">時間</th>
+            <th class="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">ステータス</th>
+            <th class="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">議事録</th>
+            <th class="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">資料</th>
             <th class="px-4 py-3" />
           </tr>
         </thead>
         <tbody class="divide-y divide-border">
           <tr v-for="app in applications" :key="app.id" class="hover:bg-surface-hover">
-            <td class="px-4 py-3">
+            <td class="min-w-48 px-4 py-3">
               <p class="font-medium text-foreground">{{ app.title }}</p>
               <p v-if="app.note" class="mt-0.5 text-xs text-muted line-clamp-2">{{ app.note }}</p>
             </td>
             <td class="hidden px-4 py-3 text-sm text-muted sm:table-cell">
               {{ app.user_email }}
             </td>
-            <td class="hidden px-4 py-3 text-sm text-muted md:table-cell">
+            <td class="hidden whitespace-nowrap px-4 py-3 text-sm text-muted md:table-cell">
               {{ app.duration }}分
             </td>
             <td class="px-4 py-3">

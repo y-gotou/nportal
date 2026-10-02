@@ -17,7 +17,7 @@ const questions = props.editor.questions;
   <div class="space-y-4">
     <div class="flex items-center justify-between">
       <h2 class="text-sm font-semibold text-foreground">設問</h2>
-      <p v-if="errors.questions" class="text-xs text-red-600">{{ errors.questions }}</p>
+      <p v-if="errors.questions" class="text-xs text-red-600 dark:text-red-400">{{ errors.questions }}</p>
     </div>
 
     <slot name="notice" />
@@ -50,7 +50,7 @@ const questions = props.editor.questions;
           </button>
           <button
             type="button"
-            class="rounded p-1 text-red-400 hover:bg-red-50 disabled:opacity-30"
+            class="rounded p-1 text-red-400 hover:bg-red-50 disabled:opacity-30 dark:hover:bg-red-900/20"
             :disabled="locked"
             aria-label="設問を削除"
             @click="editor.removeQuestion(i)"
@@ -129,7 +129,7 @@ const questions = props.editor.questions;
             </button>
             <button
               type="button"
-              class="rounded p-1 text-red-400 hover:bg-red-50 disabled:opacity-30"
+              class="rounded p-1 text-red-400 hover:bg-red-50 disabled:opacity-30 dark:hover:bg-red-900/20"
               :disabled="locked"
               aria-label="選択肢を削除"
               @click="editor.removeOption(q, optionIndex)"
@@ -168,7 +168,7 @@ const questions = props.editor.questions;
 
     <button
       type="button"
-      class="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border py-3 text-sm font-medium text-muted hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600 disabled:opacity-50"
+      class="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border py-3 text-sm font-medium text-muted hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600 disabled:opacity-50 dark:hover:bg-blue-900/20 dark:hover:text-blue-400"
       :disabled="locked"
       @click="editor.addQuestion()"
     >
