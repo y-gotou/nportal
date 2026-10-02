@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { formatDisplayDate } from "#shared/utils/content";
 import { secondaryButtonClass } from "~/utils/ui";
-import type { MinutesDetailResponse, ResourcesListResponse } from "~~/types/portal";
+import type { MinutesDetailResponse, ResourcesListResponse, TodosResponse } from "~~/types/portal";
 
 const route = useRoute();
 const slug = String(route.params.slug);
 
-const [{ data, error }, { data: resourcesData }] = await Promise.all([
+const [{ data, error }, { data: resourcesData }, { data: todosData }] = await Promise.all([
   useFetch<MinutesDetailResponse>("/api/minute", { query: { slug } }),
   useFetch<ResourcesListResponse>("/api/resources", { query: { minutesSlug: slug } }),
+  useFetch<TodosResponse>("/api/todos", { query: { minutesSlug: slug } }),
 ]);
 
 if (error.value || !data.value?.minutes) {
@@ -17,6 +18,7 @@ if (error.value || !data.value?.minutes) {
 
 const minutes = computed(() => data.value!.minutes);
 const relatedResources = computed(() => resourcesData.value?.resources ?? []);
+const todos = computed(() => todosData.value?.todos ?? []);
 
 useSeoMeta({
   title: () => minutes.value.title,
@@ -83,6 +85,16 @@ useSeoMeta({
       class="prose max-w-none rounded-xl border border-border bg-surface p-6 shadow-sm md:p-8"
       v-html="minutes.contentHtml"
     />
+
+    <section v-if="todos.length" class="mt-8">
+      <SectionHeader title="課題">
+        <template #action>
+          <NuxtLink to="/todos" :class="secondaryButtonClass">課題一覧へ</NuxtLink>
+        </template>
+      </SectionHeader>
+
+      <TodoTable :todos="todos" />
+    </section>
 
     <section v-if="relatedResources.length" class="mt-8 space-y-4">
       <SectionHeader

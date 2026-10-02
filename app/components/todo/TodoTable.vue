@@ -31,12 +31,12 @@ const columnCount = computed(() => 4 + Number(props.showMinutes) + Number(props.
 const iconButtonClass =
   "inline-flex h-8 w-8 items-center justify-center rounded-md text-muted hover:bg-surface-hover hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-50";
 
-async function request(run: () => Promise<unknown>) {
+async function request(id: number, options: { method: "PUT" | "DELETE"; body?: Record<string, unknown> }) {
   isSaving.value = true;
   errorMessage.value = "";
 
   try {
-    await run();
+    await $fetch(`/api/admin/todos/${id}`, options);
     emit("changed");
     return true;
   }
@@ -50,9 +50,7 @@ async function request(run: () => Promise<unknown>) {
 }
 
 function toggle(todo: Todo) {
-  return request(() =>
-    $fetch(`/api/admin/todos/${todo.id}`, { method: "PUT", body: { done: !todo.doneAt } }),
-  );
+  return request(todo.id, { method: "PUT", body: { done: !todo.doneAt } });
 }
 
 function startEdit(todo: Todo) {
@@ -70,7 +68,7 @@ async function saveEdit() {
   if (!editing.value?.title.trim()) return;
 
   const { id, ...body } = editing.value;
-  if (await request(() => $fetch(`/api/admin/todos/${id}`, { method: "PUT", body }))) {
+  if (await request(id, { method: "PUT", body })) {
     editing.value = null;
   }
 }
@@ -86,7 +84,7 @@ function onEditKeydown(event: KeyboardEvent) {
 function remove(todo: Todo) {
   if (!confirm(`「${todo.title}」を削除しますか？この操作は取り消せません。`)) return;
 
-  return request(() => $fetch(`/api/admin/todos/${todo.id}`, { method: "DELETE" }));
+  return request(todo.id, { method: "DELETE" });
 }
 </script>
 
@@ -96,7 +94,8 @@ function remove(todo: Todo) {
       {{ errorMessage }}
     </p>
 
-    <div class="overflow-x-auto rounded-xl border border-border bg-surface shadow-sm">
+    <!-- relative: 読み上げ専用の見出し(絶対配置)を枠内に収め、狭い画面でページ全体が横スクロールするのを防ぐ -->
+    <div class="relative overflow-x-auto rounded-xl border border-border bg-surface shadow-sm">
       <table class="w-full text-sm">
         <thead class="border-b border-border bg-background text-left text-xs text-muted">
           <tr>
@@ -176,7 +175,7 @@ function remove(todo: Todo) {
               >
                 {{ todo.dueDate ? formatDisplayDate(todo.dueDate) : "" }}
               </td>
-              <td v-if="showMinutes" class="px-4 py-3">
+              <td v-if="showMinutes" class="whitespace-nowrap px-4 py-3">
                 <NuxtLink
                   v-if="todo.minutesSlug"
                   :to="`/minutes/${todo.minutesSlug}`"
@@ -204,7 +203,7 @@ function remove(todo: Todo) {
       <button
         v-if="collapseDone && doneCount"
         type="button"
-        class="flex w-full items-center gap-1.5 border-t border-border px-4 py-2.5 text-left text-sm text-muted hover:bg-surface-hover hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500"
+        class="sticky left-0 flex w-full items-center gap-1.5 border-t border-border px-4 py-2.5 text-left text-sm text-muted hover:bg-surface-hover hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500"
         :aria-expanded="showDone"
         @click="showDone = !showDone"
       >
