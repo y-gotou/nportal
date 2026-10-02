@@ -8,16 +8,18 @@
 - **保存**: `server/utils/schedule.ts` の `parseSchedulePayload` で議題を整形する。文字列なら前後の空白を除去し、空または文字列以外は `null` とする。`createScheduleItem` / `updateScheduleItem` の SQL に列を追加する。API ルート(`server/api/admin/schedule/`)は `parseSchedulePayload` 経由のため変更しない。
 - **取得**: 一覧は `SELECT schedule.*` のため SQL は変更せず、`toScheduleItem` で `agenda` を返す。値が無い行は `null` とする。
 - **入力欄**: `app/components/admin/AdminScheduleForm.vue` に `<textarea>` を追加する(トピックの下)。文字数上限は設けない(既存のスケジュール項目に上限が無く、入力者は管理者のみのため)。
-- **表示**: HTML 標準の Popover API(`popover` 属性と `popovertarget`)を使う。開閉・枠外クリック・Esc での閉じる動作に JavaScript を使わない。表示位置は CSS anchor positioning でボタンの下に合わせ、画面端では反対側へ切り替える。anchor positioning 非対応のブラウザでは、Popover API 既定の画面中央表示になる。本文は `{{ }}` で出力し(Vue が HTML をエスケープする)、`whitespace-pre-wrap` で改行を保持する。当初は `<details>` による展開式としたが、ユーザーの見た目確認で「縦に広がる」点が指摘され、変更した。
-- **部品化**: 表示箇所が3か所(`/schedule` の今後の予定・開催済み、トップページ)あるため、`app/components/ScheduleAgenda.vue` に切り出す。議題が無い場合は何も描画しない。見た目の調整を1か所で済ませる目的であり、ボタンの見た目は並びのボタンに揃えるため親から class で指定する。
-- **配置**: 既存のボタン列の中、チャットのボタンの左に置く(ユーザー指定)。本文は重ねて表示するため、ボタン列は崩れない。
+- **議題ページ**: `app/pages/schedule/[id].vue` を新設し、URL は `/schedule/{id}` とする(チャットの `/chat/{scheduleId}` と同じく回の ID を使う)。構成は議事録詳細ページに倣い、「一覧へ戻る」、タイトル、開催日時・開催場所・トピック、本文のカードとする。本文は `{{ }}` で出力し(Vue が HTML をエスケープする)、`whitespace-pre-wrap` で改行を保持する。
+- **ルーティング**: Nuxt では `schedule.vue` と `schedule/` ディレクトリが併存すると前者が親ルートになるため、`app/pages/schedule.vue` を `app/pages/schedule/index.vue` へ移動する(内容は変更しない。アンケートの `survey/index.vue` と同じ構成)。
+- **データ取得**: 既存の一覧 API(`/api/schedule`)を取得して ID で絞り込む。管理画面の編集ページと同じ方式で、1件取得用の API は追加しない(回数が少なく、一覧の取得で足りるため)。ID が不正または該当なしの場合は 404 とし、議題が未設定の場合は未登録の旨を表示する。
+- **導線**: `/schedule` の各カードとトップページのボタン列に、チャットのボタンの左へ「議題」の `NuxtLink` を置く(議題がある回のみ)。見た目は並びのボタンと同じ class を使う。リンクのみのため部品化はしない。
+- **経緯**: 当初は `<details>` による展開式、次に Popover API による重ね表示(`app/components/ScheduleAgenda.vue`)を実装したが、会議中に別ウィンドウで開いて画面共有する用途のため、単独ページへ変更した。`ScheduleAgenda.vue` は削除する。
 
 ## 影響範囲
 
 - データ: `schedule`(列追加。本番適用はユーザー実施)
 - サーバ: `server/utils/schedule.ts`
 - 型: `types/portal.ts`(`ScheduleItem`)
-- 画面: `app/components/ScheduleAgenda.vue`(新規)、`app/pages/schedule.vue`、`app/pages/index.vue`、`app/components/admin/AdminScheduleForm.vue`
+- 画面: `app/pages/schedule/[id].vue`(新規)、`app/pages/schedule/index.vue`(`app/pages/schedule.vue` から移動)、`app/pages/index.vue`、`app/components/admin/AdminScheduleForm.vue`、`app/components/ScheduleAgenda.vue`(削除)
 - 共通: `app/utils/changelog.ts`(更新履歴)
 - テスト: `tests/minutes-schedule-utils.test.ts`
 - 恒久仕様書: `docs/requirements-schedule.md`(新規)
@@ -26,15 +28,15 @@
 
 - [x] 1. スキーマ更新とローカル D1 への列追加、型・保存・取得の実装(単体テスト追加)
 - [x] 2. 管理フォームへの議題欄の追加
-- [ ] 3. 表示部品の作成と `/schedule`・トップページへの組み込み。スクリーンショットとローカル画面でユーザーに見た目を確認してもらい、指摘を反映する
-- [ ] 4. 恒久仕様書の新規作成、changelog 追記の起案、本番用 SQL の提示
+- [ ] 3. 議題ページの新設と `/schedule`・トップページへの「議題」ボタンの組み込み(重ね表示の部品は削除)。スクリーンショットとローカル画面でユーザーに見た目を確認してもらい、指摘を反映する
+- [ ] 4. 恒久仕様書・changelog の文言を単独ページの仕様に合わせて更新、本番用 SQL の提示
 
 ## 検証方法
 
 ### エージェント実施
 - [x] `npm test`(議題の前後空白の除去、空・文字列以外が未設定になること、一覧が議題を返すこと、議題の値が無い行が `null` になること)
-- [x] `npm run check`(型チェック・ビルド)
-- [x] `npm run dev` + モックログインでのブラウザ確認(管理画面で改行を含む議題を保存し再編集で同内容が出ること、`/schedule` の今後の予定・開催済みとトップページでの表示と閉じる動作、未入力の回にボタンが出ないこと、空で保存すると消えること、HTML タグが文字列で出ること、既存項目の表示に変化がないこと、ライト・ダーク両テーマ)
+- [ ] `npm run check`(型チェック・ビルド)
+- [ ] `npm run dev` + モックログインでのブラウザ確認(管理画面で改行を含む議題を保存し再編集で同内容が出ること、`/schedule` の今後の予定・開催済みとトップページの「議題」ボタンから議題ページへ移動できること、議題ページの URL を直接開けること、未入力の回にボタンが出ないこと、未入力の回の議題ページで未登録の旨が出ること、存在しない回で 404 になること、空で保存すると消えること、HTML タグが文字列で出ること、既存項目の表示に変化がないこと、`/schedule` の一覧が移動後も同じ表示であること、ウィンドウ幅を半分にした表示、ライト・ダーク両テーマ)
 
 ### 実環境・ユーザー実施
 - [ ] 見た目の確認(作業項目 3 の途中)
