@@ -84,6 +84,12 @@ useSeoMeta({ title: "アンケート管理" });
             <td class="px-4 py-3 text-right">
               <div class="flex items-center justify-end gap-3">
                 <NuxtLink
+                  :to="`/admin/surveys/${survey.id}/responses`"
+                  class="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
+                >
+                  回答
+                </NuxtLink>
+                <NuxtLink
                   :to="`/admin/surveys/${survey.id}/edit`"
                   class="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
                 >

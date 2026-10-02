@@ -41,27 +41,49 @@ const survey: Survey = {
   ],
 };
 
+const noComment = { comment: null, commentUpdatedAt: null };
+
 const responses: SurveyResponse[] = [
-  { questionId: 100, answer: "高い", submittedAt: "2026-04-01T10:00:00Z" },
+  { id: 1, questionId: 100, answer: "高い", submittedAt: "2026-04-01T10:00:00Z", ...noComment },
   {
+    id: 2,
     questionId: 100,
     answer: "{\"selected\":\"__other__\",\"otherText\":\"非常に高い\"}",
     submittedAt: "2026-04-01T10:01:00Z",
+    comment: "ありがとうございます",
+    commentUpdatedAt: "2026-04-02 01:00:00",
   },
-  { questionId: 100, answer: " ", submittedAt: "2026-04-01T10:01:30Z" },
-  { questionId: 101, answer: "[\"RAG\",\"運用\"]", submittedAt: "2026-04-01T10:02:00Z" },
+  { id: 3, questionId: 100, answer: " ", submittedAt: "2026-04-01T10:01:30Z", ...noComment },
   {
+    id: 4,
+    questionId: 101,
+    answer: "[\"RAG\",\"運用\"]",
+    submittedAt: "2026-04-01T10:02:00Z",
+    ...noComment,
+  },
+  {
+    id: 5,
     questionId: 101,
     answer: "{\"selected\":[\"評価\",\"__other__\"],\"otherText\":\"監査\\n対応\"}",
     submittedAt: "2026-04-01T10:03:00Z",
+    ...noComment,
   },
   {
+    id: 6,
     questionId: 101,
     answer: "{\"selected\":[],\"otherText\":\" \"}",
     submittedAt: "2026-04-01T10:03:30Z",
+    ...noComment,
   },
-  { questionId: 102, answer: " 参考になりました\n次回も参加します ", submittedAt: "2026-04-01T10:04:00Z" },
-  { questionId: 102, answer: " ", submittedAt: "2026-04-01T10:05:00Z" },
+  {
+    id: 7,
+    questionId: 102,
+    answer: " 参考になりました\n次回も参加します ",
+    submittedAt: "2026-04-01T10:04:00Z",
+    comment: "次回の案内を送ります",
+    commentUpdatedAt: "2026-04-03 02:00:00",
+  },
+  { id: 8, questionId: 102, answer: " ", submittedAt: "2026-04-01T10:05:00Z", ...noComment },
 ];
 
 test("survey answer helpers normalize option values", () => {
@@ -101,7 +123,14 @@ test("buildSurveyResultBlocks aggregates survey responses by question type", () 
     { label: "低い", value: 0, width: "0%" },
     { label: "その他", value: 1, width: "50%" },
   ]);
-  assert.deepEqual(blocks[0].otherTextAnswers, ["非常に高い"]);
+  assert.deepEqual(blocks[0].otherTextAnswers, [
+    {
+      responseId: 2,
+      text: "非常に高い",
+      comment: "ありがとうございます",
+      commentUpdatedAt: "2026-04-02 01:00:00",
+    },
+  ]);
 
   assert.equal(blocks[1].responseCount, 2);
   assert.deepEqual(blocks[1].distribution, [
@@ -110,10 +139,19 @@ test("buildSurveyResultBlocks aggregates survey responses by question type", () 
     { label: "運用", value: 1, width: "50%" },
     { label: "その他", value: 1, width: "50%" },
   ]);
-  assert.deepEqual(blocks[1].otherTextAnswers, ["監査\n対応"]);
+  assert.deepEqual(blocks[1].otherTextAnswers, [
+    { responseId: 5, text: "監査\n対応", ...noComment },
+  ]);
 
   assert.equal(blocks[2].responseCount, 1);
-  assert.deepEqual(blocks[2].freeTextAnswers, ["参考になりました\n次回も参加します"]);
+  assert.deepEqual(blocks[2].freeTextAnswers, [
+    {
+      responseId: 7,
+      text: "参考になりました\n次回も参加します",
+      comment: "次回の案内を送ります",
+      commentUpdatedAt: "2026-04-03 02:00:00",
+    },
+  ]);
   assert.deepEqual(blocks[2].otherTextAnswers, []);
   assert.deepEqual(blocks[2].distribution, []);
 });

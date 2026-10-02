@@ -92,9 +92,12 @@ export interface Survey {
 }
 
 export interface SurveyResponse {
+  id: number;
   questionId: number;
   answer: string;
   submittedAt: string;
+  comment: string | null;
+  commentUpdatedAt: string | null;
 }
 
 export interface SurveyAnswerInput {
@@ -158,10 +161,17 @@ export interface SurveyDistributionItem {
   width: string;
 }
 
+export interface SurveyTextAnswer {
+  responseId: number;
+  text: string;
+  comment: string | null;
+  commentUpdatedAt: string | null;
+}
+
 export interface SurveyResultBlock extends SurveyQuestion {
   responseCount: number;
-  freeTextAnswers: string[];
-  otherTextAnswers: string[];
+  freeTextAnswers: SurveyTextAnswer[];
+  otherTextAnswers: SurveyTextAnswer[];
   distribution: SurveyDistributionItem[];
 }
 
