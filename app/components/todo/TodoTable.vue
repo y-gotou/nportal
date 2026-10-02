@@ -3,7 +3,7 @@ import { Check, ChevronDown, ChevronRight, Pencil, Trash2, X } from "lucide-vue-
 import { formatDisplayDate } from "#shared/utils/content";
 import { jstToday } from "#shared/utils/date";
 import { TODO_ASSIGNEE_MAX_LENGTH, TODO_TITLE_MAX_LENGTH, isTodoOverdue } from "#shared/utils/todos";
-import { inputClass } from "~/utils/ui";
+import { iconButtonClass, inputClass } from "~/utils/ui";
 import type { MinutesMeta, Todo } from "~~/types/portal";
 
 const props = defineProps<{
@@ -27,9 +27,6 @@ const rows = computed(() =>
   props.collapseDone && !showDone.value ? props.todos.filter((todo) => !todo.doneAt) : props.todos,
 );
 const columnCount = computed(() => 4 + Number(props.showMinutes) + Number(props.editable));
-
-const iconButtonClass =
-  "inline-flex h-8 w-8 items-center justify-center rounded-md text-muted hover:bg-surface-hover hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-50";
 
 async function request(id: number, options: { method: "PUT" | "DELETE"; body?: Record<string, unknown> }) {
   isSaving.value = true;

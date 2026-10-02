@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import { Pencil, Trash2 } from "lucide-vue-next";
 import { formatDisplayDate } from "#shared/utils/content";
-import { dangerButtonClass, primaryButtonClass, secondaryButtonClass, topicTagClass } from "~/utils/ui";
+import { iconButtonClass, primaryButtonClass, secondaryButtonClass, topicTagClass } from "~/utils/ui";
 import { matchesResourceFilters, resourceOpensInNewTab, resourceTypeIcon } from "~/utils/resources";
 import { useCurrentUser } from "~/composables/useCurrentUser";
 import { chatDisplayName } from "#shared/utils/chat";
@@ -29,6 +30,7 @@ const mineOnly = ref(route.query.mine === "1");
 
 const resources = computed(() => data.value?.resources ?? []);
 const minutesOptions = computed(() => minutesData.value?.minutes ?? []);
+const minutesTitles = computed(() => new Map(minutesOptions.value.map((minutes) => [minutes.slug, minutes.title])));
 const allTags = computed(() => [...new Set(resources.value.flatMap((r) => r.tags))]);
 const allTypes = computed(() => [...new Set(resources.value.map((r) => r.type))]);
 const showForm = ref(false);
@@ -126,8 +128,6 @@ const filterChipClass =
 function filterChipStateClass(selected: boolean) {
   return selected ? "bg-blue-500 text-white" : "bg-surface-hover text-muted hover:bg-border";
 }
-
-const rowButtonClass = "!rounded-md !px-2.5 !py-[5px] !text-[13px] !leading-[18px] whitespace-nowrap";
 
 useSeoMeta({
   title: "資料共有",
@@ -271,7 +271,8 @@ useSeoMeta({
       </div>
     </div>
 
-    <!-- lg 未満では行を flex にし、order で 日付・種類・投稿者/資料/タグ/ボタン の 4 段に積む -->
+    <!-- lg 未満では行を grid にし、日付・種類・投稿者/資料と編集・削除/タグ/議事録 の 4 段に積む。
+         段の間隔は gap でなく各セルの mt で空ける(表示しない段の分の隙間を残さないため) -->
     <section
       v-if="filteredResources.length"
       class="mt-8 overflow-hidden rounded-xl border border-border bg-surface shadow-sm"
@@ -284,6 +285,7 @@ useSeoMeta({
             <th class="px-2 py-2.5 font-medium">タグ</th>
             <th class="px-2 py-2.5 font-medium">投稿者</th>
             <th class="px-2 py-2.5 font-medium">日付</th>
+            <th class="px-2 py-2.5 font-medium">議事録</th>
             <th class="px-4 py-2.5 font-medium"><span class="sr-only">操作</span></th>
           </tr>
         </thead>
@@ -291,12 +293,19 @@ useSeoMeta({
           <tr
             v-for="resource in filteredResources"
             :key="resource.id"
-            class="flex flex-wrap items-center gap-x-2 gap-y-1.5 px-4 py-3 lg:table-row"
+            class="grid grid-cols-[max-content_max-content_minmax(0,1fr)_max-content] items-center gap-x-2 px-4 py-3 [grid-template-areas:'date_type_by_by'_'main_main_main_act'_'tags_tags_tags_tags'_'min_min_min_min'] lg:table-row"
           >
-            <td class="order-4 basis-full break-words font-medium text-foreground lg:px-4 lg:py-2.5">
-              {{ resource.title }}
+            <td class="mt-1.5 min-w-0 break-words font-medium [grid-area:main] lg:px-4 lg:py-2.5">
+              <a
+                :href="resource.url"
+                :target="resourceOpensInNewTab(resource) ? '_blank' : undefined"
+                :rel="resourceOpensInNewTab(resource) ? 'noopener' : undefined"
+                class="text-blue-600 hover:underline dark:text-blue-400"
+              >
+                {{ resource.title }}
+              </a>
             </td>
-            <td class="order-2 lg:px-2 lg:py-2.5">
+            <td class="[grid-area:type] lg:px-2 lg:py-2.5">
               <span class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-surface-hover px-2 py-0.5 text-xs text-muted">
                 <component
                   :is="resourceTypeIcon(resource.type).icon"
@@ -308,7 +317,7 @@ useSeoMeta({
               </span>
             </td>
             <td
-              class="order-5 basis-full lg:px-2 lg:py-2.5"
+              class="mt-1.5 [grid-area:tags] lg:px-2 lg:py-2.5"
               :class="{ 'hidden lg:table-cell': !resource.tags.length }"
             >
               <div class="flex flex-wrap gap-1.5">
@@ -322,51 +331,40 @@ useSeoMeta({
                 </span>
               </div>
             </td>
-            <td class="order-3 whitespace-nowrap text-muted lg:px-2 lg:py-2.5">
+            <td class="whitespace-nowrap text-muted [grid-area:by] lg:px-2 lg:py-2.5">
               <template v-if="resource.submittedBy">
                 <span class="lg:hidden">投稿者: </span>{{ chatDisplayName(resource.submittedBy) }}
               </template>
             </td>
-            <td class="order-1 whitespace-nowrap text-muted lg:px-2 lg:py-2.5">
+            <td class="whitespace-nowrap text-muted [grid-area:date] lg:px-2 lg:py-2.5">
               {{ formatDisplayDate(resource.date) }}
             </td>
-            <td class="order-6 basis-full lg:px-4 lg:py-2">
-              <!-- 表示しないボタンも同じ寸法の空枠を置き、行ごとにボタンの位置が変わらないようにする -->
-              <div class="flex gap-2 lg:flex-row-reverse">
-                <a
-                  :href="resource.url"
-                  :target="resourceOpensInNewTab(resource) ? '_blank' : undefined"
-                  :rel="resourceOpensInNewTab(resource) ? 'noopener' : undefined"
-                  :class="[primaryButtonClass, rowButtonClass]"
-                >
-                  開く
-                </a>
+            <td
+              class="mt-1.5 text-muted [grid-area:min] lg:whitespace-nowrap lg:px-2 lg:py-2.5"
+              :class="{ 'hidden lg:table-cell': !resource.relatedMinutesSlug }"
+            >
+              <template v-if="resource.relatedMinutesSlug">
+                <span v-if="minutesTitles.has(resource.relatedMinutesSlug)" class="lg:hidden">議事録: </span>
                 <NuxtLink
-                  v-if="resource.relatedMinutesSlug"
                   :to="`/minutes/${resource.relatedMinutesSlug}`"
-                  :class="[secondaryButtonClass, rowButtonClass]"
+                  class="text-blue-600 hover:underline dark:text-blue-400"
                 >
-                  議事録
+                  {{ minutesTitles.get(resource.relatedMinutesSlug) ?? "議事録" }}
                 </NuxtLink>
-                <span v-else aria-hidden="true" :class="[secondaryButtonClass, rowButtonClass]" class="invisible">議事録</span>
-                <button
-                  v-if="resource.canEdit"
-                  type="button"
-                  :class="[secondaryButtonClass, rowButtonClass]"
-                  @click="openEditForm(resource)"
-                >
-                  編集
+              </template>
+            </td>
+            <td
+              class="self-start whitespace-nowrap [grid-area:act] lg:px-4 lg:py-1"
+              :class="{ 'hidden lg:table-cell': !resource.canEdit }"
+            >
+              <!-- lg 未満ではタイトルの 1 行目の右に置く。-mb でアイコンの高さの分だけ段が広がるのを防ぐ -->
+              <div v-if="resource.canEdit" class="-mb-1.5 flex lg:mb-0 lg:justify-end">
+                <button type="button" :class="iconButtonClass" aria-label="編集" title="編集" @click="openEditForm(resource)">
+                  <Pencil class="h-4 w-4" />
                 </button>
-                <span v-else aria-hidden="true" :class="[secondaryButtonClass, rowButtonClass]" class="invisible">編集</span>
-                <button
-                  v-if="resource.canEdit"
-                  type="button"
-                  :class="[dangerButtonClass, rowButtonClass]"
-                  @click="deleteResource(resource)"
-                >
-                  削除
+                <button type="button" :class="iconButtonClass" aria-label="削除" title="削除" @click="deleteResource(resource)">
+                  <Trash2 class="h-4 w-4" />
                 </button>
-                <span v-else aria-hidden="true" :class="[dangerButtonClass, rowButtonClass]" class="invisible">削除</span>
               </div>
             </td>
           </tr>
