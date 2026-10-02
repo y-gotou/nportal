@@ -2,7 +2,7 @@
 id: T-019
 title: Todo 形式の簡易課題管理
 scale: large
-status: doing
+status: blocked
 priority: mid
 updated: 2026-10-02
 approvals:
