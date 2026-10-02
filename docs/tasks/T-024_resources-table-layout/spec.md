@@ -2,7 +2,7 @@
 id: T-024
 title: 資料一覧の表形式化と絞り込みの拡充
 scale: medium
-status: doing
+status: blocked
 priority: mid
 updated: 2026-10-02
 approvals:

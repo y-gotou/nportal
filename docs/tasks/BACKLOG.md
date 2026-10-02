@@ -6,7 +6,7 @@
 
 | ID | 件名 | 規模 | 状態 | 優先度 | 更新日 | 票 |
 |----|------|------|------|--------|--------|----|
-| T-024 | 資料一覧の表形式化と絞り込みの拡充 | medium | doing | mid | 2026-10-02 | [T-024](T-024_resources-table-layout/spec.md) |
+| T-024 | 資料一覧の表形式化と絞り込みの拡充 | medium | blocked | mid | 2026-10-02 | [T-024](T-024_resources-table-layout/spec.md) |
 
 ### アーカイブ済み
 
