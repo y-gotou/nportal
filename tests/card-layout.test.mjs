@@ -28,6 +28,15 @@ test("speakers page follows the shared header and button styles", async () => {
   assert.doesNotMatch(page, /<span class="text-border">\|<\/span>/);
 });
 
+// 枠線の無いボタンは枠線のあるボタンより 2px 低く、並べると高さが揃わない
+test("primary buttons keep the same height as bordered buttons", async () => {
+  const ui = await readSource("utils/ui.ts");
+  const page = await readSource("pages/speakers.vue");
+
+  assert.match(ui, /primaryButtonClass =\s*"[^"]*\bborder border-transparent\b/);
+  assert.match(page, /:class="primaryButtonClass"\s*>\s*資料を開く/);
+});
+
 test("resources page hides the tag row without tags", async () => {
   const page = await readSource("pages/resources/index.vue");
 

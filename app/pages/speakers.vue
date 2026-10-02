@@ -337,7 +337,7 @@ useSeoMeta({
                     :href="linkedResource(app)!.url"
                     :target="resourceOpensInNewTab(linkedResource(app)!) ? '_blank' : undefined"
                     :rel="resourceOpensInNewTab(linkedResource(app)!) ? 'noopener' : undefined"
-                    :class="secondaryButtonClass"
+                    :class="primaryButtonClass"
                   >
                     資料を開く
                   </a>
