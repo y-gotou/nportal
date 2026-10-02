@@ -2,12 +2,12 @@
 id: T-025
 title: 発表募集の「資料を開く」を青い主ボタンに変更
 scale: small
-status: blocked
+status: done
 priority: mid
 updated: 2026-10-02
 approvals:
   spec: 2026-10-02
-  done: null
+  done: 2026-10-02
 ---
 # 発表募集の「資料を開く」を青い主ボタンに変更
 
@@ -43,8 +43,8 @@ approvals:
 
 ## 作業ログ
 ### 引き継ぎサマリ
-- 現状: PR #119 を merge 済み。本番デプロイは成功。本番環境での表示確認と G3 承認待ち(status: blocked)。
-- 次の作業: ユーザーが本番環境で発表募集の「資料を開く」を確認した後、G3 承認を得て完了処理(archive への移動)を行い、`docs/t-025-close` から PR を作成する。
+- 現状: 完了。PR #119 を 2026-10-02 に merge し本番反映済み。G3 承認済み。
+- 次の作業: なし。
 - 未確定点: なし。
 
 ### 時系列
@@ -57,3 +57,4 @@ approvals:
 - 2026-10-02: 更新情報(`app/utils/changelog.ts`)には追記しない。ボタンの配色と高さ 2px の調整で、同日の「画面の文言とボタンの並びを統一」の範囲に含まれるため。
 - 2026-10-02: ユーザーが push と PR 作成を承認した。ブランチ `fix/speakers-resource-button` を push して PR #119 を作成した。status を blocked とした(再開条件: PR #119 の merge と本番反映)。
 - 2026-10-02: ユーザーが PR #119 を merge した(2026-10-02 17:48 JST)。merge コミットのチェック結果で、本番デプロイ(Cloudflare Pages)の成功を確認した。ローカルの main を更新し、作業ブランチを削除して、完了記録用のブランチ `docs/t-025-close` を作成した。`docs/requirements-speakers.md` の記載が票の「仕様書反映」と一致することを確認した。
+- 2026-10-02: 本番環境での表示確認を依頼し、ユーザーが G3 を承認した。仕様書反映は実装 PR に同梱済みで、追認を得た。status を done とし、票を archive へ移動した。完了記録の push と PR 作成の承認もあわせて得た。
