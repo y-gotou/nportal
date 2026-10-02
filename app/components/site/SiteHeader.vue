@@ -107,12 +107,12 @@ onUnmounted(() => {
             N
           </span>
           <span class="flex flex-col">
-            <strong class="text-base font-semibold tracking-tight text-foreground">N Portal</strong>
+            <strong class="whitespace-nowrap text-base font-semibold tracking-tight text-foreground">N Portal</strong>
           </span>
         </NuxtLink>
 
         <nav
-          class="hidden items-center gap-2 md:flex"
+          class="hidden items-center gap-2 whitespace-nowrap lg:flex"
           aria-label="グローバルナビゲーション"
         >
           <SiteNavLinks :items="navItems" variant="desktop" />
@@ -123,7 +123,7 @@ onUnmounted(() => {
         <div
           v-if="currentUser"
           ref="userMenuRef"
-          class="relative hidden shrink-0 border-l border-border pl-3 md:block"
+          class="relative hidden shrink-0 border-l border-border pl-3 lg:block"
         >
           <button
             type="button"
@@ -138,7 +138,7 @@ onUnmounted(() => {
             >
               {{ userInitial }}
             </span>
-            <span class="hidden text-xs text-muted lg:block">{{ currentUser.email }}</span>
+            <span class="hidden max-w-48 truncate text-xs text-muted xl:block">{{ currentUser.email }}</span>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="h-3.5 w-3.5 text-muted transition-transform"
@@ -174,7 +174,7 @@ onUnmounted(() => {
         <button
           ref="mobileMenuButtonRef"
           type="button"
-          class="flex items-center justify-center rounded-lg p-2 text-muted transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 md:hidden"
+          class="flex items-center justify-center rounded-lg p-2 text-muted transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 lg:hidden"
           :aria-controls="mobileMenuId"
           :aria-expanded="isMobileMenuOpen"
           aria-label="メニューを開く"
@@ -211,7 +211,7 @@ onUnmounted(() => {
   >
     <div
       v-if="isMobileMenuOpen"
-      class="fixed inset-0 z-40 bg-slate-950/30 md:hidden"
+      class="fixed inset-0 z-40 bg-slate-950/30 lg:hidden"
       @click="closeMobileMenu"
     />
   </Transition>
@@ -227,7 +227,7 @@ onUnmounted(() => {
     <aside
       v-if="isMobileMenuOpen"
       :id="mobileMenuId"
-      class="fixed inset-y-0 right-0 z-50 flex w-full max-w-xs flex-col border-l border-border bg-surface shadow-2xl md:hidden"
+      class="fixed inset-y-0 right-0 z-50 flex w-full max-w-xs flex-col border-l border-border bg-surface shadow-2xl lg:hidden"
       aria-label="モバイルメニュー"
     >
       <div class="flex items-center justify-between border-b border-border px-5 py-4">

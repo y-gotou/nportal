@@ -37,6 +37,13 @@ export const changelogCategoryClasses: Record<ChangelogCategory, string> = {
 export const changelogEntries: ChangelogEntry[] = [
   {
     date: "2026-10-02",
+    category: "fix",
+    title: "メニューの文字が折り返す表示を修正",
+    description:
+      "画面の幅によって、上部メニューの項目が2行に折り返していた表示を修正しました。画面の幅が狭い場合は、右上のメニューボタンから各ページへ移動できます。",
+  },
+  {
+    date: "2026-10-02",
     category: "feature",
     title: "課題の一覧ページを追加",
     description:
