@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatCommentDate } from "~/utils/survey";
+import { formatCommentDate, surveyCommentBandClass } from "~/utils/survey";
 
 defineProps<{
   comment: string;
@@ -8,7 +8,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="flex gap-2 border-t border-emerald-200 bg-emerald-50 px-4 py-2.5 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-200">
+  <div class="flex gap-2" :class="surveyCommentBandClass">
     <svg
       xmlns="http://www.w3.org/2000/svg"
       class="mt-1 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400"

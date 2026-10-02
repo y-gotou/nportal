@@ -10,6 +10,11 @@ const { survey, responses, myAnswers } = await useSurveyDetail(surveyId, {
 
 const hasResponded = computed(() => Object.keys(myAnswers).length > 0);
 
+const currentUser = useCurrentUser();
+const canComment = computed(
+  () => currentUser.value?.isAdmin === true && survey.status === "closed",
+);
+
 useSeoMeta({
   title: `${survey.title} の結果`,
   description: survey.description,
@@ -61,7 +66,12 @@ useSeoMeta({
     </div>
 
     <div v-if="(survey.responseCount ?? 0) > 0" class="mt-8 space-y-4">
-      <SurveyResults :survey="survey" :responses="responses" :my-answers="myAnswers" />
+      <SurveyResults
+        :survey="survey"
+        :responses="responses"
+        :my-answers="myAnswers"
+        :can-comment="canComment"
+      />
     </div>
 
     <div

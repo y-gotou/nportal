@@ -12,6 +12,7 @@ const props = defineProps<{
   survey: Survey;
   responses: SurveyResponse[];
   myAnswers?: Record<number, string>;
+  canComment?: boolean;
 }>();
 
 const blocks = computed(() => buildSurveyResultBlocks(props.survey, props.responses));
@@ -65,29 +66,14 @@ function isMyOtherText(
         >
           まだ自由記述の回答はありません。
         </p>
-        <div
+        <SurveyTextAnswer
           v-for="answer in block.freeTextAnswers"
           :key="answer.responseId"
-          class="overflow-hidden rounded-lg border text-sm leading-6"
-          :class="
-            isMyFreeText(block.id, answer.text)
-              ? 'border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-700 dark:bg-blue-900/20 dark:text-blue-300'
-              : 'border-border bg-background text-foreground'
-          "
-        >
-          <div class="whitespace-pre-wrap px-4 py-3">
-            <span
-              v-if="isMyFreeText(block.id, answer.text)"
-              class="mb-1 block text-xs font-semibold text-blue-600 dark:text-blue-400"
-            >あなたの回答</span>
-            {{ answer.text }}
-          </div>
-          <SurveyAnswerComment
-            v-if="answer.comment"
-            :comment="answer.comment"
-            :updated-at="answer.commentUpdatedAt"
-          />
-        </div>
+          :survey-id="survey.id"
+          :answer="answer"
+          :is-mine="isMyFreeText(block.id, answer.text)"
+          :can-comment="canComment"
+        />
       </div>
 
       <div v-else class="space-y-3">
@@ -138,29 +124,14 @@ function isMyOtherText(
 
         <div v-if="block.otherTextAnswers.length" class="space-y-3 rounded-lg border border-border bg-surface px-4 py-4">
           <p class="text-sm font-semibold text-foreground">その他の自由記述</p>
-          <div
+          <SurveyTextAnswer
             v-for="answer in block.otherTextAnswers"
             :key="answer.responseId"
-            class="overflow-hidden rounded-lg border text-sm leading-6"
-            :class="
-              isMyOtherText(block.id, answer.text, block.questionType)
-                ? 'border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-700 dark:bg-blue-900/20 dark:text-blue-300'
-                : 'border-border bg-background text-foreground'
-            "
-          >
-            <div class="whitespace-pre-wrap px-4 py-3">
-              <span
-                v-if="isMyOtherText(block.id, answer.text, block.questionType)"
-                class="mb-1 block text-xs font-semibold text-blue-600 dark:text-blue-400"
-              >あなたの回答</span>
-              {{ answer.text }}
-            </div>
-            <SurveyAnswerComment
-              v-if="answer.comment"
-              :comment="answer.comment"
-              :updated-at="answer.commentUpdatedAt"
-            />
-          </div>
+            :survey-id="survey.id"
+            :answer="answer"
+            :is-mine="isMyOtherText(block.id, answer.text, block.questionType)"
+            :can-comment="canComment"
+          />
         </div>
       </div>
     </section>
