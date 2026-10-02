@@ -2,7 +2,7 @@
 id: T-017
 title: 会議スケジュールへの議題追加
 scale: medium
-status: doing
+status: blocked
 priority: mid
 updated: 2026-10-02
 approvals:

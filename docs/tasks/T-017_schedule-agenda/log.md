@@ -1,8 +1,8 @@
 # T-017 作業ログ
 
 ## 引き継ぎサマリ
-- 現状: 実装とエージェント実施の検証は完了。ユーザーの見た目確認と、要件変更(単独ページ化・Markdown 対応)の G1・G2 再承認を 2026-10-02 に得た。plan.md の作業項目はすべて消化済み。作業ブランチは `feat/schedule-agenda`(push 未実施)。
-- 次の作業: ユーザーの承認を得て push と PR 作成を行う。merge 前に、ユーザーが本番 D1 へ次の2文を適用する。`ALTER TABLE schedule ADD COLUMN agenda TEXT;` と `ALTER TABLE schedule ADD COLUMN agenda_html TEXT;`。merge 日が 2026-10-02 と異なる場合は changelog の日付を merge 日に直す。merge・本番確認の後に G3(完了処理は `docs/t-017-close` ブランチから PR)。
+- 現状: 実装とエージェント実施の検証は完了し、PR #103 を作成済み。ユーザー実施の作業(本番 D1 への列追加・merge・本番確認)待ちのため status は blocked。作業ブランチは `feat/schedule-agenda`。
+- 次の作業: ユーザーが merge 前に本番 D1 へ次の2文を適用する。`ALTER TABLE schedule ADD COLUMN agenda TEXT;` と `ALTER TABLE schedule ADD COLUMN agenda_html TEXT;`。その後に merge し、本番画面で議題の保存と表示を確認する。merge 日が 2026-10-02 と異なる場合は changelog の日付を merge 日に直す。再開条件は merge と本番確認の完了で、満たされたら G3(完了処理は `docs/t-017-close` ブランチから PR)へ進む。
 - 未確定点: なし。
 
 ## 時系列ログ
@@ -21,3 +21,4 @@
 - 2026-10-02: エージェント実施の検証を消化。`npm test` は 197 件すべて成功、`npm run check` は成功(終了コード 0)。ブラウザ確認の結果は次のとおり。`/schedule` の今後の予定・開催済みの回とトップページの「議題」ボタンから `/schedule/{id}` へ移動できた。議題ページに会議の情報と、Markdown の見出し・番号付きリスト・箇条書き・リンク・引用が表示された。本文中の `<script>` は保存された HTML にも画面にも出力されなかった。外部リンクは新規タブで開く属性が付与された。議題の無い回にはボタンが出ず、その回の議題ページを直接開くと「議題はまだ登録されていません。」が表示された。存在しない ID と数値でない ID は 404 になった。`/schedule` の一覧は移動後も 200 で同じ表示だった。管理フォームのラベルは「議題（Markdown）」、補足は「任意」で、再編集時に原文が表示された。幅 760px とライト・ダーク両テーマで表示を確認し、コンソールの警告・エラーは無かった。
 - 2026-10-02: `docs/requirements-schedule.md` と changelog の文言を単独ページ・Markdown の仕様へ更新した(changelog の日付は暫定で 2026-10-02)。
 - 2026-10-02: ユーザーが議題ページの見た目を確認し、問題なしと回答。併せて要件変更(単独ページ化・Markdown 対応)の G1・G2 を再承認。承認日を更新した。本番用 SQL 2文を提示済み。ローカル開発サーバーは停止した。ローカル D1 には確認用の回(ID 910)と議題のサンプルが残っている。
+- 2026-10-02: ユーザーの承認を得て push し、PR #103 を作成した。ユーザー実施の作業待ちのため status を blocked にした。
