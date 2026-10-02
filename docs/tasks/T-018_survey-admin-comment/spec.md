@@ -2,12 +2,12 @@
 id: T-018
 title: アンケート回答への管理者コメント
 scale: medium
-status: todo
+status: doing
 priority: mid
 updated: 2026-10-02
 approvals:
   spec: 2026-10-02
-  plan: null
+  plan: 2026-10-02
   done: null
 ---
 # アンケート回答への管理者コメント
