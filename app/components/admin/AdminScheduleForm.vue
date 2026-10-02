@@ -102,7 +102,7 @@ async function submit() {
       >
     </AdminFormField>
 
-    <AdminFormField label="議題" field-id="agenda" hint="任意">
+    <AdminFormField label="議題（Markdown）" field-id="agenda" hint="任意">
       <textarea
         id="agenda"
         v-model="form.agenda"

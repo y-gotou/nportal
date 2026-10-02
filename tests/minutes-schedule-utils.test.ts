@@ -8,7 +8,12 @@ import {
   listMinutes,
   updateMinutes,
 } from "../server/utils/minutes.ts";
-import { listSchedule, parseSchedulePayload } from "../server/utils/schedule.ts";
+import {
+  createScheduleItem,
+  listSchedule,
+  parseSchedulePayload,
+  updateScheduleItem,
+} from "../server/utils/schedule.ts";
 import type { D1DatabaseLike, D1PreparedStatement } from "../types/portal.ts";
 
 interface MinutesRow {
@@ -32,6 +37,7 @@ interface ScheduleRow {
   topics: string;
   location: string | null;
   agenda?: string | null;
+  agenda_html?: string | null;
 }
 
 interface TestDbState {
@@ -490,14 +496,95 @@ test("listSchedule returns agenda and null for rows without it", async () => {
     minutes: [],
     schedule: [
       { ...row, id: 1, date: "2026-10-01" },
-      { ...row, id: 2, date: "2026-10-08", agenda: "1. 近況共有\n2. デモ" },
+      {
+        ...row,
+        id: 2,
+        date: "2026-10-08",
+        agenda: "1. 近況共有\n2. デモ",
+        agenda_html: "<ol><li>近況共有</li><li>デモ</li></ol>",
+      },
     ],
   });
 
   const schedule = await listSchedule(db);
 
   assert.deepEqual(
-    schedule.map((item) => item.agenda),
-    [null, "1. 近況共有\n2. デモ"],
+    schedule.map((item) => [item.agenda, item.agendaHtml]),
+    [
+      [null, null],
+      ["1. 近況共有\n2. デモ", "<ol><li>近況共有</li><li>デモ</li></ol>"],
+    ],
   );
+});
+
+// schedule の INSERT / UPDATE でバインドされた値を記録するだけの最小 DB
+function createScheduleWriteDb(): { db: D1DatabaseLike; writes: unknown[][] } {
+  const writes: unknown[][] = [];
+  const db: D1DatabaseLike = {
+    prepare(query: string) {
+      let boundValues: unknown[] = [];
+      const stmt = {
+        bind(...values: unknown[]) {
+          boundValues = values;
+          return stmt;
+        },
+        async first() {
+          if (query.includes("INSERT INTO schedule") || query.includes("UPDATE schedule")) {
+            writes.push(boundValues);
+            return { id: 1 };
+          }
+          return {
+            id: 1,
+            date: "2026-10-08",
+            time: "19:00",
+            title: "次回",
+            meeting_url: null,
+            minutes_slug: null,
+            topics: "[]",
+            location: null,
+          };
+        },
+      };
+      return stmt as unknown as D1PreparedStatement;
+    },
+  } as D1DatabaseLike;
+  return { db, writes };
+}
+
+test("createScheduleItem and updateScheduleItem store agenda as sanitized HTML", async () => {
+  const payload = parseSchedulePayload({
+    date: "2026-10-08",
+    time: "19:00",
+    title: "次回",
+    topics: [],
+    agenda: "## 進行\n\n- 近況共有\n- [資料](https://example.com/doc)\n\n<script>alert(1)</script>",
+  });
+
+  const { db, writes } = createScheduleWriteDb();
+  await createScheduleItem(db, payload);
+  await updateScheduleItem(db, 1, payload);
+
+  assert.equal(writes.length, 2);
+  for (const values of writes) {
+    assert.ok(values.includes(payload.agenda));
+    const html = values.find((value) => typeof value === "string" && value.includes("<h2>"));
+    assert.ok(typeof html === "string");
+    assert.match(html, /<li>近況共有<\/li>/);
+    assert.match(html, /<a href="https:\/\/example\.com\/doc">資料<\/a>/);
+    assert.doesNotMatch(html, /<script/);
+  }
+});
+
+test("createScheduleItem stores no agenda HTML when agenda is unset", async () => {
+  const payload = parseSchedulePayload({
+    date: "2026-10-08",
+    time: "19:00",
+    title: "次回",
+    topics: [],
+  });
+
+  const { db, writes } = createScheduleWriteDb();
+  await createScheduleItem(db, payload);
+
+  assert.deepEqual(writes[0]!.slice(-2), [null, null]);
 });

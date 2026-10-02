@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS schedule (
   topics       TEXT NOT NULL DEFAULT '[]',
   location     TEXT,
   agenda       TEXT,
+  agenda_html  TEXT,
   created_at   TEXT DEFAULT (datetime('now')),
   updated_at   TEXT DEFAULT (datetime('now'))
 );

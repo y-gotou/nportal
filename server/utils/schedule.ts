@@ -1,5 +1,6 @@
 import { createError } from "h3";
 import type { D1DatabaseLike, ScheduleItem } from "../../types/portal.ts";
+import { renderMarkdown } from "./minutes.ts";
 
 interface ScheduleRow {
   id: number;
@@ -12,6 +13,7 @@ interface ScheduleRow {
   topics: string;
   location: string | null;
   agenda?: string | null;
+  agenda_html?: string | null;
   has_chat?: number;
 }
 
@@ -26,6 +28,7 @@ function toScheduleItem(row: ScheduleRow): ScheduleItem {
     topics: JSON.parse(row.topics) as string[],
     location: row.location,
     agenda: row.agenda ?? null,
+    agendaHtml: row.agenda_html ?? null,
     hasChat: (row.has_chat ?? 0) === 1,
   };
 }
@@ -91,10 +94,11 @@ export async function createScheduleItem(
   db: D1DatabaseLike,
   payload: SchedulePayload,
 ): Promise<ScheduleItem> {
+  const agendaHtml = payload.agenda ? await renderMarkdown(payload.agenda) : null;
   const result = await db
     .prepare(
-      `INSERT INTO schedule (date, time, title, meeting_url, minutes_slug, topics, location, agenda)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `INSERT INTO schedule (date, time, title, meeting_url, minutes_slug, topics, location, agenda, agenda_html)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
        RETURNING id`,
     )
     .bind(
@@ -106,6 +110,7 @@ export async function createScheduleItem(
       JSON.stringify(payload.topics),
       payload.location ?? null,
       payload.agenda ?? null,
+      agendaHtml,
     )
     .first<{ id: number }>();
 
@@ -120,10 +125,11 @@ export async function updateScheduleItem(
   id: number,
   payload: SchedulePayload,
 ): Promise<ScheduleItem> {
+  const agendaHtml = payload.agenda ? await renderMarkdown(payload.agenda) : null;
   await db
     .prepare(
       `UPDATE schedule
-       SET date = ?, time = ?, title = ?, meeting_url = ?, minutes_slug = ?, topics = ?, location = ?, agenda = ?, updated_at = datetime('now')
+       SET date = ?, time = ?, title = ?, meeting_url = ?, minutes_slug = ?, topics = ?, location = ?, agenda = ?, agenda_html = ?, updated_at = datetime('now')
        WHERE id = ?`,
     )
     .bind(
@@ -135,6 +141,7 @@ export async function updateScheduleItem(
       JSON.stringify(payload.topics),
       payload.location ?? null,
       payload.agenda ?? null,
+      agendaHtml,
       id,
     )
     .first();

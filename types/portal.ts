@@ -8,6 +8,7 @@ export interface ScheduleItem {
   topics: string[];
   location?: string | null;
   agenda?: string | null;
+  agendaHtml?: string | null;
   hasChat?: boolean;
 }
 

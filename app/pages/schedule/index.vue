@@ -68,7 +68,13 @@ useSeoMeta({
               >
                 会議に参加する
               </a>
-              <ScheduleAgenda :agenda="item.agenda" :class="secondaryButtonClass" />
+              <NuxtLink
+                v-if="item.agenda"
+                :to="`/schedule/${item.id}`"
+                :class="secondaryButtonClass"
+              >
+                議題
+              </NuxtLink>
               <NuxtLink
                 :to="`/chat/${item.id}`"
                 :class="secondaryButtonClass"
@@ -120,7 +126,13 @@ useSeoMeta({
               >
                 議事録を見る
               </NuxtLink>
-              <ScheduleAgenda :agenda="item.agenda" :class="secondaryButtonClass" />
+              <NuxtLink
+                v-if="item.agenda"
+                :to="`/schedule/${item.id}`"
+                :class="secondaryButtonClass"
+              >
+                議題
+              </NuxtLink>
               <NuxtLink
                 v-if="item.hasChat"
                 :to="`/chat/${item.id}`"
