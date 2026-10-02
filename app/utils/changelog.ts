@@ -38,6 +38,12 @@ export const changelogEntries: ChangelogEntry[] = [
   {
     date: "2026-10-02",
     category: "fix",
+    title: "ニュースのタブ崩れなど表示の不具合を修正",
+    description: "スマホ幅のタブ、ダークモードの配色、エラーページを直しました。",
+  },
+  {
+    date: "2026-10-02",
+    category: "fix",
     title: "メニューの文字が折り返す表示を修正",
   },
   {
