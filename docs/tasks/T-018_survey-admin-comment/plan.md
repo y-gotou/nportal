@@ -80,4 +80,4 @@
 ### 実環境・ユーザー実施
 - [x] 見た目の確認(作業項目 3 の途中)
 - [x] Preview D1 と本番 D1 へのスキーマ適用(`npm run db:schema:preview`、`npm run db:schema:prod` を merge 前に実行)
-- [ ] 本番画面でのコメントの登録・表示の確認
+- [x] 本番画面でのコメントの登録・表示の確認
