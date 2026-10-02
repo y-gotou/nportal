@@ -319,6 +319,20 @@ export interface NewsWeeklyResponse {
   nextDate: string | null;
 }
 
+export interface Todo {
+  id: number;
+  title: string;
+  assignee: string | null;
+  dueDate: string | null;
+  minutesSlug: string | null;
+  minutesTitle: string | null;
+  doneAt: string | null;
+}
+
+export interface TodosResponse {
+  todos: Todo[];
+}
+
 export interface D1PreparedStatement {
   bind(...values: unknown[]): D1PreparedStatement;
   first<T = unknown>(): Promise<T | null>;

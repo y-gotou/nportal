@@ -217,3 +217,16 @@ CREATE TABLE IF NOT EXISTS news_digests (
 
 CREATE INDEX IF NOT EXISTS idx_news_articles_date ON news_articles(published_date);
 CREATE INDEX IF NOT EXISTS idx_news_votes_article ON news_votes(article_id);
+
+CREATE TABLE IF NOT EXISTS todos (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  title        TEXT NOT NULL,
+  assignee     TEXT,
+  due_date     TEXT,
+  minutes_slug TEXT REFERENCES minutes(slug) ON DELETE SET NULL,
+  done_at      TEXT,
+  created_at   TEXT DEFAULT (datetime('now')),
+  updated_at   TEXT DEFAULT (datetime('now'))
+);
+-- done_at: 完了にした日時(ISO 8601)。未完了は NULL
+-- minutes_slug: 議事録を削除すると紐付けのみ解除される(課題は残す)
