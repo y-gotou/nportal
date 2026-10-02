@@ -36,6 +36,13 @@ export const changelogCategoryClasses: Record<ChangelogCategory, string> = {
 // 機能追加・変更の PR で、この配列の先頭に 1 項目を追記する。
 export const changelogEntries: ChangelogEntry[] = [
   {
+    date: "2026-10-02",
+    category: "feature",
+    title: "会議の議題ページを追加",
+    description:
+      "スケジュールページとトップページの次回の会議に「議題」ボタンを追加しました。押すと、その回の議題を専用ページで確認できます。",
+  },
+  {
     date: "2026-09-18",
     category: "fix",
     title: "回答後の結果ページに自分の回答が反映されない問題を修正",

@@ -7,6 +7,8 @@ export interface ScheduleItem {
   minutesSlug?: string | null;
   topics: string[];
   location?: string | null;
+  agenda?: string | null;
+  agendaHtml?: string | null;
   hasChat?: boolean;
 }
 

@@ -82,6 +82,13 @@ useSeoMeta({
           会議に参加する
         </a>
         <NuxtLink
+          v-if="nextEvent.agenda"
+          :to="`/schedule/${nextEvent.id}`"
+          :class="`${secondaryButtonClass} !bg-transparent border-white/20 text-white hover:!bg-white/10 hover:text-white`"
+        >
+          議題
+        </NuxtLink>
+        <NuxtLink
           :to="`/chat/${nextEvent.id}`"
           :class="`${secondaryButtonClass} !bg-transparent border-white/20 text-white hover:!bg-white/10 hover:text-white`"
         >
