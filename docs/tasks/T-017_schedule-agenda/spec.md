@@ -6,8 +6,8 @@ status: doing
 priority: mid
 updated: 2026-10-02
 approvals:
-  spec: 2026-10-01
-  plan: 2026-10-01
+  spec: 2026-10-02
+  plan: 2026-10-02
   done: null
 ---
 # 会議スケジュールへの議題追加
