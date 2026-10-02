@@ -2,7 +2,7 @@
 id: T-023
 title: 表記の統一と軽微なレイアウト調整
 scale: large
-status: doing
+status: blocked
 priority: mid
 updated: 2026-10-02
 approvals:

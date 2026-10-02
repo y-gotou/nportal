@@ -7,7 +7,7 @@
 | ID | 件名 | 規模 | 状態 | 優先度 | 更新日 | 票 |
 |----|------|------|------|--------|--------|----|
 | T-022 | 表示の崩れ・欠落の修正 | medium | blocked | mid | 2026-10-02 | [T-022](T-022_display-breakage/spec.md) |
-| T-023 | 表記の統一と軽微なレイアウト調整 | large | doing | mid | 2026-10-02 | [T-023](T-023_wording-layout-unify/spec.md) |
+| T-023 | 表記の統一と軽微なレイアウト調整 | large | blocked | mid | 2026-10-02 | [T-023](T-023_wording-layout-unify/spec.md) |
 
 ### アーカイブ済み
 
