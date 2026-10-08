@@ -2,13 +2,13 @@
 id: T-026
 title: 課題の追加を全利用者に開放
 scale: medium
-status: doing
+status: done
 priority: mid
 updated: 2026-10-08
 approvals:
   spec: 2026-10-08
   plan: 2026-10-08
-  done: null
+  done: 2026-10-08
 ---
 # 課題の追加を全利用者に開放
 
