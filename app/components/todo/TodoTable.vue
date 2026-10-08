@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import { Check, ChevronDown, ChevronRight, Pencil, Trash2, X } from "lucide-vue-next";
+import { chatDisplayName } from "#shared/utils/chat";
 import { formatDisplayDate } from "#shared/utils/content";
 import { jstToday } from "#shared/utils/date";
-import { TODO_ASSIGNEE_MAX_LENGTH, TODO_TITLE_MAX_LENGTH, isTodoOverdue } from "#shared/utils/todos";
+import { TODO_ASSIGNEE_MAX_LENGTH, TODO_TITLE_MAX_LENGTH, canEditTodo, isTodoOverdue } from "#shared/utils/todos";
 import { iconButtonClass, inputClass } from "~/utils/ui";
-import type { MinutesMeta, Todo } from "~~/types/portal";
+import type { CurrentUser, MinutesMeta, Todo } from "~~/types/portal";
 
 const props = defineProps<{
   todos: Todo[];
-  editable?: boolean;
+  // 渡さない場合は、どの課題も操作できない
+  user?: CurrentUser | null;
   showMinutes?: boolean;
+  showCreatedBy?: boolean;
   collapseDone?: boolean;
   minutesOptions?: MinutesMeta[];
 }>();
@@ -26,14 +29,19 @@ const doneCount = computed(() => props.todos.filter((todo) => todo.doneAt).lengt
 const rows = computed(() =>
   props.collapseDone && !showDone.value ? props.todos.filter((todo) => !todo.doneAt) : props.todos,
 );
-const columnCount = computed(() => 4 + Number(props.showMinutes) + Number(props.editable));
+const canEdit = (todo: Todo) => canEditTodo(todo, props.user);
+// 表示中の行ではなく全件で判定する。完了済みの展開で操作の列が増減しないようにするため
+const hasEditable = computed(() => props.todos.some(canEdit));
+const columnCount = computed(
+  () => 4 + Number(props.showMinutes) + Number(props.showCreatedBy) + Number(hasEditable.value),
+);
 
 async function request(id: number, options: { method: "PUT" | "DELETE"; body?: Record<string, unknown> }) {
   isSaving.value = true;
   errorMessage.value = "";
 
   try {
-    await $fetch(`/api/admin/todos/${id}`, options);
+    await $fetch(`/api/todos/${id}`, options);
     emit("changed");
     return true;
   }
@@ -101,7 +109,8 @@ function remove(todo: Todo) {
             <th class="px-4 py-2.5 font-medium">担当</th>
             <th class="px-4 py-2.5 font-medium">期限</th>
             <th v-if="showMinutes" class="px-4 py-2.5 font-medium">議事録</th>
-            <th v-if="editable" class="w-24 px-4 py-2.5 font-medium"><span class="sr-only">操作</span></th>
+            <th v-if="showCreatedBy" class="px-4 py-2.5 font-medium">登録者</th>
+            <th v-if="hasEditable" class="w-24 px-4 py-2.5 font-medium"><span class="sr-only">操作</span></th>
           </tr>
         </thead>
         <tbody class="divide-y divide-border">
@@ -112,7 +121,7 @@ function remove(todo: Todo) {
                 type="checkbox"
                 class="block h-5 w-5 accent-emerald-600"
                 :checked="todo.doneAt !== null"
-                :disabled="!editable || isSaving"
+                :disabled="!canEdit(todo) || isSaving"
                 :aria-label="`${todo.title} を完了にする`"
                 @click.prevent="toggle(todo)"
               >
@@ -148,6 +157,9 @@ function remove(todo: Todo) {
                   </option>
                 </select>
               </td>
+              <td v-if="showCreatedBy" class="whitespace-nowrap px-4 py-2 text-muted">
+                {{ todo.createdBy ? chatDisplayName(todo.createdBy) : "" }}
+              </td>
               <td class="whitespace-nowrap px-4 py-2 text-right">
                 <button type="button" :class="iconButtonClass" aria-label="保存" title="保存" :disabled="isSaving" @click="saveEdit">
                   <Check class="h-4 w-4" />
@@ -181,13 +193,18 @@ function remove(todo: Todo) {
                   {{ todo.minutesTitle }}
                 </NuxtLink>
               </td>
-              <td v-if="editable" class="whitespace-nowrap px-4 py-1 text-right">
-                <button type="button" :class="iconButtonClass" aria-label="編集" title="編集" @click="startEdit(todo)">
-                  <Pencil class="h-4 w-4" />
-                </button>
-                <button type="button" :class="iconButtonClass" aria-label="削除" title="削除" :disabled="isSaving" @click="remove(todo)">
-                  <Trash2 class="h-4 w-4" />
-                </button>
+              <td v-if="showCreatedBy" class="whitespace-nowrap px-4 py-3 text-muted">
+                {{ todo.createdBy ? chatDisplayName(todo.createdBy) : "" }}
+              </td>
+              <td v-if="hasEditable" class="whitespace-nowrap px-4 py-1 text-right">
+                <template v-if="canEdit(todo)">
+                  <button type="button" :class="iconButtonClass" aria-label="編集" title="編集" @click="startEdit(todo)">
+                    <Pencil class="h-4 w-4" />
+                  </button>
+                  <button type="button" :class="iconButtonClass" aria-label="削除" title="削除" :disabled="isSaving" @click="remove(todo)">
+                    <Trash2 class="h-4 w-4" />
+                  </button>
+                </template>
               </td>
             </template>
           </tr>

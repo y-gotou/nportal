@@ -228,6 +228,7 @@ CREATE TABLE IF NOT EXISTS todos (
   due_date     TEXT,
   minutes_slug TEXT REFERENCES minutes(slug) ON DELETE SET NULL,
   done_at      TEXT,
+  created_by   TEXT,
   created_at   TEXT DEFAULT (datetime('now')),
   updated_at   TEXT DEFAULT (datetime('now'))
 );

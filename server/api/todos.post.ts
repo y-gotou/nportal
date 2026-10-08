@@ -1,12 +1,12 @@
 import { readBody } from "h3";
-import { assertAdmin } from "~~/server/utils/admin";
+import { requireUser } from "~~/server/utils/auth";
 import { getDb } from "~~/server/utils/db";
 import { createTodo, type TodoInput } from "~~/server/utils/todos";
 
 export default defineEventHandler(async (event) => {
-  assertAdmin(event);
+  const user = requireUser(event);
 
   const body = await readBody<TodoInput>(event);
-  await createTodo(getDb(event), body ?? {});
+  await createTodo(getDb(event), body ?? {}, user.email);
   return { success: true };
 });

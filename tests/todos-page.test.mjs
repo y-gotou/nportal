@@ -21,27 +21,38 @@ test("resource and speaker pages keep their original headings", async () => {
   assert.match(await read("app/pages/speakers.vue"), /title: "発表募集"/);
 });
 
-test("admin todo APIs check the admin role before touching the database", async () => {
-  for (const file of ["index.post.ts", "[id].put.ts", "[id].delete.ts"]) {
-    const handler = await read(`server/api/admin/todos/${file}`);
+// 誰が操作できるかは、利用者を受け取った updateTodo・deleteTodo が課題ごとに判定する(todos-server.test.ts)
+test("todo write APIs require a signed-in user and pass it on for the permission check", async () => {
+  const handlers = {
+    "todos.post.ts": /createTodo\(getDb\(event\), body \?\? \{\}, user\.email\)/,
+    "todos/[id].put.ts": /updateTodo\(getDb\(event\), id, body \?\? \{\}, user\)/,
+    "todos/[id].delete.ts": /deleteTodo\(getDb\(event\), id, user\)/,
+  };
 
-    assert.match(handler, /defineEventHandler\(async \(event\) => \{\s*assertAdmin\(event\);/, file);
+  for (const [file, call] of Object.entries(handlers)) {
+    const handler = await read(`server/api/${file}`);
+
+    assert.match(handler, /defineEventHandler\(async \(event\) => \{\s*const user = requireUser\(event\);/, file);
+    assert.match(handler, call, file);
   }
 });
 
-test("todo table shows admin controls only when editable", async () => {
+test("todo table decides the controls per row from the current user", async () => {
   const table = await read("app/components/todo/TodoTable.vue");
 
-  assert.match(table, /:disabled="!editable/);
-  assert.match(table, /<th v-if="editable"/);
-  assert.match(table, /<td v-if="editable"/);
+  assert.match(table, /const canEdit = \(todo: Todo\) => canEditTodo\(todo, props\.user\);/);
+  assert.match(table, /:disabled="!canEdit\(todo\) \|\| isSaving"/);
+  assert.match(table, /<td v-if="hasEditable"[^>]*>\s*<template v-if="canEdit\(todo\)">/);
+  assert.match(table, /<th v-if="showCreatedBy"[^>]*>登録者<\/th>/);
+  assert.match(table, /chatDisplayName\(todo\.createdBy\)/);
 });
 
-test("todo page shows the add form only to admins", async () => {
+test("todo page shows the add form and the creator column to every user", async () => {
   const page = await read("app/pages/todos.vue");
 
-  assert.match(page, /<form\s+v-if="isAdmin"/);
-  assert.match(page, /:editable="isAdmin"/);
+  assert.doesNotMatch(page, /isAdmin/);
+  assert.match(page, /<form\s+class=/);
+  assert.match(page, /:user="currentUser"[\s\S]*?show-created-by/);
 });
 
 test("minutes page lists linked todos as a bare read-only table between the body and related resources", async () => {
