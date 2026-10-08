@@ -5,15 +5,10 @@ import { inputClass, primaryButtonClass } from "~/utils/ui";
 import type { MinutesListResponse, TodosResponse } from "~~/types/portal";
 
 const currentUser = useCurrentUser();
-const isAdmin = computed(() => currentUser.value?.isAdmin === true);
 
 const [{ data, refresh }, { data: minutesData }] = await Promise.all([
   useFetch<TodosResponse>("/api/todos", { default: () => ({ todos: [] }) }),
-  // 議事録の選択肢は追加・編集でのみ使うため、管理者のときだけ取得する
-  useFetch<MinutesListResponse>("/api/minutes", {
-    default: () => ({ minutes: [] }),
-    immediate: isAdmin.value,
-  }),
+  useFetch<MinutesListResponse>("/api/minutes", { default: () => ({ minutes: [] }) }),
 ]);
 
 const todos = computed(() => data.value?.todos ?? []);
@@ -29,7 +24,7 @@ async function add() {
   errorMessage.value = "";
 
   try {
-    await $fetch("/api/admin/todos", { method: "POST", body: draft.value });
+    await $fetch("/api/todos", { method: "POST", body: draft.value });
     draft.value = emptyDraft();
     await refresh();
   }
@@ -52,7 +47,6 @@ useSeoMeta({
     <SectionHeader title="課題一覧" />
 
     <form
-      v-if="isAdmin"
       class="mb-4 flex flex-wrap gap-2 rounded-xl border border-border bg-surface p-4 shadow-sm"
       @submit.prevent="add"
     >
@@ -89,9 +83,10 @@ useSeoMeta({
     <TodoTable
       v-if="todos.length"
       :todos="todos"
-      :editable="isAdmin"
+      :user="currentUser"
       :minutes-options="minutesOptions"
       show-minutes
+      show-created-by
       collapse-done
       @changed="refresh()"
     />

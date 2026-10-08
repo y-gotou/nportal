@@ -327,6 +327,7 @@ export interface Todo {
   minutesSlug: string | null;
   minutesTitle: string | null;
   doneAt: string | null;
+  createdBy: string | null;
 }
 
 export interface TodosResponse {

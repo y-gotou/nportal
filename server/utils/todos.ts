@@ -1,7 +1,7 @@
 import { createError } from "h3";
-import type { D1DatabaseLike, Todo } from "../../types/portal.ts";
+import type { CurrentUser, D1DatabaseLike, Todo } from "../../types/portal.ts";
 import { DATE_PATTERN } from "../../shared/utils/date.ts";
-import { TODO_ASSIGNEE_MAX_LENGTH, TODO_TITLE_MAX_LENGTH } from "../../shared/utils/todos.ts";
+import { TODO_ASSIGNEE_MAX_LENGTH, TODO_TITLE_MAX_LENGTH, canEditTodo } from "../../shared/utils/todos.ts";
 
 interface TodoRow {
   id: number;
@@ -11,6 +11,7 @@ interface TodoRow {
   minutes_slug: string | null;
   minutes_title: string | null;
   done_at: string | null;
+  created_by: string | null;
 }
 
 export interface TodoInput {
@@ -36,6 +37,7 @@ function toTodo(row: TodoRow): Todo {
     minutesSlug: row.minutes_slug,
     minutesTitle: row.minutes_title,
     doneAt: row.done_at,
+    createdBy: row.created_by,
   };
 }
 
@@ -48,7 +50,7 @@ export async function listTodos(
   // 未完了は登録の新しい順、完了済みは完了にした日時の新しい順。
   // 登録順に created_at を使わないのは、書き込み元によって日時の形式が混在し得るため
   const stmt = db.prepare(
-    `SELECT t.id, t.title, t.assignee, t.due_date, t.minutes_slug, t.done_at, m.title AS minutes_title
+    `SELECT t.id, t.title, t.assignee, t.due_date, t.minutes_slug, t.done_at, t.created_by, m.title AS minutes_title
      FROM todos t
      LEFT JOIN minutes m ON m.slug = t.minutes_slug
      ${where}
@@ -101,17 +103,36 @@ async function parseTodoFields(db: D1DatabaseLike, body: TodoInput): Promise<Tod
   return fields;
 }
 
-export async function createTodo(db: D1DatabaseLike, body: TodoInput): Promise<void> {
+export async function createTodo(db: D1DatabaseLike, body: TodoInput, createdBy: string): Promise<void> {
   const fields = await parseTodoFields(db, body);
   if (!fields.title) throw badRequest("title is required.");
 
   await db
-    .prepare("INSERT INTO todos (title, assignee, due_date, minutes_slug) VALUES (?, ?, ?, ?)")
-    .bind(fields.title, fields.assignee ?? null, fields.due_date ?? null, fields.minutes_slug ?? null)
+    .prepare("INSERT INTO todos (title, assignee, due_date, minutes_slug, created_by) VALUES (?, ?, ?, ?, ?)")
+    .bind(fields.title, fields.assignee ?? null, fields.due_date ?? null, fields.minutes_slug ?? null, createdBy)
     .first();
 }
 
-export async function updateTodo(db: D1DatabaseLike, id: number, body: TodoInput): Promise<void> {
+async function assertCanEditTodo(db: D1DatabaseLike, id: number, user: CurrentUser): Promise<void> {
+  const row = await db
+    .prepare("SELECT created_by FROM todos WHERE id = ?")
+    .bind(id)
+    .first<{ created_by: string | null }>();
+
+  if (!row) throw createError({ statusCode: 404, statusMessage: "Todo not found." });
+  if (!canEditTodo({ createdBy: row.created_by }, user)) {
+    throw createError({ statusCode: 403, statusMessage: "Forbidden" });
+  }
+}
+
+export async function updateTodo(
+  db: D1DatabaseLike,
+  id: number,
+  body: TodoInput,
+  user: CurrentUser,
+): Promise<void> {
+  await assertCanEditTodo(db, id, user);
+
   const fields = await parseTodoFields(db, body);
   const now = new Date().toISOString();
   const sets = Object.keys(fields).map((column) => `${column} = ?`);
@@ -136,7 +157,9 @@ export async function updateTodo(db: D1DatabaseLike, id: number, body: TodoInput
   if (!row) throw createError({ statusCode: 404, statusMessage: "Todo not found." });
 }
 
-export async function deleteTodo(db: D1DatabaseLike, id: number): Promise<void> {
+export async function deleteTodo(db: D1DatabaseLike, id: number, user: CurrentUser): Promise<void> {
+  await assertCanEditTodo(db, id, user);
+
   const row = await db.prepare("DELETE FROM todos WHERE id = ? RETURNING id").bind(id).first();
 
   if (!row) throw createError({ statusCode: 404, statusMessage: "Todo not found." });

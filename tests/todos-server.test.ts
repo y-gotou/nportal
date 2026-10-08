@@ -3,9 +3,24 @@ import { readFileSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import test from "node:test";
 import { deleteMinutes } from "../server/utils/minutes.ts";
-import { createTodo, deleteTodo, listTodos, updateTodo } from "../server/utils/todos.ts";
+import {
+  createTodo as createTodoAs,
+  deleteTodo as deleteTodoAs,
+  listTodos,
+  updateTodo as updateTodoAs,
+  type TodoInput,
+} from "../server/utils/todos.ts";
 import { TODO_ASSIGNEE_MAX_LENGTH, TODO_TITLE_MAX_LENGTH } from "../shared/utils/todos.ts";
 import type { D1DatabaseLike, D1PreparedStatement } from "../types/portal.ts";
+
+const admin = { email: "admin@example.com", isAdmin: true };
+const alice = { email: "alice@example.com", isAdmin: false };
+const bob = { email: "bob@example.com", isAdmin: false };
+
+// 権限に関係しないテストは、管理者として操作する
+const createTodo = (db: D1DatabaseLike, body: TodoInput) => createTodoAs(db, body, admin.email);
+const updateTodo = (db: D1DatabaseLike, id: number, body: TodoInput) => updateTodoAs(db, id, body, admin);
+const deleteTodo = (db: D1DatabaseLike, id: number) => deleteTodoAs(db, id, admin);
 
 const schema = readFileSync(new URL("../db/schema.sql", import.meta.url), "utf8");
 
@@ -65,6 +80,7 @@ test("createTodo trims the title and stores blank optional fields as unset", asy
       minutesSlug: null,
       minutesTitle: null,
       doneAt: null,
+      createdBy: "admin@example.com",
     },
   ]);
 });
@@ -214,4 +230,65 @@ test("deleting minutes keeps the linked todos and clears only the link", async (
       ["第11回の課題", null, null],
     ],
   );
+});
+
+test("createTodo records the creator, and updateTodo keeps it even when an admin edits", async () => {
+  const { db } = createDb();
+  await createTodoAs(db, { title: "課題" }, alice.email);
+
+  await updateTodoAs(db, 1, { title: "管理者が直した件名" }, admin);
+
+  const [todo] = await listTodos(db);
+  assert.equal(todo?.title, "管理者が直した件名");
+  assert.equal(todo?.createdBy, "alice@example.com");
+});
+
+test("a non-admin can edit, complete and delete only their own todos", async () => {
+  const { db } = createDb();
+  await createTodoAs(db, { title: "Alice の課題" }, alice.email);
+  await createTodoAs(db, { title: "Bob の課題" }, bob.email);
+
+  await assertRejects(updateTodoAs(db, 2, { title: "書き換え" }, alice), 403);
+  await assertRejects(updateTodoAs(db, 2, { done: true }, alice), 403);
+  await assertRejects(deleteTodoAs(db, 2, alice), 403);
+  // 権限の無い課題では、入力の誤りより先に権限の無いことを返す
+  await assertRejects(updateTodoAs(db, 2, { title: " " }, alice), 403);
+  await assertRejects(updateTodoAs(db, 99, { title: "課題" }, alice), 404);
+  await assertRejects(deleteTodoAs(db, 99, alice), 404);
+
+  const [bobTodo] = await listTodos(db);
+  assert.equal(bobTodo?.title, "Bob の課題");
+  assert.equal(bobTodo?.doneAt, null);
+
+  await updateTodoAs(db, 1, { title: "直した件名", done: true }, alice);
+  const done = (await listTodos(db)).find((todo) => todo.id === 1);
+  assert.equal(done?.title, "直した件名");
+  assert.notEqual(done?.doneAt, null);
+
+  await deleteTodoAs(db, 1, alice);
+  assert.deepEqual(await titles(db), ["Bob の課題"]);
+});
+
+test("an admin can edit and delete todos created by others", async () => {
+  const { db } = createDb();
+  await createTodoAs(db, { title: "Alice の課題" }, alice.email);
+
+  await updateTodoAs(db, 1, { done: true }, admin);
+  assert.notEqual((await listTodos(db))[0]?.doneAt, null);
+
+  await deleteTodoAs(db, 1, admin);
+  assert.deepEqual(await listTodos(db), []);
+});
+
+test("todos without a recorded creator can be changed only by an admin", async () => {
+  const { db, sqlite } = createDb();
+  sqlite.exec("INSERT INTO todos (title) VALUES ('登録者なしの課題')");
+
+  assert.equal((await listTodos(db))[0]?.createdBy, null);
+  await assertRejects(updateTodoAs(db, 1, { done: true }, alice), 403);
+  await assertRejects(deleteTodoAs(db, 1, alice), 403);
+
+  await updateTodoAs(db, 1, { done: true }, admin);
+  await deleteTodoAs(db, 1, admin);
+  assert.deepEqual(await listTodos(db), []);
 });
