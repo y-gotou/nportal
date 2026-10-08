@@ -43,6 +43,6 @@
 - [x] ローカルの API 確認: 管理者以外からの他人の課題への編集・削除の要求が 403 になること(単体テストで確認し、経路の疎通はローカルで確認)。
 
 ### 実環境・ユーザー実施
-- [ ] merge 前: Preview と本番の D1 に `ALTER TABLE todos ADD COLUMN created_by TEXT;` を適用する(コマンドは PR 本文に記載)。
+- [x] merge 前: Preview と本番の D1 に `ALTER TABLE todos ADD COLUMN created_by TEXT;` を適用する(コマンドは PR 本文に記載)。
 - [ ] merge 後: 本番で、課題の追加と登録者の表示を確認する。可能であれば、管理者以外のアカウントで、他人の課題を操作できないことを確認する。
 - [ ] merge 後: 既存の課題を削除し、登録し直す。
